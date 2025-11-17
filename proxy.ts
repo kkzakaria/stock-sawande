@@ -67,11 +67,15 @@ export async function proxy(request: NextRequest) {
 
   // Redirect unauthenticated users to login
   if (isProtectedPath && !user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Redirect authenticated users away from auth pages
-  if (request.nextUrl.pathname.startsWith('/auth') && user) {
+  const authPaths = ['/login', '/signup', '/otp']
+  const isAuthPath = authPaths.some(path =>
+    request.nextUrl.pathname.startsWith(path)
+  )
+  if (isAuthPath && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
