@@ -185,6 +185,12 @@ Screenshot sauvegardé: `.playwright-mcp/dashboard-cashier-nav.png`
 2. ✅ Configuration cache dynamique (layout + toutes les pages protégées)
 3. ✅ Validation Playwright confirme redirections fonctionnelles
 
-**Ready for Production**: 🟢 Oui, avec workaround documenté pour changements de rôle
+**Ready for Production**: 🟢 Oui, solution complète implémentée
 
-**Note**: Pour une solution complète du cache session, implémenter un système de rafraîchissement de session après modifications de rôle critiques (webhook Supabase ou mécanisme custom).
+**Solution Session Refresh Implémentée**:
+1. ✅ Bouton "Refresh Session" dans le user menu
+2. ✅ Fonction `change_user_role()` avec notifications
+3. ✅ Server actions pour rafraîchissement de session
+4. ✅ Documentation complète dans `docs/SESSION_REFRESH.md`
+
+**Workflow**: Admin change rôle → Utilisateur click "Refresh Session" → Logout automatique → Re-login avec nouveau rôle → Menus admin visibles

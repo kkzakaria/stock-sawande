@@ -11,9 +11,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { LogOut, Settings, User as UserIcon } from 'lucide-react'
+import { LogOut, Settings, User as UserIcon, RefreshCw } from 'lucide-react'
 import { logout } from '@/app/(auth)/actions'
+import { refreshUserSession } from '@/lib/actions/session'
 import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface DashboardHeaderProps {
   user: User
@@ -22,9 +24,19 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   const [isPending, startTransition] = useTransition()
+  const [isRefreshing, startRefresh] = useTransition()
+  const router = useRouter()
 
   const handleLogout = () => {
     startTransition(async () => {
+      await logout()
+    })
+  }
+
+  const handleRefreshSession = () => {
+    startRefresh(async () => {
+      await refreshUserSession()
+      // Force logout to clear cached session
       await logout()
     })
   }
@@ -106,7 +118,14 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} disabled={isPending}>
+            <DropdownMenuItem
+              onClick={handleRefreshSession}
+              disabled={isRefreshing || isPending}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>{isRefreshing ? 'Refreshing...' : 'Refresh Session'}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} disabled={isPending || isRefreshing}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>{isPending ? 'Logging out...' : 'Log out'}</span>
             </DropdownMenuItem>
