@@ -1,28 +1,56 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+'use client'
+
+import { useState, useTransition } from 'react'
+import Link from 'next/link'
+import { verifyOtp } from '@/app/(auth)/actions'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
+} from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from '@/components/ui/input-otp'
 
-export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
+export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const [otp, setOtp] = useState('')
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+
+    const formData = new FormData(e.currentTarget)
+    formData.append('token', otp)
+
+    startTransition(async () => {
+      const result = await verifyOtp(formData)
+      if (result?.error) {
+        setError(result.error)
+      }
+    })
+  }
+
   return (
     <div
-      className={cn("flex flex-col gap-6 md:min-h-[450px]", className)}
+      className={cn('flex flex-col gap-6 md:min-h-[450px]', className)}
       {...props}
     >
       <Card className="flex-1 overflow-hidden p-0">
         <CardContent className="grid flex-1 p-0 md:grid-cols-2">
-          <form className="flex flex-col items-center justify-center p-6 md:p-8">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col items-center justify-center p-6 md:p-8"
+          >
             <FieldGroup>
               <Field className="items-center text-center">
                 <h1 className="text-2xl font-bold">Enter verification code</h1>
@@ -30,6 +58,28 @@ export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
                   We sent a 6-digit code to your email
                 </p>
               </Field>
+
+              {error && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  disabled={isPending}
+                />
+                <FieldDescription>
+                  Enter the email address you used to sign up
+                </FieldDescription>
+              </Field>
+
               <Field>
                 <FieldLabel htmlFor="otp" className="sr-only">
                   Verification code
@@ -37,7 +87,9 @@ export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
                 <InputOTP
                   maxLength={6}
                   id="otp"
-                  required
+                  value={otp}
+                  onChange={setOtp}
+                  disabled={isPending}
                   containerClassName="gap-4"
                 >
                   <InputOTPGroup>
@@ -56,10 +108,16 @@ export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
                   Enter the 6-digit code sent to your email.
                 </FieldDescription>
               </Field>
+
               <Field>
-                <Button type="submit">Verify</Button>
+                <Button type="submit" disabled={isPending || otp.length !== 6}>
+                  {isPending ? 'Verifying...' : 'Verify'}
+                </Button>
                 <FieldDescription className="text-center">
-                  Didn&apos;t receive the code? <a href="#">Resend</a>
+                  Didn&apos;t receive the code?{' '}
+                  <Link href="/signup" className="underline underline-offset-2">
+                    Resend
+                  </Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -67,15 +125,22 @@ export function OTPForm({ className, ...props }: React.ComponentProps<"div">) {
           <div className="bg-muted relative hidden md:block">
             <img
               src="/placeholder.svg"
-              alt="Image"
+              alt="Authentication"
               className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>
         </CardContent>
       </Card>
       <FieldDescription className="text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our{' '}
+        <Link href="#" className="underline underline-offset-2">
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link href="#" className="underline underline-offset-2">
+          Privacy Policy
+        </Link>
+        .
       </FieldDescription>
     </div>
   )

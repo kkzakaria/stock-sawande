@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { login } from '@/app/(auth)/actions'
+import { resetPassword } from '@/app/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,19 +14,23 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
-export function LoginForm({
+export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   async function handleSubmit(formData: FormData) {
     setError(null)
+    setSuccess(null)
     startTransition(async () => {
-      const result = await login(formData)
+      const result = await resetPassword(formData)
       if (result?.error) {
         setError(result.error)
+      } else if (result?.success) {
+        setSuccess(result.message || 'Check your email for the reset link')
       }
     })
   }
@@ -38,15 +42,21 @@ export function LoginForm({
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">Reset your password</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Next Stock account
+                  Enter your email and we&apos;ll send you a reset link
                 </p>
               </div>
 
               {error && (
                 <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 text-green-900 dark:bg-green-900/10 dark:text-green-400 rounded-md p-3 text-sm">
+                  {success}
                 </div>
               )}
 
@@ -58,39 +68,23 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   required
-                  disabled={isPending}
+                  disabled={isPending || !!success}
                 />
+                <FieldDescription>
+                  We&apos;ll send a password reset link to this email
+                </FieldDescription>
               </Field>
 
               <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <Link
-                    href="/forgot-password"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  disabled={isPending}
-                />
-              </Field>
-
-              <Field>
-                <Button type="submit" disabled={isPending}>
-                  {isPending ? 'Logging in...' : 'Login'}
+                <Button type="submit" disabled={isPending || !!success}>
+                  {isPending ? 'Sending...' : 'Send Reset Link'}
                 </Button>
               </Field>
 
               <FieldDescription className="text-center">
-                Don&apos;t have an account?{' '}
-                <Link href="/signup" className="underline underline-offset-2">
-                  Sign up
+                Remember your password?{' '}
+                <Link href="/login" className="underline underline-offset-2">
+                  Sign in
                 </Link>
               </FieldDescription>
             </FieldGroup>
