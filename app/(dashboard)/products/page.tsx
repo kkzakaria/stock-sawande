@@ -1,8 +1,30 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 
-export default function ProductsPage() {
+// Disable caching for role checks
+export const dynamic = 'force-dynamic'
+
+export default async function ProductsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get user profile to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user!.id)
+    .single()
+
+  // Only admin and manager can access products
+  if (!['admin', 'manager'].includes(profile?.role || '')) {
+    redirect('/dashboard')
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

@@ -1,6 +1,28 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function ReportsPage() {
+// Disable caching for role checks
+export const dynamic = 'force-dynamic'
+
+export default async function ReportsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get user profile to check role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user!.id)
+    .single()
+
+  // Only admin and manager can access reports
+  if (!['admin', 'manager'].includes(profile?.role || '')) {
+    redirect('/dashboard')
+  }
+
   return (
     <div className="space-y-6">
       <div>

@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Plus, Store } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
+// Disable caching for role checks
+export const dynamic = 'force-dynamic'
+
 export default async function StoresPage() {
   const supabase = await createClient()
   const {

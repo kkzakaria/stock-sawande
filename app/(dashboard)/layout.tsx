@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 
+// Force dynamic rendering to always fetch fresh profile data
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -17,7 +21,7 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Get user profile with role
+  // Get user profile with role (no cache to reflect role changes immediately)
   const { data: profile } = await supabase
     .from('profiles')
     .select('*, stores(*)')
