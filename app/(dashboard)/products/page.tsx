@@ -1,13 +1,20 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import { getProducts, getCategories, getStores } from '@/lib/actions/products'
+import { ProductsClient } from '@/components/products/products-client'
+import type { ProductFilters } from '@/lib/types/filters'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
-export default async function ProductsPage() {
+interface ProductsPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -16,7 +23,7 @@ export default async function ProductsPage() {
   // Get user profile to check role
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, store_id')
     .eq('id', user!.id)
     .single()
 
@@ -24,6 +31,28 @@ export default async function ProductsPage() {
   if (!['admin', 'manager'].includes(profile?.role || '')) {
     redirect('/dashboard')
   }
+
+  // Parse search params into filters
+  const params = await searchParams
+  const filters: ProductFilters = {
+    search: typeof params.search === 'string' ? params.search : undefined,
+    category: typeof params.category === 'string' ? params.category : undefined,
+    status: params.status === 'active' || params.status === 'inactive' ? params.status : undefined,
+    store: typeof params.store === 'string' ? params.store : undefined,
+    sortBy: ['name', 'sku', 'price', 'quantity', 'created_at'].includes(params.sortBy as string)
+      ? (params.sortBy as 'name' | 'sku' | 'price' | 'quantity' | 'created_at')
+      : 'created_at',
+    sortOrder: params.sortOrder === 'desc' ? 'desc' : 'asc',
+    page: typeof params.page === 'string' ? parseInt(params.page, 10) : 1,
+    limit: typeof params.limit === 'string' ? parseInt(params.limit, 10) : 10,
+  }
+
+  // Fetch data in parallel
+  const [productsResult, categoriesResult, storesResult] = await Promise.all([
+    getProducts(filters),
+    getCategories(),
+    getStores(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -34,22 +63,20 @@ export default async function ProductsPage() {
             Manage your inventory and products
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
+        <Button asChild>
+          <Link href="/products/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Product
+          </Link>
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Product List</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Product management will be implemented in Phase 3
-          </p>
-        </CardContent>
-      </Card>
+      <ProductsClient
+        products={productsResult.data || []}
+        categories={categoriesResult.data || []}
+        stores={storesResult.data || []}
+        totalCount={productsResult.totalCount || 0}
+      />
     </div>
   )
 }

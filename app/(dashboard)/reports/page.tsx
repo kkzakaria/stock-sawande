@@ -1,11 +1,16 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getStores } from '@/lib/actions/products'
+import { ReportsClient } from '@/components/reports/reports-client'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
-export default async function ReportsPage() {
+interface ReportsPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -23,6 +28,19 @@ export default async function ReportsPage() {
     redirect('/dashboard')
   }
 
+  // Parse search params into filters (passed to client component via props if needed)
+  const params = await searchParams
+  // For future use when report data is implemented
+  const _reportType = ['sales', 'inventory', 'performance'].includes(params.reportType as string)
+    ? (params.reportType as 'sales' | 'inventory' | 'performance')
+    : 'sales'
+  const _groupBy = ['daily', 'weekly', 'monthly'].includes(params.groupBy as string)
+    ? (params.groupBy as 'daily' | 'weekly' | 'monthly')
+    : 'daily'
+
+  // Fetch stores for filter dropdown
+  const { data: stores } = await getStores()
+
   return (
     <div className="space-y-6">
       <div>
@@ -32,51 +50,7 @@ export default async function ReportsPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Sales Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Sales analytics coming soon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventory Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Inventory analytics coming soon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Revenue analytics coming soon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Performance metrics coming soon
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <ReportsClient stores={stores || []} />
     </div>
   )
 }

@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { buildLoginUrl } from '@/lib/auth/redirect'
 
 // Force dynamic rendering to always fetch fresh profile data
 export const dynamic = 'force-dynamic'
@@ -18,7 +20,15 @@ export default async function DashboardLayout({
   } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    // Get the current URL to redirect back after login
+    const headersList = await headers()
+    const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '/dashboard'
+    const searchParams = headersList.get('x-search-params') || ''
+    const currentUrl = searchParams ? `${pathname}?${searchParams}` : pathname
+
+    // Build login URL with redirect parameter
+    const loginUrl = buildLoginUrl(currentUrl)
+    redirect(loginUrl)
   }
 
   // Get user profile with role (no cache to reflect role changes immediately)

@@ -12,8 +12,17 @@ import {
   Store,
 } from 'lucide-react'
 
+interface Profile {
+  id: string
+  email: string | null
+  full_name: string | null
+  role: string
+  store_id: string | null
+  stores?: { name: string } | null
+}
+
 interface DashboardNavProps {
-  profile: any
+  profile: Profile | null
 }
 
 const navItems = [

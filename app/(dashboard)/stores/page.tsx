@@ -1,13 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Store } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import { StoresClient } from '@/components/stores/stores-client'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
-export default async function StoresPage() {
+interface StoresPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function StoresPage({ searchParams }: StoresPageProps) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -25,11 +29,16 @@ export default async function StoresPage() {
     redirect('/dashboard')
   }
 
-  // Get all stores
+  // Parse search params (for future server-side filtering if needed)
+  const params = await searchParams
+  const _search = typeof params.search === 'string' ? params.search : undefined
+  const _status = params.status === 'active' || params.status === 'inactive' ? params.status : undefined
+
+  // Get all stores (filtering is done client-side for simplicity)
   const { data: stores } = await supabase
     .from('stores')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('name')
 
   return (
     <div className="space-y-6">
@@ -46,43 +55,7 @@ export default async function StoresPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {stores?.map((store) => (
-          <Card key={store.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {store.name}
-              </CardTitle>
-              <Store className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {store.address && (
-                  <p className="text-sm text-muted-foreground">
-                    {store.address}
-                  </p>
-                )}
-                {store.phone && (
-                  <p className="text-sm text-muted-foreground">{store.phone}</p>
-                )}
-                {store.email && (
-                  <p className="text-sm text-muted-foreground">{store.email}</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {!stores || stores.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground text-center">
-              No stores found. Add your first store to get started.
-            </p>
-          </CardContent>
-        </Card>
-      ) : null}
+      <StoresClient stores={stores || []} />
     </div>
   )
 }

@@ -34,6 +34,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          barcode: string | null
+          category_id: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string
+          price: number
+          quantity: number
+          sku: string
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          category_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name: string
+          price: number
+          quantity?: number
+          sku: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          category_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name?: string
+          price?: number
+          quantity?: number
+          sku?: string
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -68,6 +161,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          new_quantity: number
+          notes: string | null
+          previous_quantity: number
+          product_id: string
+          quantity: number
+          reference: string | null
+          store_id: string
+          type: Database["public"]["Enums"]["stock_movement_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_quantity: number
+          notes?: string | null
+          previous_quantity: number
+          product_id: string
+          quantity: number
+          reference?: string | null
+          store_id: string
+          type: Database["public"]["Enums"]["stock_movement_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          product_id?: string
+          quantity?: number
+          reference?: string | null
+          store_id?: string
+          type?: Database["public"]["Enums"]["stock_movement_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -110,9 +260,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      assign_to_store: {
+        Args: {
+          store_name: string
+          user_email: string
+          user_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: undefined
+      }
+      change_user_role: {
+        Args: { new_role: string; user_email: string }
+        Returns: Json
+      }
+      promote_to_admin: { Args: { user_email: string }; Returns: undefined }
     }
     Enums: {
+      stock_movement_type:
+        | "purchase"
+        | "sale"
+        | "adjustment"
+        | "transfer"
+        | "return"
+        | "damage"
+        | "loss"
       user_role: "admin" | "manager" | "cashier"
     }
     CompositeTypes: {
@@ -244,6 +414,15 @@ export const Constants = {
   },
   public: {
     Enums: {
+      stock_movement_type: [
+        "purchase",
+        "sale",
+        "adjustment",
+        "transfer",
+        "return",
+        "damage",
+        "loss",
+      ],
       user_role: ["admin", "manager", "cashier"],
     },
   },

@@ -1,86 +1,55 @@
--- Seed data for development and testing
--- This file is automatically run after migrations when using `supabase db reset`
+-- ============================================================================
+-- SEED DATA FOR DEVELOPMENT AND TESTING
+-- ============================================================================
+-- This file contains test data for local development
+-- Run with: supabase db reset (resets and applies migrations + seed)
 
 -- ============================================================================
--- SEED STORES
+-- STORES
 -- ============================================================================
+DELETE FROM public.stores;
 
--- Insert test stores
-insert into public.stores (id, name, address, phone, email)
-values
-  (
-    '00000000-0000-0000-0000-000000000001',
-    'Main Store',
-    '123 Main Street, City, Country',
-    '+1234567890',
-    'main@example.com'
-  ),
-  (
-    '00000000-0000-0000-0000-000000000002',
-    'Branch Store',
-    '456 Branch Avenue, City, Country',
-    '+0987654321',
-    'branch@example.com'
-  );
+INSERT INTO public.stores (id, name, address, phone, email) VALUES
+  ('11111111-1111-1111-1111-111111111111', 'Downtown Store', '123 Main Street, New York, NY 10001', '+1-555-0101', 'downtown@nextstock.com'),
+  ('22222222-2222-2222-2222-222222222222', 'Uptown Store', '456 Park Avenue, New York, NY 10022', '+1-555-0102', 'uptown@nextstock.com'),
+  ('33333333-3333-3333-3333-333333333333', 'Brooklyn Store', '789 Atlantic Avenue, Brooklyn, NY 11217', '+1-555-0103', 'brooklyn@nextstock.com');
 
 -- ============================================================================
--- SEED TEST USERS
+-- TEST USERS
 -- ============================================================================
--- Note: These users need to be created through Supabase Auth first
--- The profiles will be auto-created by the trigger
--- For local development, you can create these users manually or through the signup form
-
--- Example test users (create these through the signup form):
--- 1. admin@example.com (password: admin123456) - Admin user
--- 2. manager@example.com (password: manager123456) - Manager at Main Store
--- 3. cashier@example.com (password: cashier123456) - Cashier at Main Store
--- 4. cashier2@example.com (password: cashier123456) - Cashier at Branch Store
-
--- After creating users through signup, update their roles manually:
--- update public.profiles set role = 'admin' where email = 'admin@example.com';
--- update public.profiles set role = 'manager', store_id = '00000000-0000-0000-0000-000000000001' where email = 'manager@example.com';
--- update public.profiles set store_id = '00000000-0000-0000-0000-000000000001' where email = 'cashier@example.com';
--- update public.profiles set store_id = '00000000-0000-0000-0000-000000000002' where email = 'cashier2@example.com';
+-- Users are now seeded using the Supabase Admin API (recommended approach)
+-- Run: pnpm seed:users (after running supabase db reset)
+-- See: supabase/seed.ts for user seeding implementation
+-- Password for all test users: "password123"
 
 -- ============================================================================
--- HELPER FUNCTION FOR TESTING
+-- SAMPLE PRODUCTS
 -- ============================================================================
-
--- Function to promote a user to admin (useful for testing)
-create or replace function public.promote_to_admin(user_email text)
-returns void as $$
-begin
-  update public.profiles
-  set role = 'admin', store_id = null
-  where email = user_email;
-end;
-$$ language plpgsql security definer;
-
--- Function to assign user to store
-create or replace function public.assign_to_store(user_email text, store_name text, user_role user_role default 'cashier')
-returns void as $$
-declare
-  target_store_id uuid;
-begin
-  -- Get store ID
-  select id into target_store_id
-  from public.stores
-  where name = store_name
-  limit 1;
-
-  if target_store_id is null then
-    raise exception 'Store not found: %', store_name;
-  end if;
-
-  -- Update user profile
-  update public.profiles
-  set role = user_role, store_id = target_store_id
-  where email = user_email;
-end;
-$$ language plpgsql security definer;
-
--- ============================================================================
--- COMMENTS
--- ============================================================================
-comment on function public.promote_to_admin is 'Promote a user to admin role (for testing/development)';
-comment on function public.assign_to_store is 'Assign a user to a store with a specific role';
+INSERT INTO public.products (sku, name, description, category_id, price, cost, quantity, min_stock_level, store_id, barcode, is_active) VALUES
+  ('ELEC-001', 'Wireless Mouse', 'Ergonomic wireless mouse with USB receiver',
+   (SELECT id FROM public.categories WHERE name = 'Electronics' LIMIT 1),
+   29.99, 15.00, 45, 10, '11111111-1111-1111-1111-111111111111', '1234567890001', true),
+  ('ELEC-002', 'USB-C Cable', '2m braided USB-C charging cable',
+   (SELECT id FROM public.categories WHERE name = 'Electronics' LIMIT 1),
+   12.99, 5.00, 120, 20, '11111111-1111-1111-1111-111111111111', '1234567890002', true),
+  ('CLOTH-001', 'Cotton T-Shirt', 'Premium cotton t-shirt - Various colors',
+   (SELECT id FROM public.categories WHERE name = 'Clothing' LIMIT 1),
+   19.99, 8.00, 75, 15, '11111111-1111-1111-1111-111111111111', '1234567890003', true),
+  ('BOOK-001', 'JavaScript Guide', 'Complete JavaScript programming guide',
+   (SELECT id FROM public.categories WHERE name = 'Books & Media' LIMIT 1),
+   39.99, 20.00, 30, 5, '22222222-2222-2222-2222-222222222222', '1234567890004', true),
+  ('SPORT-001', 'Yoga Mat', 'Non-slip exercise yoga mat with carry strap',
+   (SELECT id FROM public.categories WHERE name = 'Sports & Outdoors' LIMIT 1),
+   34.99, 15.00, 25, 8, '22222222-2222-2222-2222-222222222222', '1234567890005', true),
+  ('HEALTH-001', 'Vitamin C Supplement', 'Daily vitamin C 1000mg - 60 tablets',
+   (SELECT id FROM public.categories WHERE name = 'Health & Beauty' LIMIT 1),
+   15.99, 7.00, 60, 12, '22222222-2222-2222-2222-222222222222', '1234567890006', true),
+  ('FOOD-001', 'Organic Coffee Beans', '1kg premium organic coffee beans',
+   (SELECT id FROM public.categories WHERE name = 'Food & Beverages' LIMIT 1),
+   24.99, 12.00, 40, 10, '33333333-3333-3333-3333-333333333333', '1234567890007', true),
+  ('HOME-001', 'Ceramic Plant Pot', 'Decorative ceramic plant pot with drainage',
+   (SELECT id FROM public.categories WHERE name = 'Home & Garden' LIMIT 1),
+   18.99, 8.00, 35, 8, '33333333-3333-3333-3333-333333333333', '1234567890008', true),
+  ('TOY-001', 'Building Blocks Set', '200-piece colorful building blocks',
+   (SELECT id FROM public.categories WHERE name = 'Toys & Games' LIMIT 1),
+   29.99, 12.00, 20, 5, '33333333-3333-3333-3333-333333333333', '1234567890009', true);

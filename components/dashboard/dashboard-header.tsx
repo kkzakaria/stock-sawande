@@ -17,9 +17,19 @@ import { refreshUserSession } from '@/lib/actions/session'
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
+interface Profile {
+  id: string
+  email: string | null
+  full_name: string | null
+  role: string
+  store_id: string | null
+  avatar_url?: string | null
+  stores?: { name: string } | null
+}
+
 interface DashboardHeaderProps {
   user: User
-  profile: any
+  profile: Profile | null
 }
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
@@ -78,7 +88,7 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
         <div className="hidden md:flex flex-col items-end">
           <p className="text-sm font-medium">{profile?.full_name || user.email}</p>
           <p className="text-xs text-muted-foreground">
-            {getRoleBadge(profile?.role)}
+            {getRoleBadge(profile?.role || '')}
           </p>
         </div>
 
@@ -88,7 +98,7 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
                 <AvatarImage
-                  src={profile?.avatar_url}
+                  src={profile?.avatar_url || undefined}
                   alt={profile?.full_name || user.email || 'User'}
                 />
                 <AvatarFallback>

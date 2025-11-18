@@ -14,10 +14,15 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 
+interface LoginFormProps extends React.ComponentProps<'div'> {
+  redirectUrl?: string
+}
+
 export function LoginForm({
   className,
+  redirectUrl,
   ...props
-}: React.ComponentProps<'div'>) {
+}: LoginFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -48,6 +53,11 @@ export function LoginForm({
                 <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
                   {error}
                 </div>
+              )}
+
+              {/* Hidden field to pass redirect URL to server action */}
+              {redirectUrl && redirectUrl !== '/dashboard' && (
+                <input type="hidden" name="redirect" value={redirectUrl} />
               )}
 
               <Field>

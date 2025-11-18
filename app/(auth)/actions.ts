@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getSafeRedirectUrl } from '@/lib/auth/redirect'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
@@ -19,7 +20,12 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+
+  // Get redirect URL from form data (passed from login form)
+  const redirectUrl = formData.get('redirect') as string | null
+  const safeRedirect = getSafeRedirectUrl(redirectUrl)
+
+  redirect(safeRedirect)
 }
 
 export async function signup(formData: FormData) {
