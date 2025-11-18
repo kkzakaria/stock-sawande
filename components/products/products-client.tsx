@@ -5,19 +5,22 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
 interface Product {
-  id: string;
-  sku: string;
-  name: string;
+  template_id: string | null;
+  inventory_id: string | null;
+  sku: string | null;
+  name: string | null;
   description: string | null;
-  price: number;
+  category_id: string | null;
+  category_name: string | null;
+  price: number | null;
   cost: number | null;
-  quantity: number;
+  quantity: number | null;
   min_stock_level: number | null;
   is_active: boolean | null;
   barcode: string | null;
   image_url: string | null;
-  categories: { id: string; name: string } | null;
-  stores: { id: string; name: string } | null;
+  store_id: string | null;
+  store_name: string | null;
 }
 
 interface ProductsClientProps {

@@ -30,11 +30,12 @@ import { Plus, Minus, Copy, Power } from 'lucide-react'
 
 interface QuickActionsProps {
   productId: string
+  storeId: string
   currentQuantity: number
   isActive: boolean
 }
 
-export function QuickActions({ productId, currentQuantity, isActive }: QuickActionsProps) {
+export function QuickActions({ productId, storeId, currentQuantity, isActive }: QuickActionsProps) {
   const router = useRouter()
   const [showAdjustDialog, setShowAdjustDialog] = useState(false)
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
@@ -44,7 +45,7 @@ export function QuickActions({ productId, currentQuantity, isActive }: QuickActi
 
   const handleQuickAdjust = async (value: number) => {
     setIsLoading(true)
-    const result = await adjustQuantity(productId, value, `Quick adjustment: ${value > 0 ? '+' : ''}${value}`)
+    const result = await adjustQuantity(productId, storeId, value, `Quick adjustment: ${value > 0 ? '+' : ''}${value}`)
 
     if (result.success) {
       toast.success(`Stock adjusted by ${value > 0 ? '+' : ''}${value}`)
@@ -62,7 +63,7 @@ export function QuickActions({ productId, currentQuantity, isActive }: QuickActi
     }
 
     setIsLoading(true)
-    const result = await adjustQuantity(productId, adjustment, reason)
+    const result = await adjustQuantity(productId, storeId, adjustment, reason)
 
     if (result.success) {
       toast.success(`Stock adjusted by ${adjustment > 0 ? '+' : ''}${adjustment}`)

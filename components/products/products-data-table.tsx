@@ -33,19 +33,22 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface Product {
-  id: string;
-  sku: string;
-  name: string;
+  template_id: string | null;
+  inventory_id: string | null;
+  sku: string | null;
+  name: string | null;
   description: string | null;
-  price: number;
+  category_id: string | null;
+  category_name: string | null;
+  price: number | null;
   cost: number | null;
-  quantity: number;
+  quantity: number | null;
   min_stock_level: number | null;
   is_active: boolean | null;
   barcode: string | null;
   image_url: string | null;
-  categories: { id: string; name: string } | null;
-  stores: { id: string; name: string } | null;
+  store_id: string | null;
+  store_name: string | null;
 }
 
 interface ProductsDataTableProps {
@@ -182,17 +185,17 @@ export function ProductsDataTable({
       ),
     },
     {
-      accessorKey: "categories.name",
+      accessorKey: "category_name",
       id: "category",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Category" />
       ),
       cell: ({ row }) => {
-        const category = row.original.categories?.name;
+        const category = row.original.category_name;
         return <span>{category || "Uncategorized"}</span>;
       },
       filterFn: (row, id, value) => {
-        return value.includes(row.original.categories?.name || "uncategorized");
+        return value.includes(row.original.category_name || "uncategorized");
       },
     },
     {
@@ -225,13 +228,13 @@ export function ProductsDataTable({
       },
     },
     {
-      accessorKey: "stores.name",
+      accessorKey: "store_name",
       id: "store",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Store" />
       ),
       cell: ({ row }) => {
-        const store = row.original.stores?.name;
+        const store = row.original.store_name;
         return <span>{store || "No Store"}</span>;
       },
     },
@@ -268,13 +271,13 @@ export function ProductsDataTable({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem asChild>
-                <Link href={`/products/${product.id}`}>
+                <Link href={`/products/${product.template_id}`}>
                   <Eye className="mr-2 h-4 w-4" />
                   View Details
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/products/${product.id}/edit`}>
+                <Link href={`/products/${product.template_id}/edit`}>
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </Link>
@@ -282,7 +285,7 @@ export function ProductsDataTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() =>
-                  handleToggleStatus(product.id, product.is_active ?? false)
+                  handleToggleStatus(product.template_id!, product.is_active ?? false)
                 }
                 disabled={isPending}
               >
@@ -300,7 +303,7 @@ export function ProductsDataTable({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => confirmDelete(product.id)}
+                onClick={() => confirmDelete(product.template_id!)}
                 className="text-destructive"
                 disabled={isPending}
               >
@@ -316,7 +319,7 @@ export function ProductsDataTable({
 
   // Collect unique categories for filters
   const categories = Array.from(
-    new Set(products.map((p) => p.categories?.name).filter(Boolean))
+    new Set(products.map((p) => p.category_name).filter(Boolean))
   ).map((name) => ({
     label: name!,
     value: name!,

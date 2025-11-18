@@ -256,15 +256,34 @@ export async function getProductStats(
       return { success: false, error: 'Not authenticated' }
     }
 
-    // Get product data
-    const { data: product } = await supabase
-      .from('products')
-      .select('price, quantity')
+    // Get product template data
+    const { data: template } = await supabase
+      .from('product_templates')
+      .select('price')
       .eq('id', productId)
       .single()
 
-    if (!product) {
+    if (!template) {
       return { success: false, error: 'Product not found' }
+    }
+
+    // Get inventory data for current store (needed for quantity)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('store_id')
+      .eq('id', user.id)
+      .single()
+
+    let currentQuantity = 0
+    if (profile?.store_id) {
+      const { data: inventory } = await supabase
+        .from('product_inventory')
+        .select('quantity')
+        .eq('product_id', productId)
+        .eq('store_id', profile.store_id)
+        .single()
+
+      currentQuantity = inventory?.quantity || 0
     }
 
     // Calculate date range
@@ -286,14 +305,14 @@ export async function getProductStats(
     )
 
     // Calculate total revenue
-    const totalRevenue = totalSales * product.price
+    const totalRevenue = totalSales * template.price
 
     // Calculate average daily velocity
     const averageDailyVelocity = days > 0 ? totalSales / days : 0
 
     // Calculate days of stock remaining
     const daysOfStockRemaining = averageDailyVelocity > 0
-      ? Math.round(product.quantity / averageDailyVelocity)
+      ? Math.round(currentQuantity / averageDailyVelocity)
       : null
 
     // Get stock trend data (daily snapshots)
@@ -340,7 +359,7 @@ export async function getProductStats(
         date.setDate(date.getDate() + i)
         stockTrend.push({
           date: date.toISOString().split('T')[0],
-          quantity: product.quantity
+          quantity: currentQuantity
         })
       }
     }

@@ -4,23 +4,35 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-// Validation schema for product creation/update
-const productSchema = z.object({
+// Validation schema for product template
+const productTemplateSchema = z.object({
   sku: z.string().min(1, 'SKU is required'),
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   category_id: z.string().uuid('Invalid category').nullable(),
   price: z.number().min(0, 'Price must be positive'),
   cost: z.number().min(0, 'Cost must be positive').optional(),
-  quantity: z.number().int().min(0, 'Quantity must be non-negative'),
   min_stock_level: z.number().int().min(0, 'Min stock level must be non-negative').default(10),
-  store_id: z.string().uuid('Invalid store'),
   image_url: z.string().url().optional().or(z.literal('')),
   barcode: z.string().optional(),
   is_active: z.boolean().default(true),
 })
 
+// Validation schema for inventory
+const inventorySchema = z.object({
+  product_id: z.string().uuid(),
+  store_id: z.string().uuid('Invalid store'),
+  quantity: z.number().int().min(0, 'Quantity must be non-negative'),
+})
+
+// Combined schema for product creation
+const productSchema = productTemplateSchema.extend({
+  store_id: z.string().uuid('Invalid store'),
+  quantity: z.number().int().min(0, 'Quantity must be non-negative'),
+})
+
 type ProductInput = z.infer<typeof productSchema>
+type ProductTemplateInput = z.infer<typeof productTemplateSchema>
 
 interface ActionResult<T = unknown> {
   success: boolean
@@ -29,7 +41,7 @@ interface ActionResult<T = unknown> {
 }
 
 /**
- * Create a new product
+ * Create a new product (template + inventory)
  */
 export async function createProduct(data: ProductInput): Promise<ActionResult> {
   try {
@@ -61,7 +73,7 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
 
     // Check for duplicate SKU
     const { data: existing } = await supabase
-      .from('products')
+      .from('product_templates')
       .select('id')
       .eq('sku', validated.sku)
       .maybeSingle()
@@ -70,20 +82,49 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
       return { success: false, error: 'Product with this SKU already exists' }
     }
 
-    // Create product
-    const { data: product, error } = await supabase
-      .from('products')
-      .insert(validated)
+    // Extract template and inventory data
+    const { store_id, quantity, ...templateData } = validated
+
+    // Create product template
+    const { data: template, error: templateError } = await supabase
+      .from('product_templates')
+      .insert(templateData)
       .select()
       .single()
 
-    if (error) {
-      console.error('Error creating product:', error)
-      return { success: false, error: error.message }
+    if (templateError) {
+      console.error('Error creating product template:', templateError)
+      return { success: false, error: templateError.message }
+    }
+
+    // Create inventory for the store
+    const { data: inventory, error: inventoryError } = await supabase
+      .from('product_inventory')
+      .insert({
+        product_id: template.id,
+        store_id: store_id,
+        quantity: quantity,
+      })
+      .select()
+      .single()
+
+    if (inventoryError) {
+      console.error('Error creating inventory:', inventoryError)
+      // Rollback template creation
+      await supabase.from('product_templates').delete().eq('id', template.id)
+      return { success: false, error: inventoryError.message }
     }
 
     revalidatePath('/products')
-    return { success: true, data: product }
+    return {
+      success: true,
+      data: {
+        ...template,
+        inventory_id: inventory.id,
+        store_id: store_id,
+        quantity: quantity
+      }
+    }
   } catch (error) {
     console.error('Product creation error:', error)
     if (error instanceof z.ZodError) {
@@ -94,7 +135,7 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
 }
 
 /**
- * Update an existing product
+ * Update an existing product (template and/or inventory)
  */
 export async function updateProduct(id: string, data: Partial<ProductInput>): Promise<ActionResult> {
   try {
@@ -116,52 +157,66 @@ export async function updateProduct(id: string, data: Partial<ProductInput>): Pr
       return { success: false, error: 'Insufficient permissions' }
     }
 
-    // Get existing product
-    const { data: existing } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single()
+    // Separate template and inventory updates
+    const { store_id, quantity, ...templateUpdates } = data
 
-    if (!existing) {
-      return { success: false, error: 'Product not found' }
-    }
+    // Update product template if there are template fields
+    if (Object.keys(templateUpdates).length > 0) {
+      // Check for duplicate SKU if SKU is being changed
+      if (templateUpdates.sku) {
+        const { data: existing } = await supabase
+          .from('product_templates')
+          .select('sku')
+          .eq('id', id)
+          .single()
 
-    // Managers can only update products in their store
-    if (profile.role === 'manager' && existing.store_id !== profile.store_id) {
-      return { success: false, error: 'You can only update products in your assigned store' }
-    }
+        if (existing && templateUpdates.sku !== existing.sku) {
+          const { data: duplicate } = await supabase
+            .from('product_templates')
+            .select('id')
+            .eq('sku', templateUpdates.sku)
+            .neq('id', id)
+            .maybeSingle()
 
-    // Check for duplicate SKU if SKU is being changed
-    if (data.sku && data.sku !== existing.sku) {
-      const { data: duplicate } = await supabase
-        .from('products')
-        .select('id')
-        .eq('sku', data.sku)
-        .neq('id', id)
-        .maybeSingle()
+          if (duplicate) {
+            return { success: false, error: 'Product with this SKU already exists' }
+          }
+        }
+      }
 
-      if (duplicate) {
-        return { success: false, error: 'Product with this SKU already exists' }
+      const { error: templateError } = await supabase
+        .from('product_templates')
+        .update(templateUpdates)
+        .eq('id', id)
+
+      if (templateError) {
+        console.error('Error updating product template:', templateError)
+        return { success: false, error: templateError.message }
       }
     }
 
-    // Update product
-    const { data: product, error } = await supabase
-      .from('products')
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single()
+    // Update inventory if quantity or store_id is provided
+    if (quantity !== undefined && store_id) {
+      // Check if user has permission for this store
+      if (profile.role === 'manager' && store_id !== profile.store_id) {
+        return { success: false, error: 'You can only update inventory in your assigned store' }
+      }
 
-    if (error) {
-      console.error('Error updating product:', error)
-      return { success: false, error: error.message }
+      const { error: inventoryError } = await supabase
+        .from('product_inventory')
+        .update({ quantity })
+        .eq('product_id', id)
+        .eq('store_id', store_id)
+
+      if (inventoryError) {
+        console.error('Error updating inventory:', inventoryError)
+        return { success: false, error: inventoryError.message }
+      }
     }
 
     revalidatePath('/products')
     revalidatePath(`/products/${id}`)
-    return { success: true, data: product }
+    return { success: true }
   } catch (error) {
     console.error('Product update error:', error)
     if (error instanceof z.ZodError) {
@@ -172,7 +227,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>): Pr
 }
 
 /**
- * Delete a product
+ * Delete a product template (cascades to inventory)
  */
 export async function deleteProduct(id: string): Promise<ActionResult> {
   try {
@@ -194,25 +249,9 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
       return { success: false, error: 'Insufficient permissions' }
     }
 
-    // Get existing product
-    const { data: existing } = await supabase
-      .from('products')
-      .select('store_id')
-      .eq('id', id)
-      .single()
-
-    if (!existing) {
-      return { success: false, error: 'Product not found' }
-    }
-
-    // Managers can only delete products in their store
-    if (profile.role === 'manager' && existing.store_id !== profile.store_id) {
-      return { success: false, error: 'You can only delete products in your assigned store' }
-    }
-
-    // Delete product
+    // Delete product template (cascades to inventory)
     const { error } = await supabase
-      .from('products')
+      .from('product_templates')
       .delete()
       .eq('id', id)
 
@@ -265,20 +304,10 @@ export async function getProducts(filters: ProductFilters = {}) {
       return { success: false, error: 'Profile not found', data: [], totalCount: 0 }
     }
 
-    // Build query based on role and filters
+    // Use the products_with_inventory view
     let query = supabase
-      .from('products')
-      .select(`
-        *,
-        categories (
-          id,
-          name
-        ),
-        stores (
-          id,
-          name
-        )
-      `, { count: 'exact' })
+      .from('products_with_inventory')
+      .select('*', { count: 'exact' })
 
     // Apply role-based store filter
     if (profile.role !== 'admin' && profile.store_id) {
@@ -308,7 +337,7 @@ export async function getProducts(filters: ProductFilters = {}) {
     }
 
     // Apply sorting
-    const sortBy = filters.sortBy || 'created_at'
+    const sortBy = filters.sortBy || 'name'
     const sortOrder = filters.sortOrder || 'asc'
     query = query.order(sortBy, { ascending: sortOrder === 'asc' })
 
@@ -338,7 +367,7 @@ export async function getProducts(filters: ProductFilters = {}) {
 }
 
 /**
- * Get a single product by ID
+ * Get a single product with its inventory
  */
 export async function getProduct(id: string) {
   try {
@@ -359,54 +388,68 @@ export async function getProduct(id: string) {
       return { success: false, error: 'Profile not found', data: null }
     }
 
-    // First get the product
-    const { data: product, error } = await supabase
-      .from('products')
+    // Get product template
+    const { data: template, error: templateError } = await supabase
+      .from('product_templates')
       .select('*')
       .eq('id', id)
       .single()
 
-    if (error) {
-      console.error('Error fetching product:', error)
-      return { success: false, error: error.message || error.toString() || 'Product not found', data: null }
-    }
-
-    if (!product) {
+    if (templateError || !template) {
+      console.error('Error fetching product template:', templateError)
       return { success: false, error: 'Product not found', data: null }
     }
 
-    // Verify access based on role
-    if (profile.role !== 'admin' && product.store_id !== profile.store_id) {
-      return { success: false, error: 'Insufficient permissions', data: null }
+    // Get inventory for user's store (or all stores for admin)
+    let inventoryQuery = supabase
+      .from('product_inventory')
+      .select('*')
+      .eq('product_id', id)
+
+    if (profile.role !== 'admin' && profile.store_id) {
+      inventoryQuery = inventoryQuery.eq('store_id', profile.store_id)
     }
 
-    // Fetch category separately if it exists
+    const { data: inventories } = await inventoryQuery
+
+    // Get category
     let category = null
-    if (product.category_id) {
+    if (template.category_id) {
       const { data: categoryData } = await supabase
         .from('categories')
         .select('id, name')
-        .eq('id', product.category_id)
+        .eq('id', template.category_id)
         .single()
       category = categoryData
     }
 
-    // Fetch store separately if it exists
-    let store = null
-    if (product.store_id) {
-      const { data: storeData } = await supabase
+    // Get store info for inventory
+    const storeIds = inventories?.map(inv => inv.store_id) || []
+    let stores: Array<{ id: string; name: string }> = []
+    if (storeIds.length > 0) {
+      const { data: storesData } = await supabase
         .from('stores')
         .select('id, name')
-        .eq('id', product.store_id)
-        .single()
-      store = storeData
+        .in('id', storeIds)
+      stores = storesData || []
     }
 
-    // Combine the data
+    // For non-admin users, get primary inventory (their store)
+    const primaryInventory = inventories && inventories.length > 0 ? inventories[0] : null
+    const primaryStore = primaryInventory ? stores.find(s => s.id === primaryInventory.store_id) : null
+
+    // Combine data in both old and new format for compatibility
     const productWithRelations = {
-      ...product,
-      categories: category,
-      stores: store
+      ...template,
+      template_id: template.id, // New format
+      quantity: primaryInventory?.quantity || 0,
+      store_id: primaryInventory?.store_id || null,
+      inventory_id: primaryInventory?.id || null,
+      category_name: category?.name || null, // New format
+      store_name: primaryStore?.name || null, // New format
+      categories: category, // Old format for compatibility
+      stores: primaryStore, // Old format for compatibility
+      all_inventories: inventories, // Include all inventories for admin
     }
 
     return { success: true, data: productWithRelations }
@@ -424,13 +467,41 @@ export async function toggleProductStatus(id: string, isActive: boolean): Promis
 }
 
 /**
- * Update product quantity (creates stock movement automatically via trigger)
+ * Update product quantity for a specific store
  */
 export async function updateProductQuantity(
-  id: string,
+  productId: string,
+  storeId: string,
   newQuantity: number
 ): Promise<ActionResult> {
-  return updateProduct(id, { quantity: newQuantity })
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    // Update inventory
+    const { error } = await supabase
+      .from('product_inventory')
+      .update({ quantity: newQuantity })
+      .eq('product_id', productId)
+      .eq('store_id', storeId)
+
+    if (error) {
+      console.error('Error updating quantity:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/products/${productId}`)
+    revalidatePath('/products')
+
+    return { success: true, data: { newQuantity } }
+  } catch (error) {
+    console.error('Update quantity error:', error)
+    return { success: false, error: 'Failed to update quantity' }
+  }
 }
 
 /**
@@ -509,6 +580,7 @@ export async function getStores() {
  */
 export async function adjustQuantity(
   productId: string,
+  storeId: string,
   adjustment: number,
   reason: string
 ): Promise<ActionResult> {
@@ -531,35 +603,35 @@ export async function adjustQuantity(
       return { success: false, error: 'Profile not found' }
     }
 
-    // Get current product
-    const { data: product } = await supabase
-      .from('products')
-      .select('quantity, store_id')
-      .eq('id', productId)
+    // Get current inventory
+    const { data: inventory } = await supabase
+      .from('product_inventory')
+      .select('id, quantity')
+      .eq('product_id', productId)
+      .eq('store_id', storeId)
       .single()
 
-    if (!product) {
-      return { success: false, error: 'Product not found' }
+    if (!inventory) {
+      return { success: false, error: 'Inventory not found' }
     }
 
     // Verify access
-    if (profile.role !== 'admin' && product.store_id !== profile.store_id) {
-      return { success: false, error: 'Access denied to this product' }
+    if (profile.role !== 'admin' && storeId !== profile.store_id) {
+      return { success: false, error: 'Access denied to this store inventory' }
     }
 
-    const newQuantity = product.quantity + adjustment
+    const newQuantity = inventory.quantity + adjustment
 
     // Validate new quantity
     if (newQuantity < 0) {
       return { success: false, error: 'Quantity cannot be negative' }
     }
 
-    // Update product quantity (this will trigger automatic stock movement creation)
-    // But we'll also create a manual one with our reason
+    // Update inventory quantity
     const { error: updateError } = await supabase
-      .from('products')
+      .from('product_inventory')
       .update({ quantity: newQuantity })
-      .eq('id', productId)
+      .eq('id', inventory.id)
 
     if (updateError) {
       console.error('Error adjusting quantity:', updateError)
@@ -571,11 +643,12 @@ export async function adjustQuantity(
       .from('stock_movements')
       .insert({
         product_id: productId,
-        store_id: product.store_id!,
+        store_id: storeId,
+        inventory_id: inventory.id,
         user_id: user.id,
         type: 'adjustment' as const,
         quantity: adjustment,
-        previous_quantity: product.quantity,
+        previous_quantity: inventory.quantity,
         new_quantity: newQuantity,
         notes: reason || null,
       })
@@ -596,9 +669,9 @@ export async function adjustQuantity(
 }
 
 /**
- * Duplicate a product with a new SKU
+ * Duplicate a product template and optionally create inventory
  */
-export async function duplicateProduct(productId: string): Promise<ActionResult> {
+export async function duplicateProduct(productId: string, createInventory: boolean = true): Promise<ActionResult> {
   try {
     const supabase = await createClient()
 
@@ -618,9 +691,9 @@ export async function duplicateProduct(productId: string): Promise<ActionResult>
       return { success: false, error: 'Insufficient permissions' }
     }
 
-    // Get original product
+    // Get original product template
     const { data: original, error: fetchError } = await supabase
-      .from('products')
+      .from('product_templates')
       .select('*')
       .eq('id', productId)
       .single()
@@ -629,32 +702,24 @@ export async function duplicateProduct(productId: string): Promise<ActionResult>
       return { success: false, error: 'Product not found' }
     }
 
-    // Verify access
-    if (profile.role === 'manager' && original.store_id !== profile.store_id) {
-      return { success: false, error: 'Access denied to this product' }
-    }
-
-    // Generate new SKU by appending -COPY and a number if needed
+    // Generate new SKU
     let newSku = `${original.sku}-COPY`
     let counter = 1
 
-    // Check if SKU exists and increment until we find a unique one
     while (true) {
       const { data: existing } = await supabase
-        .from('products')
+        .from('product_templates')
         .select('id')
         .eq('sku', newSku)
         .maybeSingle()
 
-      if (!existing) {
-        break
-      }
+      if (!existing) break
 
       counter++
       newSku = `${original.sku}-COPY${counter}`
     }
 
-    // Create duplicate product
+    // Create duplicate template
     const duplicateData = {
       sku: newSku,
       name: `${original.name} (Copy)`,
@@ -662,16 +727,14 @@ export async function duplicateProduct(productId: string): Promise<ActionResult>
       category_id: original.category_id,
       price: original.price,
       cost: original.cost,
-      quantity: 0, // Start with 0 quantity for safety
       min_stock_level: original.min_stock_level,
-      store_id: original.store_id,
       image_url: original.image_url,
-      barcode: null, // Don't copy barcode as it should be unique
-      is_active: false, // Start as inactive for review
+      barcode: null, // Don't copy barcode
+      is_active: false, // Start as inactive
     }
 
     const { data: duplicate, error: createError } = await supabase
-      .from('products')
+      .from('product_templates')
       .insert(duplicateData)
       .select()
       .single()
@@ -679,6 +742,17 @@ export async function duplicateProduct(productId: string): Promise<ActionResult>
     if (createError) {
       console.error('Error duplicating product:', createError)
       return { success: false, error: createError.message }
+    }
+
+    // Optionally create inventory for user's store
+    if (createInventory && profile.store_id) {
+      await supabase
+        .from('product_inventory')
+        .insert({
+          product_id: duplicate.id,
+          store_id: profile.store_id,
+          quantity: 0,
+        })
     }
 
     revalidatePath('/products')

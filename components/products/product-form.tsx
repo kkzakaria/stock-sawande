@@ -20,18 +20,25 @@ import { AlertCircle } from 'lucide-react'
 
 interface ProductData {
   id?: string
-  sku: string
-  name: string
+  template_id?: string | null
+  inventory_id?: string | null
+  sku: string | null
+  name: string | null
   description?: string | null
   category_id?: string | null
-  price: number
+  category_name?: string | null
+  price: number | null
   cost?: number | null
-  quantity: number
+  quantity: number | null
   min_stock_level?: number | null
   store_id: string | null
+  store_name?: string | null
   image_url?: string | null
   barcode?: string | null
   is_active?: boolean | null
+  categories?: { id: string; name: string } | null
+  stores?: { id: string; name: string } | null
+  all_inventories?: Array<{ created_at: string; id: string; product_id: string; quantity: number; store_id: string; updated_at: string }> | null
 }
 
 interface ProductFormProps {
@@ -58,8 +65,8 @@ export function ProductForm({
   const form = useForm({
     defaultValues: initialData
       ? {
-          sku: initialData.sku,
-          name: initialData.name,
+          sku: initialData.sku || '',
+          name: initialData.name || '',
           description: initialData.description || '',
           category_id: initialData.category_id || 'uncategorized',
           price: initialData.price?.toString() || '0',
@@ -99,7 +106,7 @@ export function ProductForm({
         }
 
         const result = isEditing
-          ? await updateProduct(initialData.id!, productData)
+          ? await updateProduct(initialData.template_id || initialData.id!, productData)
           : await createProduct(productData)
 
         if (result.success) {

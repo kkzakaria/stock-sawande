@@ -58,7 +58,112 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
+      product_inventory: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_inventory"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "product_inventory_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_templates: {
+        Row: {
+          barcode: string | null
+          category_id: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string
+          price: number
+          sku: string
+          updated_at: string
+        }
+        Insert: {
+          barcode?: string | null
+          category_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name: string
+          price: number
+          sku: string
+          updated_at?: string
+        }
+        Update: {
+          barcode?: string | null
+          category_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          min_stock_level?: number | null
+          name?: string
+          price?: number
+          sku?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_backup_old: {
         Row: {
           barcode: string | null
           category_id: string | null
@@ -172,6 +277,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          inventory_id: string | null
           new_quantity: number
           notes: string | null
           previous_quantity: number
@@ -185,6 +291,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          inventory_id?: string | null
           new_quantity: number
           notes?: string | null
           previous_quantity: number
@@ -198,6 +305,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          inventory_id?: string | null
           new_quantity?: number
           notes?: string | null
           previous_quantity?: number
@@ -210,10 +318,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "stock_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "product_inventory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_inventory"
+            referencedColumns: ["inventory_id"]
+          },
+          {
             foreignKeyName: "stock_movements_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "products"
+            referencedRelation: "products_backup_old"
             referencedColumns: ["id"]
           },
           {
@@ -257,22 +379,101 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      products_with_inventory: {
+        Row: {
+          barcode: string | null
+          category_description: string | null
+          category_id: string | null
+          category_name: string | null
+          cost: number | null
+          description: string | null
+          image_url: string | null
+          inventory_created_at: string | null
+          inventory_id: string | null
+          inventory_updated_at: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string | null
+          price: number | null
+          quantity: number | null
+          sku: string | null
+          store_address: string | null
+          store_id: string | null
+          store_name: string | null
+          template_created_at: string | null
+          template_id: string | null
+          template_updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_inventory_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      assign_to_store: {
-        Args: {
-          store_name: string
-          user_email: string
-          user_role?: Database["public"]["Enums"]["user_role"]
-        }
-        Returns: undefined
-      }
       change_user_role: {
         Args: { new_role: string; user_email: string }
-        Returns: Json
+        Returns: undefined
       }
-      promote_to_admin: { Args: { user_email: string }; Returns: undefined }
+      get_current_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_current_user_store_id: { Args: never; Returns: string }
+      get_low_stock_products: {
+        Args: never
+        Returns: {
+          min_stock_level: number
+          name: string
+          quantity: number
+          sku: string
+          stock_deficit: number
+          store_id: string
+          store_name: string
+          template_id: string
+        }[]
+      }
+      get_products_by_store: {
+        Args: { p_store_id: string }
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          description: string
+          image_url: string
+          inventory_id: string
+          is_active: boolean
+          min_stock_level: number
+          name: string
+          price: number
+          quantity: number
+          sku: string
+          template_id: string
+        }[]
+      }
+      get_stores_by_product: {
+        Args: { p_product_id: string }
+        Returns: {
+          inventory_id: string
+          quantity: number
+          store_address: string
+          store_id: string
+          store_name: string
+        }[]
+      }
     }
     Enums: {
       stock_movement_type:

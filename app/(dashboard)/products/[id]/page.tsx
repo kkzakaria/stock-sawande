@@ -94,14 +94,17 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
 
         {/* Quick Actions */}
-        <div>
-          <p className="mb-2 text-sm font-medium text-muted-foreground">Quick Actions</p>
-          <QuickActions
-            productId={product.id}
-            currentQuantity={product.quantity}
-            isActive={product.is_active ?? true}
-          />
-        </div>
+        {product.store_id && (
+          <div>
+            <p className="mb-2 text-sm font-medium text-muted-foreground">Quick Actions</p>
+            <QuickActions
+              productId={product.template_id!}
+              storeId={product.store_id}
+              currentQuantity={product.quantity || 0}
+              isActive={product.is_active ?? true}
+            />
+          </div>
+        )}
 
         <Separator />
       </div>
@@ -142,7 +145,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div>
                 <span className="text-sm font-medium">Category:</span>
                 <p className="text-sm text-muted-foreground">
-                  {product.categories?.name || 'Uncategorized'}
+                  {product.category_name || 'Uncategorized'}
                 </p>
               </div>
               {product.barcode && (
@@ -205,7 +208,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Store:</span>
                 <span className="text-sm text-muted-foreground">
-                  {product.stores?.name || 'No Store'}
+                  {product.store_name || 'No Store'}
                 </span>
               </div>
             </CardContent>
@@ -230,10 +233,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </div>
 
       {/* Product Statistics */}
-      <ProductStatsComponent productId={product.id} price={product.price} />
+      <ProductStatsComponent productId={product.template_id} price={product.price} />
 
       {/* Stock Movement History */}
-      <StockMovementsHistory productId={product.id} />
+      <StockMovementsHistory productId={product.template_id} />
     </div>
   )
 }
