@@ -1,9 +1,8 @@
 'use client';
 
-import { ProductsTable } from './products-table';
-import { ProductsFilters } from './products-filters';
-import { ProductsPagination } from './products-pagination';
-import { useProductFilters } from '@/lib/hooks/use-product-filters';
+import { ProductsDataTable } from './products-data-table';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback } from 'react';
 
 interface Product {
   id: string;
@@ -16,57 +15,53 @@ interface Product {
   min_stock_level: number | null;
   is_active: boolean | null;
   barcode: string | null;
+  image_url: string | null;
   categories: { id: string; name: string } | null;
   stores: { id: string; name: string } | null;
 }
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Store {
-  id: string;
-  name: string;
-}
-
 interface ProductsClientProps {
   products: Product[];
-  categories: Category[];
-  stores: Store[];
-  totalCount: number;
+  pageCount: number;
+  pageSize: number;
 }
 
 export function ProductsClient({
   products,
-  categories,
-  stores,
-  totalCount,
+  pageCount,
+  pageSize,
 }: ProductsClientProps) {
-  const { filters } = useProductFilters();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const totalPages = Math.ceil(totalCount / filters.limit);
+  const handleAddProduct = () => {
+    router.push('/products/new');
+  };
+
+  const handlePaginationChange = useCallback(
+    (pageIndex: number, newPageSize: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Update page (TanStack uses 0-based index, convert to 1-based for URL)
+      params.set('page', String(pageIndex + 1));
+
+      // Update limit if it changed
+      if (newPageSize !== pageSize) {
+        params.set('limit', String(newPageSize));
+      }
+
+      router.push(`/products?${params.toString()}`);
+    },
+    [router, searchParams, pageSize]
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Filters */}
-      <ProductsFilters categories={categories} stores={stores} />
-
-      {/* Results Count */}
-      <div className="text-sm text-muted-foreground">
-        Showing {products.length} of {totalCount} products
-      </div>
-
-      {/* Products Table */}
-      <ProductsTable products={products} />
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <ProductsPagination
-          currentPage={filters.page}
-          totalPages={totalPages}
-        />
-      )}
-    </div>
+    <ProductsDataTable
+      products={products}
+      onAddProduct={handleAddProduct}
+      pageCount={pageCount}
+      pageSize={pageSize}
+      onPaginationChange={handlePaginationChange}
+    />
   );
 }
