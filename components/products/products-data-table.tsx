@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, type ColumnFiltersState, type SortingState, type VisibilityState } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
@@ -31,6 +31,13 @@ import {
 import { deleteProduct, toggleProductStatus } from "@/lib/actions/products";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useQueryStates } from 'nuqs';
+import {
+  columnFiltersParser,
+  sortingStateParser,
+  pageIndexParser,
+  pageSizeParser
+} from '@/lib/url-state-parsers';
 
 interface Product {
   template_id: string | null;
@@ -58,6 +65,10 @@ interface ProductsDataTableProps {
   currentPage?: number;
   pageSize?: number;
   onPaginationChange?: (pageIndex: number, pageSize: number) => void;
+  // Initial state from URL
+  initialColumnFilters?: ColumnFiltersState;
+  initialSorting?: SortingState;
+  initialPagination?: { pageIndex: number; pageSize: number };
 }
 
 export function ProductsDataTable({
@@ -66,11 +77,57 @@ export function ProductsDataTable({
   pageCount,
   pageSize,
   onPaginationChange,
+  // Initial state from URL
+  initialColumnFilters = [],
+  initialSorting = [],
+  initialPagination = { pageIndex: 0, pageSize: 10 },
 }: ProductsDataTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+
+  // nuqs state for URL synchronization (write-only, we use initialValues for reading)
+  const [, setUrlState] = useQueryStates({
+    filters: columnFiltersParser,
+    sorting: sortingStateParser,
+    pageIndex: pageIndexParser,
+    pageSize: pageSizeParser,
+  }, {
+    shallow: true,
+  });
+
+  // Track if this is the first render to avoid syncing initial state to URL
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    isFirstRender.current = false;
+  }, []);
+
+  // Callbacks to sync state changes to URL
+  const handleColumnFiltersChange = useCallback((filters: ColumnFiltersState) => {
+    if (isFirstRender.current) return;
+    setUrlState({
+      filters,
+      pageIndex: 0, // Reset to first page when filters change
+    });
+  }, [setUrlState]);
+
+  const handleSortingChange = useCallback((sorting: SortingState) => {
+    if (isFirstRender.current) return;
+    setUrlState({ sorting });
+  }, [setUrlState]);
+
+  const handlePaginationChangeInternal = useCallback((pagination: { pageIndex: number; pageSize: number }) => {
+    if (isFirstRender.current) return;
+    setUrlState({
+      pageIndex: pagination.pageIndex,
+      pageSize: pagination.pageSize,
+    });
+    // Also call the external pagination handler if provided (for server-side pagination)
+    if (onPaginationChange) {
+      onPaginationChange(pagination.pageIndex, pagination.pageSize);
+    }
+  }, [setUrlState, onPaginationChange]);
 
   const handleDelete = async () => {
     if (!productToDelete) return;
@@ -358,7 +415,13 @@ export function ProductsDataTable({
         emptyMessage="No products found. Add your first product to get started."
         manualPagination={!!pageCount}
         pageCount={pageCount}
-        onPaginationChange={onPaginationChange}
+        // Initial state from URL + URL sync callbacks
+        initialColumnFilters={initialColumnFilters}
+        initialSorting={initialSorting}
+        initialPagination={initialPagination}
+        onColumnFiltersChange={handleColumnFiltersChange}
+        onSortingChange={handleSortingChange}
+        onPaginationChange={handlePaginationChangeInternal}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

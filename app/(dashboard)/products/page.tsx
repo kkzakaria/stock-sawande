@@ -6,17 +6,7 @@ import { ProductsClient } from '@/components/products/products-client'
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
-interface ProductsPageProps {
-  searchParams: Promise<{
-    page?: string
-    limit?: string
-    search?: string
-    category?: string
-    status?: string
-  }>
-}
-
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -34,38 +24,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect('/dashboard')
   }
 
-  // Parse pagination and filter params
-  const params = await searchParams
-  const page = Number(params.page) || 1
-  const limit = Number(params.limit) || 10
-  const search = params.search || undefined
-  const category = params.category || undefined
-  const status =
-    params.status === 'active' || params.status === 'inactive'
-      ? params.status
-      : undefined
-
-  // Fetch paginated products
+  // Fetch all products (client-side pagination with nuqs)
   const productsResult = await getProducts({
-    page,
-    limit,
-    search,
-    category,
-    status,
+    limit: 1000, // Load all products for client-side pagination
   })
-
-  // Calculate total pages
-  const totalProducts = productsResult.totalCount || 0
-  const pageCount = Math.ceil(totalProducts / limit)
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 min-h-0">
-        <ProductsClient
-          products={productsResult.data || []}
-          pageCount={pageCount}
-          pageSize={limit}
-        />
+        <ProductsClient products={productsResult.data || []} />
       </div>
     </div>
   )

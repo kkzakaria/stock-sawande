@@ -35,24 +35,86 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
   manualPagination = false,
   pageCount,
+  // Initial state from URL
+  initialColumnFilters = [],
+  initialSorting = [],
+  initialColumnVisibility = {},
+  initialPagination,
+  // Callbacks for state changes
+  onColumnFiltersChange,
+  onSortingChange,
+  onColumnVisibilityChange,
   onPaginationChange,
 }: DataTableProps<TData, TValue>) {
+  // Local state initialized with URL values
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState({
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(initialColumnFilters);
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
+  const [pagination, setPagination] = React.useState(initialPagination || {
     pageIndex: 0,
     pageSize,
   });
 
+  // Wrapper setters that update local state
+  const handleColumnFiltersChange = React.useCallback(
+    (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
+      setColumnFilters(updater);
+    },
+    []
+  );
+
+  const handleSortingChange = React.useCallback(
+    (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+      setSorting(updater);
+    },
+    []
+  );
+
+  const handleColumnVisibilityChange = React.useCallback(
+    (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+      setColumnVisibility(updater);
+    },
+    []
+  );
+
+  const handlePaginationChange = React.useCallback(
+    (updater: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
+      setPagination(updater);
+    },
+    []
+  );
+
+  // Call URL sync callbacks after state changes (outside of render)
+  React.useEffect(() => {
+    if (onColumnFiltersChange) {
+      onColumnFiltersChange(columnFilters);
+    }
+  }, [columnFilters, onColumnFiltersChange]);
+
+  React.useEffect(() => {
+    if (onSortingChange) {
+      onSortingChange(sorting);
+    }
+  }, [sorting, onSortingChange]);
+
+  React.useEffect(() => {
+    if (onColumnVisibilityChange) {
+      onColumnVisibilityChange(columnVisibility);
+    }
+  }, [columnVisibility, onColumnVisibilityChange]);
+
+  React.useEffect(() => {
+    if (onPaginationChange) {
+      onPaginationChange(pagination);
+    }
+  }, [pagination, onPaginationChange]);
+
   const table = useReactTable({
     data,
     columns,
-    pageCount: pageCount ?? -1,
+    // Only set pageCount for manual pagination, otherwise let TanStack Table calculate it
+    pageCount: manualPagination ? (pageCount ?? -1) : undefined,
     state: {
       sorting,
       columnVisibility,
@@ -62,10 +124,10 @@ export function DataTable<TData, TValue>({
     },
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onSortingChange: handleSortingChange,
+    onColumnFiltersChange: handleColumnFiltersChange,
+    onColumnVisibilityChange: handleColumnVisibilityChange,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: enablePagination
@@ -100,7 +162,7 @@ export function DataTable<TData, TValue>({
       prevPagination.pageSize !== pagination.pageSize;
 
     if (hasChanged && manualPagination && onPaginationChange) {
-      onPaginationChange(pagination.pageIndex, pagination.pageSize);
+      onPaginationChange(pagination);
       prevPaginationRef.current = pagination;
     }
   }, [pagination, manualPagination, onPaginationChange]);

@@ -1,8 +1,15 @@
 'use client';
 
 import { ProductsDataTable } from './products-data-table';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQueryStates } from 'nuqs';
+import {
+  columnFiltersParser,
+  sortingStateParser,
+  pageIndexParser,
+  pageSizeParser
+} from '@/lib/url-state-parsers';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 interface Product {
   template_id: string | null;
@@ -25,46 +32,36 @@ interface Product {
 
 interface ProductsClientProps {
   products: Product[];
-  pageCount: number;
-  pageSize: number;
 }
 
-export function ProductsClient({
-  products,
-  pageCount,
-  pageSize,
-}: ProductsClientProps) {
+export function ProductsClient({ products }: ProductsClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  // Read URL state for initial values only
+  const [urlState] = useQueryStates({
+    filters: columnFiltersParser,
+    sorting: sortingStateParser,
+    pageIndex: pageIndexParser,
+    pageSize: pageSizeParser.withDefault(10),
+  }, {
+    shallow: true,
+  });
 
   const handleAddProduct = () => {
     router.push('/products/new');
   };
 
-  const handlePaginationChange = useCallback(
-    (pageIndex: number, newPageSize: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      // Update page (TanStack uses 0-based index, convert to 1-based for URL)
-      params.set('page', String(pageIndex + 1));
-
-      // Update limit if it changed
-      if (newPageSize !== pageSize) {
-        params.set('limit', String(newPageSize));
-      }
-
-      router.push(`/products?${params.toString()}`);
-    },
-    [router, searchParams, pageSize]
-  );
-
   return (
     <ProductsDataTable
       products={products}
       onAddProduct={handleAddProduct}
-      pageCount={pageCount}
-      pageSize={pageSize}
-      onPaginationChange={handlePaginationChange}
+      // Pass URL state as initial values (uncontrolled mode)
+      initialColumnFilters={urlState.filters as ColumnFiltersState ?? []}
+      initialSorting={urlState.sorting as SortingState ?? []}
+      initialPagination={{
+        pageIndex: urlState.pageIndex ?? 0,
+        pageSize: urlState.pageSize ?? 10,
+      }}
     />
   );
 }
