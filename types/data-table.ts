@@ -51,7 +51,6 @@ export interface DataTableProps<TData, TValue> {
   // Server-side pagination
   manualPagination?: boolean;
   pageCount?: number;
-  onPaginationChange?: (pageIndex: number, pageSize: number) => void;
 
   // Selection
   enableRowSelection?: boolean;
@@ -70,15 +69,17 @@ export interface DataTableProps<TData, TValue> {
   // Advanced
   getRowId?: (row: TData) => string;
 
-  // Controlled state (for URL state management with nuqs)
-  columnFilters?: ColumnFiltersState;
+  // Initial state from URL (for nuqs integration - uncontrolled with URL sync)
+  initialColumnFilters?: ColumnFiltersState;
+  initialSorting?: SortingState;
+  initialColumnVisibility?: VisibilityState;
+  initialPagination?: { pageIndex: number; pageSize: number };
+
+  // Callbacks for state changes (called on user interaction, not on mount)
   onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
-  sorting?: SortingState;
   onSortingChange?: (sorting: SortingState) => void;
-  columnVisibility?: VisibilityState;
   onColumnVisibilityChange?: (visibility: VisibilityState) => void;
-  controlledPagination?: { pageIndex: number; pageSize: number };
-  onControlledPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 }
 
 /**

@@ -5,6 +5,7 @@
  * Provides type-safe URL state management for shareable table filters and sorting
  */
 
+import { useCallback } from 'react';
 import { useQueryStates } from 'nuqs';
 import {
   columnFiltersParser,
@@ -101,13 +102,13 @@ export function useDataTableState(options: DataTableStateOptions = {}) {
   }
 
   const [state, setState] = useQueryStates(parsers, {
-    shallow: false,
+    shallow: true, // Use shallow routing to prevent server re-renders
   });
 
   /**
    * Reset all state to default values
    */
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setState({
       filters: [],
       sorting: [],
@@ -115,17 +116,71 @@ export function useDataTableState(options: DataTableStateOptions = {}) {
       pageIndex: 0,
       pageSize: defaultPageSize,
     });
-  };
+  }, [setState, defaultPageSize]);
 
   /**
    * Reset filters and go back to first page
    */
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setState({
       filters: [],
       pageIndex: 0,
     });
-  };
+  }, [setState]);
+
+  // Memoize setters to prevent infinite re-renders
+  const setColumnFilters = useCallback(
+    (filters: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
+      setState((prev) => {
+        const currentFilters = (prev.filters ?? []) as ColumnFiltersState;
+        const newFilters = typeof filters === 'function' ? filters(currentFilters) : filters;
+        return {
+          filters: newFilters,
+          pageIndex: 0, // Reset to first page when filters change
+        };
+      });
+    },
+    [setState]
+  );
+
+  const setSorting = useCallback(
+    (sorting: SortingState | ((prev: SortingState) => SortingState)) => {
+      setState((prev) => {
+        const currentSorting = (prev.sorting ?? []) as SortingState;
+        const newSorting = typeof sorting === 'function' ? sorting(currentSorting) : sorting;
+        return { sorting: newSorting };
+      });
+    },
+    [setState]
+  );
+
+  const setColumnVisibility = useCallback(
+    (visibility: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+      setState((prev) => {
+        const currentVisibility = (prev.visibility ?? {}) as VisibilityState;
+        const newVisibility = typeof visibility === 'function' ? visibility(currentVisibility) : visibility;
+        return { visibility: newVisibility };
+      });
+    },
+    [setState]
+  );
+
+  const setPagination = useCallback(
+    (pagination: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
+      setState((prev) => {
+        const currentPagination = {
+          pageIndex: prev.pageIndex ?? 0,
+          pageSize: prev.pageSize ?? defaultPageSize,
+        };
+        const newPagination = typeof pagination === 'function' ? pagination(currentPagination) : pagination;
+        return {
+          pageIndex: newPagination.pageIndex,
+          pageSize: newPagination.pageSize,
+        };
+      });
+    },
+    [setState, defaultPageSize]
+  );
 
   return {
     // Current state values
@@ -138,33 +193,10 @@ export function useDataTableState(options: DataTableStateOptions = {}) {
     },
 
     // Setter functions
-    setColumnFilters: (filters: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
-      const newFilters = typeof filters === 'function' ? filters(state.filters ?? []) : filters;
-      setState({
-        filters: newFilters,
-        pageIndex: 0, // Reset to first page when filters change
-      });
-    },
-
-    setSorting: (sorting: SortingState | ((prev: SortingState) => SortingState)) => {
-      const newSorting = typeof sorting === 'function' ? sorting(state.sorting ?? []) : sorting;
-      setState({ sorting: newSorting });
-    },
-
-    setColumnVisibility: (visibility: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
-      const newVisibility = typeof visibility === 'function' ? visibility(state.visibility ?? {}) : visibility;
-      setState({ visibility: newVisibility });
-    },
-
-    setPagination: (pagination: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
-      const newPagination = typeof pagination === 'function'
-        ? pagination({ pageIndex: state.pageIndex ?? 0, pageSize: state.pageSize ?? defaultPageSize })
-        : pagination;
-      setState({
-        pageIndex: newPagination.pageIndex,
-        pageSize: newPagination.pageSize,
-      });
-    },
+    setColumnFilters,
+    setSorting,
+    setColumnVisibility,
+    setPagination,
 
     // Utility functions
     resetState,

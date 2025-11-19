@@ -2,7 +2,14 @@
 
 import { ProductsDataTable } from './products-data-table';
 import { useRouter } from 'next/navigation';
-import { useDataTableState } from '@/lib/hooks/use-data-table-state';
+import { useQueryStates } from 'nuqs';
+import {
+  columnFiltersParser,
+  sortingStateParser,
+  pageIndexParser,
+  pageSizeParser
+} from '@/lib/url-state-parsers';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 interface Product {
   template_id: string | null;
@@ -30,22 +37,14 @@ interface ProductsClientProps {
 export function ProductsClient({ products }: ProductsClientProps) {
   const router = useRouter();
 
-  // Use nuqs hook for URL-based state management
-  const {
-    columnFilters,
-    sorting,
-    columnVisibility,
-    pagination,
-    setColumnFilters,
-    setSorting,
-    setColumnVisibility,
-    setPagination,
-  } = useDataTableState({
-    defaultPageSize: 10,
-    enableFiltersInUrl: true,
-    enableSortingInUrl: true,
-    enableVisibilityInUrl: false,
-    enablePaginationInUrl: true,
+  // Read URL state for initial values only
+  const [urlState] = useQueryStates({
+    filters: columnFiltersParser,
+    sorting: sortingStateParser,
+    pageIndex: pageIndexParser,
+    pageSize: pageSizeParser.withDefault(10),
+  }, {
+    shallow: true,
   });
 
   const handleAddProduct = () => {
@@ -56,15 +55,13 @@ export function ProductsClient({ products }: ProductsClientProps) {
     <ProductsDataTable
       products={products}
       onAddProduct={handleAddProduct}
-      // Pass controlled state to DataTable
-      columnFilters={columnFilters}
-      onColumnFiltersChange={setColumnFilters}
-      sorting={sorting}
-      onSortingChange={setSorting}
-      columnVisibility={columnVisibility}
-      onColumnVisibilityChange={setColumnVisibility}
-      controlledPagination={pagination}
-      onControlledPaginationChange={setPagination}
+      // Pass URL state as initial values (uncontrolled mode)
+      initialColumnFilters={urlState.filters as ColumnFiltersState ?? []}
+      initialSorting={urlState.sorting as SortingState ?? []}
+      initialPagination={{
+        pageIndex: urlState.pageIndex ?? 0,
+        pageSize: urlState.pageSize ?? 10,
+      }}
     />
   );
 }

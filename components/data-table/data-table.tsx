@@ -35,90 +35,80 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
   manualPagination = false,
   pageCount,
+  // Initial state from URL
+  initialColumnFilters = [],
+  initialSorting = [],
+  initialColumnVisibility = {},
+  initialPagination,
+  // Callbacks for state changes
+  onColumnFiltersChange,
+  onSortingChange,
+  onColumnVisibilityChange,
   onPaginationChange,
-  // Controlled state props
-  columnFilters: controlledColumnFilters,
-  onColumnFiltersChange: onControlledColumnFiltersChange,
-  sorting: controlledSorting,
-  onSortingChange: onControlledSortingChange,
-  columnVisibility: controlledColumnVisibility,
-  onColumnVisibilityChange: onControlledColumnVisibilityChange,
-  controlledPagination,
-  onControlledPaginationChange,
 }: DataTableProps<TData, TValue>) {
-  // Local state (used when not controlled)
+  // Local state initialized with URL values
   const [rowSelection, setRowSelection] = React.useState({});
-  const [localColumnVisibility, setLocalColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [localColumnFilters, setLocalColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
-  const [localPagination, setLocalPagination] = React.useState({
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(initialColumnFilters);
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
+  const [pagination, setPagination] = React.useState(initialPagination || {
     pageIndex: 0,
     pageSize,
   });
 
-  // Determine if controlled or uncontrolled
-  const isColumnFiltersControlled = controlledColumnFilters !== undefined;
-  const isSortingControlled = controlledSorting !== undefined;
-  const isColumnVisibilityControlled = controlledColumnVisibility !== undefined;
-  const isPaginationControlled = controlledPagination !== undefined;
-
-  // Use controlled state if provided, otherwise use local state
-  const columnFilters = isColumnFiltersControlled ? controlledColumnFilters : localColumnFilters;
-  const sorting = isSortingControlled ? controlledSorting : localSorting;
-  const columnVisibility = isColumnVisibilityControlled ? controlledColumnVisibility : localColumnVisibility;
-  const pagination = isPaginationControlled ? controlledPagination : localPagination;
-
-  // Wrapper setters that call controlled callbacks or update local state
-  const setColumnFilters = React.useCallback(
+  // Wrapper setters that update local state
+  const handleColumnFiltersChange = React.useCallback(
     (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
-      const newValue = typeof updater === 'function' ? updater(columnFilters) : updater;
-      if (isColumnFiltersControlled && onControlledColumnFiltersChange) {
-        onControlledColumnFiltersChange(newValue);
-      } else {
-        setLocalColumnFilters(newValue);
-      }
+      setColumnFilters(updater);
     },
-    [columnFilters, isColumnFiltersControlled, onControlledColumnFiltersChange]
+    []
   );
 
-  const setSorting = React.useCallback(
+  const handleSortingChange = React.useCallback(
     (updater: SortingState | ((prev: SortingState) => SortingState)) => {
-      const newValue = typeof updater === 'function' ? updater(sorting) : updater;
-      if (isSortingControlled && onControlledSortingChange) {
-        onControlledSortingChange(newValue);
-      } else {
-        setLocalSorting(newValue);
-      }
+      setSorting(updater);
     },
-    [sorting, isSortingControlled, onControlledSortingChange]
+    []
   );
 
-  const setColumnVisibility = React.useCallback(
+  const handleColumnVisibilityChange = React.useCallback(
     (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
-      const newValue = typeof updater === 'function' ? updater(columnVisibility) : updater;
-      if (isColumnVisibilityControlled && onControlledColumnVisibilityChange) {
-        onControlledColumnVisibilityChange(newValue);
-      } else {
-        setLocalColumnVisibility(newValue);
-      }
+      setColumnVisibility(updater);
     },
-    [columnVisibility, isColumnVisibilityControlled, onControlledColumnVisibilityChange]
+    []
   );
 
-  const setPagination = React.useCallback(
+  const handlePaginationChange = React.useCallback(
     (updater: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
-      const newValue = typeof updater === 'function' ? updater(pagination) : updater;
-      if (isPaginationControlled && onControlledPaginationChange) {
-        onControlledPaginationChange(newValue);
-      } else {
-        setLocalPagination(newValue);
-      }
+      setPagination(updater);
     },
-    [pagination, isPaginationControlled, onControlledPaginationChange]
+    []
   );
+
+  // Call URL sync callbacks after state changes (outside of render)
+  React.useEffect(() => {
+    if (onColumnFiltersChange) {
+      onColumnFiltersChange(columnFilters);
+    }
+  }, [columnFilters, onColumnFiltersChange]);
+
+  React.useEffect(() => {
+    if (onSortingChange) {
+      onSortingChange(sorting);
+    }
+  }, [sorting, onSortingChange]);
+
+  React.useEffect(() => {
+    if (onColumnVisibilityChange) {
+      onColumnVisibilityChange(columnVisibility);
+    }
+  }, [columnVisibility, onColumnVisibilityChange]);
+
+  React.useEffect(() => {
+    if (onPaginationChange) {
+      onPaginationChange(pagination);
+    }
+  }, [pagination, onPaginationChange]);
 
   const table = useReactTable({
     data,
@@ -133,10 +123,10 @@ export function DataTable<TData, TValue>({
     },
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
+    onSortingChange: handleSortingChange,
+    onColumnFiltersChange: handleColumnFiltersChange,
+    onColumnVisibilityChange: handleColumnVisibilityChange,
+    onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: enablePagination
@@ -171,7 +161,7 @@ export function DataTable<TData, TValue>({
       prevPagination.pageSize !== pagination.pageSize;
 
     if (hasChanged && manualPagination && onPaginationChange) {
-      onPaginationChange(pagination.pageIndex, pagination.pageSize);
+      onPaginationChange(pagination);
       prevPaginationRef.current = pagination;
     }
   }, [pagination, manualPagination, onPaginationChange]);
