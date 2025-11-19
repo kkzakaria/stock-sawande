@@ -15,14 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
 import type { DataTableProps } from "@/types/data-table";
@@ -115,65 +108,100 @@ export function DataTable<TData, TValue>({
   return (
     <div className="flex flex-col h-full space-y-4">
       {toolbar && <DataTableToolbar table={table} config={toolbar} />}
-      <div className="rounded-md border flex-1 min-h-0 flex flex-col">
-        <div className="relative flex-1 overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
+      <div className="rounded-md border flex-1 min-h-0">
+        <div className="relative h-full overflow-auto">
+          <table className="w-full caption-bottom text-sm">
+            <thead className="[&_tr]:border-b sticky top-0 z-10 bg-card shadow-sm">
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-card hover:bg-card border-b-2">
+                <tr
+                  key={headerGroup.id}
+                  className={cn(
+                    "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+                    "bg-card hover:bg-card border-b-2"
+                  )}
+                >
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id} colSpan={header.colSpan} className="!font-bold">
+                      <th
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        className={cn(
+                          "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                          "!font-bold"
+                        )}
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
                               header.getContext()
                             )}
-                      </TableHead>
+                      </th>
                     );
                   })}
-                </TableRow>
+                </tr>
               ))}
-            </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
+            </thead>
+            <tbody className={cn("[&_tr:last-child]:border-0")}>
+              {isLoading ? (
+                <tr
+                  className={cn(
+                    "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
+                  )}
                 >
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  <td
+                    colSpan={columns.length}
+                    className={cn(
+                      "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                      "h-24 text-center"
+                    )}
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={cn(
+                      "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
+                    )}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : (
+                <tr
+                  className={cn(
+                    "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
+                  )}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyMessage}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                  <td
+                    colSpan={columns.length}
+                    className={cn(
+                      "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                      "h-24 text-center"
+                    )}
+                  >
+                    {emptyMessage}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
       {enablePagination && (
