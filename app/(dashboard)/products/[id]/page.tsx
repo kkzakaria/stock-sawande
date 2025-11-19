@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ChevronLeft, Pencil, Package } from 'lucide-react'
 import { getProduct } from '@/lib/actions/products'
-import { QuickActions } from '@/components/products/quick-actions'
 import { ProductStatsComponent } from '@/components/products/product-stats'
 import { StockMovementsHistory } from '@/components/products/stock-movements-history'
 
