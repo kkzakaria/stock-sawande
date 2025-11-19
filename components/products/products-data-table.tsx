@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, type ColumnFiltersState, type SortingState, type VisibilityState } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
@@ -58,6 +58,15 @@ interface ProductsDataTableProps {
   currentPage?: number;
   pageSize?: number;
   onPaginationChange?: (pageIndex: number, pageSize: number) => void;
+  // Controlled state props (for nuqs integration)
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
+  controlledPagination?: { pageIndex: number; pageSize: number };
+  onControlledPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 }
 
 export function ProductsDataTable({
@@ -66,6 +75,15 @@ export function ProductsDataTable({
   pageCount,
   pageSize,
   onPaginationChange,
+  // Controlled state props
+  columnFilters,
+  onColumnFiltersChange,
+  sorting,
+  onSortingChange,
+  columnVisibility,
+  onColumnVisibilityChange,
+  controlledPagination,
+  onControlledPaginationChange,
 }: ProductsDataTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -359,6 +377,15 @@ export function ProductsDataTable({
         manualPagination={!!pageCount}
         pageCount={pageCount}
         onPaginationChange={onPaginationChange}
+        // Controlled state (nuqs integration)
+        columnFilters={columnFilters}
+        onColumnFiltersChange={onColumnFiltersChange}
+        sorting={sorting}
+        onSortingChange={onSortingChange}
+        columnVisibility={columnVisibility}
+        onColumnVisibilityChange={onColumnVisibilityChange}
+        controlledPagination={controlledPagination}
+        onControlledPaginationChange={onControlledPaginationChange}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

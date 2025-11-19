@@ -1,8 +1,8 @@
 'use client';
 
 import { ProductsDataTable } from './products-data-table';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useDataTableState } from '@/lib/hooks/use-data-table-state';
 
 interface Product {
   template_id: string | null;
@@ -25,46 +25,46 @@ interface Product {
 
 interface ProductsClientProps {
   products: Product[];
-  pageCount: number;
-  pageSize: number;
 }
 
-export function ProductsClient({
-  products,
-  pageCount,
-  pageSize,
-}: ProductsClientProps) {
+export function ProductsClient({ products }: ProductsClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+
+  // Use nuqs hook for URL-based state management
+  const {
+    columnFilters,
+    sorting,
+    columnVisibility,
+    pagination,
+    setColumnFilters,
+    setSorting,
+    setColumnVisibility,
+    setPagination,
+  } = useDataTableState({
+    defaultPageSize: 10,
+    enableFiltersInUrl: true,
+    enableSortingInUrl: true,
+    enableVisibilityInUrl: false,
+    enablePaginationInUrl: true,
+  });
 
   const handleAddProduct = () => {
     router.push('/products/new');
   };
 
-  const handlePaginationChange = useCallback(
-    (pageIndex: number, newPageSize: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-
-      // Update page (TanStack uses 0-based index, convert to 1-based for URL)
-      params.set('page', String(pageIndex + 1));
-
-      // Update limit if it changed
-      if (newPageSize !== pageSize) {
-        params.set('limit', String(newPageSize));
-      }
-
-      router.push(`/products?${params.toString()}`);
-    },
-    [router, searchParams, pageSize]
-  );
-
   return (
     <ProductsDataTable
       products={products}
       onAddProduct={handleAddProduct}
-      pageCount={pageCount}
-      pageSize={pageSize}
-      onPaginationChange={handlePaginationChange}
+      // Pass controlled state to DataTable
+      columnFilters={columnFilters}
+      onColumnFiltersChange={setColumnFilters}
+      sorting={sorting}
+      onSortingChange={setSorting}
+      columnVisibility={columnVisibility}
+      onColumnVisibilityChange={setColumnVisibility}
+      controlledPagination={pagination}
+      onControlledPaginationChange={setPagination}
     />
   );
 }

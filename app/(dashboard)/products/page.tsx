@@ -54,18 +54,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     status,
   })
 
-  // Calculate total pages
-  const totalProducts = productsResult.totalCount || 0
-  const pageCount = Math.ceil(totalProducts / limit)
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 min-h-0">
-        <ProductsClient
-          products={productsResult.data || []}
-          pageCount={pageCount}
-          pageSize={limit}
-        />
+        <ProductsClient products={productsResult.data || []} />
       </div>
     </div>
   )
