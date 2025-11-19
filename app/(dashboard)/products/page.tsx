@@ -6,17 +6,7 @@ import { ProductsClient } from '@/components/products/products-client'
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
-interface ProductsPageProps {
-  searchParams: Promise<{
-    page?: string
-    limit?: string
-    search?: string
-    category?: string
-    status?: string
-  }>
-}
-
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage() {
   const supabase = await createClient()
   const {
     data: { user },
