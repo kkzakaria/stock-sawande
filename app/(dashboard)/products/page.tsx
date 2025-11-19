@@ -59,8 +59,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const pageCount = Math.ceil(totalProducts / limit)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full space-y-6">
+      <div className="flex items-center justify-between flex-shrink-0">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Products</h2>
           <p className="text-muted-foreground">
@@ -69,11 +69,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         </div>
       </div>
 
-      <ProductsClient
-        products={productsResult.data || []}
-        pageCount={pageCount}
-        pageSize={limit}
-      />
+      <div className="flex-1 min-h-0">
+        <ProductsClient
+          products={productsResult.data || []}
+          pageCount={pageCount}
+          pageSize={limit}
+        />
+      </div>
     </div>
   )
 }

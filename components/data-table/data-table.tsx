@@ -113,10 +113,10 @@ export function DataTable<TData, TValue>({
   }, [pagination, manualPagination, onPaginationChange]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full space-y-4">
       {toolbar && <DataTableToolbar table={table} config={toolbar} />}
-      <div className="rounded-md border">
-        <div className="relative max-h-[600px] overflow-auto">
+      <div className="rounded-md border flex-1 min-h-0 flex flex-col">
+        <div className="relative flex-1 overflow-auto">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -177,7 +177,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       {enablePagination && (
-        <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+        <div className="flex-shrink-0">
+          <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+        </div>
       )}
     </div>
   );
