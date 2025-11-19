@@ -1,4 +1,4 @@
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef, type ColumnFiltersState, type SortingState, type VisibilityState } from "@tanstack/react-table";
 
 /**
  * Filter option for faceted filters
@@ -69,6 +69,16 @@ export interface DataTableProps<TData, TValue> {
 
   // Advanced
   getRowId?: (row: TData) => string;
+
+  // Controlled state (for URL state management with nuqs)
+  columnFilters?: ColumnFiltersState;
+  onColumnFiltersChange?: (filters: ColumnFiltersState) => void;
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState) => void;
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
+  controlledPagination?: { pageIndex: number; pageSize: number };
+  onControlledPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 }
 
 /**

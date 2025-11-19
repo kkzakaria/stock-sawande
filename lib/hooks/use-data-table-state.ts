@@ -1,0 +1,173 @@
+'use client';
+
+/**
+ * Custom hook for managing data-table state with nuqs
+ * Provides type-safe URL state management for shareable table filters and sorting
+ */
+
+import { useQueryStates } from 'nuqs';
+import {
+  columnFiltersParser,
+  sortingStateParser,
+  columnVisibilityParser,
+  pageIndexParser,
+  pageSizeParser,
+} from '@/lib/url-state-parsers';
+import type { ColumnFiltersState, SortingState, VisibilityState } from '@tanstack/react-table';
+
+/**
+ * Options for configuring data table URL state
+ */
+export interface DataTableStateOptions {
+  /**
+   * Default page size for pagination
+   * @default 10
+   */
+  defaultPageSize?: number;
+
+  /**
+   * Whether to sync column filters with URL
+   * @default true
+   */
+  enableFiltersInUrl?: boolean;
+
+  /**
+   * Whether to sync sorting with URL
+   * @default true
+   */
+  enableSortingInUrl?: boolean;
+
+  /**
+   * Whether to sync column visibility with URL
+   * @default false
+   */
+  enableVisibilityInUrl?: boolean;
+
+  /**
+   * Whether to sync pagination with URL
+   * @default true
+   */
+  enablePaginationInUrl?: boolean;
+}
+
+/**
+ * Hook for managing data-table state in URL with nuqs
+ * Returns current state values and setter functions
+ *
+ * @example
+ * ```tsx
+ * const { columnFilters, sorting, pagination, setColumnFilters, setSorting, setPagination } = useDataTableState();
+ *
+ * <DataTable
+ *   data={data}
+ *   columns={columns}
+ *   columnFilters={columnFilters}
+ *   sorting={sorting}
+ *   pagination={pagination}
+ *   onColumnFiltersChange={setColumnFilters}
+ *   onSortingChange={setSorting}
+ *   onPaginationChange={setPagination}
+ * />
+ * ```
+ */
+export function useDataTableState(options: DataTableStateOptions = {}) {
+  const {
+    defaultPageSize = 10,
+    enableFiltersInUrl = true,
+    enableSortingInUrl = true,
+    enableVisibilityInUrl = false,
+    enablePaginationInUrl = true,
+  } = options;
+
+  // Build parsers object dynamically based on enabled options
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parsers: Record<string, any> = {};
+
+  if (enableFiltersInUrl) {
+    parsers.filters = columnFiltersParser;
+  }
+
+  if (enableSortingInUrl) {
+    parsers.sorting = sortingStateParser;
+  }
+
+  if (enableVisibilityInUrl) {
+    parsers.visibility = columnVisibilityParser;
+  }
+
+  if (enablePaginationInUrl) {
+    parsers.pageIndex = pageIndexParser;
+    parsers.pageSize = pageSizeParser.withDefault(defaultPageSize);
+  }
+
+  const [state, setState] = useQueryStates(parsers, {
+    shallow: false,
+  });
+
+  /**
+   * Reset all state to default values
+   */
+  const resetState = () => {
+    setState({
+      filters: [],
+      sorting: [],
+      visibility: {},
+      pageIndex: 0,
+      pageSize: defaultPageSize,
+    });
+  };
+
+  /**
+   * Reset filters and go back to first page
+   */
+  const resetFilters = () => {
+    setState({
+      filters: [],
+      pageIndex: 0,
+    });
+  };
+
+  return {
+    // Current state values
+    columnFilters: (state.filters ?? []) as ColumnFiltersState,
+    sorting: (state.sorting ?? []) as SortingState,
+    columnVisibility: (state.visibility ?? {}) as VisibilityState,
+    pagination: {
+      pageIndex: state.pageIndex ?? 0,
+      pageSize: state.pageSize ?? defaultPageSize,
+    },
+
+    // Setter functions
+    setColumnFilters: (filters: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
+      const newFilters = typeof filters === 'function' ? filters(state.filters ?? []) : filters;
+      setState({
+        filters: newFilters,
+        pageIndex: 0, // Reset to first page when filters change
+      });
+    },
+
+    setSorting: (sorting: SortingState | ((prev: SortingState) => SortingState)) => {
+      const newSorting = typeof sorting === 'function' ? sorting(state.sorting ?? []) : sorting;
+      setState({ sorting: newSorting });
+    },
+
+    setColumnVisibility: (visibility: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+      const newVisibility = typeof visibility === 'function' ? visibility(state.visibility ?? {}) : visibility;
+      setState({ visibility: newVisibility });
+    },
+
+    setPagination: (pagination: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
+      const newPagination = typeof pagination === 'function'
+        ? pagination({ pageIndex: state.pageIndex ?? 0, pageSize: state.pageSize ?? defaultPageSize })
+        : pagination;
+      setState({
+        pageIndex: newPagination.pageIndex,
+        pageSize: newPagination.pageSize,
+      });
+    },
+
+    // Utility functions
+    resetState,
+    resetFilters,
+  };
+}

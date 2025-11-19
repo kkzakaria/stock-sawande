@@ -36,18 +36,89 @@ export function DataTable<TData, TValue>({
   manualPagination = false,
   pageCount,
   onPaginationChange,
+  // Controlled state props
+  columnFilters: controlledColumnFilters,
+  onColumnFiltersChange: onControlledColumnFiltersChange,
+  sorting: controlledSorting,
+  onSortingChange: onControlledSortingChange,
+  columnVisibility: controlledColumnVisibility,
+  onColumnVisibilityChange: onControlledColumnVisibilityChange,
+  controlledPagination,
+  onControlledPaginationChange,
 }: DataTableProps<TData, TValue>) {
+  // Local state (used when not controlled)
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
+  const [localColumnVisibility, setLocalColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+  const [localColumnFilters, setLocalColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState({
+  const [localSorting, setLocalSorting] = React.useState<SortingState>([]);
+  const [localPagination, setLocalPagination] = React.useState({
     pageIndex: 0,
     pageSize,
   });
+
+  // Determine if controlled or uncontrolled
+  const isColumnFiltersControlled = controlledColumnFilters !== undefined;
+  const isSortingControlled = controlledSorting !== undefined;
+  const isColumnVisibilityControlled = controlledColumnVisibility !== undefined;
+  const isPaginationControlled = controlledPagination !== undefined;
+
+  // Use controlled state if provided, otherwise use local state
+  const columnFilters = isColumnFiltersControlled ? controlledColumnFilters : localColumnFilters;
+  const sorting = isSortingControlled ? controlledSorting : localSorting;
+  const columnVisibility = isColumnVisibilityControlled ? controlledColumnVisibility : localColumnVisibility;
+  const pagination = isPaginationControlled ? controlledPagination : localPagination;
+
+  // Wrapper setters that call controlled callbacks or update local state
+  const setColumnFilters = React.useCallback(
+    (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
+      const newValue = typeof updater === 'function' ? updater(columnFilters) : updater;
+      if (isColumnFiltersControlled && onControlledColumnFiltersChange) {
+        onControlledColumnFiltersChange(newValue);
+      } else {
+        setLocalColumnFilters(newValue);
+      }
+    },
+    [columnFilters, isColumnFiltersControlled, onControlledColumnFiltersChange]
+  );
+
+  const setSorting = React.useCallback(
+    (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+      const newValue = typeof updater === 'function' ? updater(sorting) : updater;
+      if (isSortingControlled && onControlledSortingChange) {
+        onControlledSortingChange(newValue);
+      } else {
+        setLocalSorting(newValue);
+      }
+    },
+    [sorting, isSortingControlled, onControlledSortingChange]
+  );
+
+  const setColumnVisibility = React.useCallback(
+    (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+      const newValue = typeof updater === 'function' ? updater(columnVisibility) : updater;
+      if (isColumnVisibilityControlled && onControlledColumnVisibilityChange) {
+        onControlledColumnVisibilityChange(newValue);
+      } else {
+        setLocalColumnVisibility(newValue);
+      }
+    },
+    [columnVisibility, isColumnVisibilityControlled, onControlledColumnVisibilityChange]
+  );
+
+  const setPagination = React.useCallback(
+    (updater: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
+      const newValue = typeof updater === 'function' ? updater(pagination) : updater;
+      if (isPaginationControlled && onControlledPaginationChange) {
+        onControlledPaginationChange(newValue);
+      } else {
+        setLocalPagination(newValue);
+      }
+    },
+    [pagination, isPaginationControlled, onControlledPaginationChange]
+  );
 
   const table = useReactTable({
     data,
