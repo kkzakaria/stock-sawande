@@ -39,17 +39,17 @@ export default async function DashboardLayout({
     .single()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
       <DashboardNav profile={profile} />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <DashboardHeader user={user} profile={profile} />
 
         {/* Page content */}
-        <main className="flex-1 p-6 bg-muted/40">{children}</main>
+        <main className="flex-1 p-6 bg-muted/40 overflow-auto">{children}</main>
       </div>
     </div>
   )

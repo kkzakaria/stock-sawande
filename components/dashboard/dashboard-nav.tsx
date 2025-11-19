@@ -74,15 +74,15 @@ export function DashboardNav({ profile }: DashboardNavProps) {
   )
 
   return (
-    <aside className="w-64 border-r bg-card">
-      <div className="flex h-16 items-center border-b px-6">
+    <aside className="w-64 border-r bg-card flex flex-col h-screen">
+      <div className="flex h-16 items-center border-b px-6 flex-shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold">
           <Package className="h-6 w-6" />
           <span className="text-lg">Next Stock</span>
         </Link>
       </div>
 
-      <nav className="flex flex-col gap-1 p-4">
+      <nav className="flex flex-col gap-1 p-4 flex-1 overflow-y-auto">
         {allowedItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -107,7 +107,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
 
       {/* Store info */}
       {profile?.stores && (
-        <div className="absolute bottom-0 w-64 border-t p-4">
+        <div className="border-t p-4 flex-shrink-0">
           <div className="text-sm">
             <p className="text-muted-foreground">Current Store</p>
             <p className="font-medium">{profile.stores.name}</p>
