@@ -34,24 +34,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     redirect('/dashboard')
   }
 
-  // Parse pagination and filter params
-  const params = await searchParams
-  const page = Number(params.page) || 1
-  const limit = Number(params.limit) || 10
-  const search = params.search || undefined
-  const category = params.category || undefined
-  const status =
-    params.status === 'active' || params.status === 'inactive'
-      ? params.status
-      : undefined
-
-  // Fetch paginated products
+  // Fetch all products (client-side pagination with nuqs)
   const productsResult = await getProducts({
-    page,
-    limit,
-    search,
-    category,
-    status,
+    limit: 1000, // Load all products for client-side pagination
   })
 
   return (
