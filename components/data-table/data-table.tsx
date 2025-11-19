@@ -113,7 +113,8 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    pageCount: pageCount ?? -1,
+    // Only set pageCount for manual pagination, otherwise let TanStack Table calculate it
+    pageCount: manualPagination ? (pageCount ?? -1) : undefined,
     state: {
       sorting,
       columnVisibility,
