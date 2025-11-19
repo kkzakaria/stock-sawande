@@ -46,10 +46,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   const product = productResult.data
 
-  const getStockStatus = () => {
-    if (product.quantity === 0) {
+  const getStockStatus = (quantity: number, minLevel: number | null) => {
+    if (quantity === 0) {
       return <Badge variant="destructive">Out of Stock</Badge>
-    } else if (product.min_stock_level && product.quantity <= product.min_stock_level) {
+    } else if (minLevel && quantity <= minLevel) {
       return (
         <Badge variant="outline" className="border-orange-500 text-orange-500">
           Low Stock
@@ -62,6 +62,10 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </Badge>
     )
   }
+
+  // Get all inventories with store information
+  const allInventories = product.all_inventories || []
+  const totalQuantity = allInventories.reduce((sum, inv) => sum + (inv.quantity || 0), 0)
 
   return (
     <div className="space-y-6">
@@ -92,19 +96,6 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </Button>
           </div>
         </div>
-
-        {/* Quick Actions */}
-        {product.store_id && (
-          <div>
-            <p className="mb-2 text-sm font-medium text-muted-foreground">Quick Actions</p>
-            <QuickActions
-              productId={product.template_id!}
-              storeId={product.store_id}
-              currentQuantity={product.quantity || 0}
-              isActive={product.is_active ?? true}
-            />
-          </div>
-        )}
 
         <Separator />
       </div>
@@ -191,25 +182,45 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
           <Card>
             <CardHeader>
-              <CardTitle>Inventory</CardTitle>
+              <CardTitle>Inventory Across Stores</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Current Stock:</span>
+                <span className="text-sm font-medium">Total Stock:</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">{product.quantity}</span>
-                  {getStockStatus()}
+                  <span className="text-2xl font-bold">{totalQuantity}</span>
+                  {getStockStatus(totalQuantity, product.min_stock_level)}
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Min Stock Level:</span>
                 <span className="text-sm text-muted-foreground">{product.min_stock_level}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Store:</span>
-                <span className="text-sm text-muted-foreground">
-                  {product.store_name || 'No Store'}
-                </span>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Stock by Store:</p>
+                {allInventories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Not available in any store</p>
+                ) : (
+                  <div className="space-y-2">
+                    {allInventories.map((inventory) => (
+                      <div
+                        key={inventory.id}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div>
+                          <p className="font-medium">{inventory.store_name || 'Unknown Store'}</p>
+                          <p className="text-sm text-muted-foreground">Quantity: {inventory.quantity}</p>
+                        </div>
+                        <div>
+                          {getStockStatus(inventory.quantity || 0, product.min_stock_level)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

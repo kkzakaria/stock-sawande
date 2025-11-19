@@ -438,6 +438,16 @@ export async function getProduct(id: string) {
     const primaryInventory = inventories && inventories.length > 0 ? inventories[0] : null
     const primaryStore = primaryInventory ? stores.find(s => s.id === primaryInventory.store_id) : null
 
+    // Enrich inventories with store information
+    const inventoriesWithStores = inventories?.map(inv => {
+      const store = stores.find(s => s.id === inv.store_id)
+      return {
+        ...inv,
+        store_name: store?.name || null,
+        store: store || null,
+      }
+    }) || []
+
     // Combine data in both old and new format for compatibility
     const productWithRelations = {
       ...template,
@@ -449,7 +459,7 @@ export async function getProduct(id: string) {
       store_name: primaryStore?.name || null, // New format
       categories: category, // Old format for compatibility
       stores: primaryStore, // Old format for compatibility
-      all_inventories: inventories, // Include all inventories for admin
+      all_inventories: inventoriesWithStores, // Include all inventories with store info
     }
 
     return { success: true, data: productWithRelations }

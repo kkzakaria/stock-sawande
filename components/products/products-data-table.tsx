@@ -228,17 +228,6 @@ export function ProductsDataTable({
       },
     },
     {
-      accessorKey: "store_name",
-      id: "store",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Store" />
-      ),
-      cell: ({ row }) => {
-        const store = row.original.store_name;
-        return <span>{store || "No Store"}</span>;
-      },
-    },
-    {
       accessorKey: "is_active",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
