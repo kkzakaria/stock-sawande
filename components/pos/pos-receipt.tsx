@@ -4,12 +4,12 @@
  * POS Receipt Component
  * Lightweight HTML-based receipt with Print and Share functionality
  * - Print: Native browser print dialog → PDF
- * - Share: html2canvas → PNG → Web Share API (WhatsApp, Telegram, etc.)
+ * - Share: html-to-image → PNG → Web Share API (WhatsApp, Telegram, etc.)
  * - Download: Fallback for browsers without Web Share API
  */
 
 import { useRef, useState } from 'react'
-import html2canvas from 'html2canvas'
+import { toPng } from 'html-to-image'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
 import {
@@ -87,17 +87,15 @@ export function POSReceipt({
     setAction('share')
 
     try {
-      // Convert HTML to Canvas
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
+      // Convert HTML to PNG data URL
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
       })
 
-      // Canvas to Blob
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), 'image/png', 0.95)
-      })
+      // Convert data URL to Blob
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
 
       const file = new File([blob], `ticket-${saleNumber}.png`, {
         type: 'image/png'
@@ -135,15 +133,15 @@ export function POSReceipt({
     setAction('download')
 
     try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
+      // Convert HTML to PNG data URL
+      const dataUrl = await toPng(receiptRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
       })
 
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), 'image/png', 0.95)
-      })
+      // Convert data URL to Blob
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
 
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
