@@ -1,0 +1,178 @@
+'use client'
+
+/**
+ * POS Cart Component
+ * Displays shopping cart with totals and checkout button
+ */
+
+import { useState, useRef, useEffect } from 'react'
+import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
+import { POSCheckoutModal } from './pos-checkout-modal'
+import { toast } from 'sonner'
+
+interface POSCartProps {
+  storeId: string
+  cashierId: string
+  cashierName: string
+}
+
+export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
+  const items = useCartStore((state) => state.items)
+  const removeItem = useCartStore((state) => state.removeItem)
+  const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const clearCart = useCartStore((state) => state.clearCart)
+  const getSubtotal = useCartStore((state) => state.getSubtotal)
+  const getTax = useCartStore((state) => state.getTax)
+  const getTotal = useCartStore((state) => state.getTotal)
+
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const cartItemsRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when new item is added
+  useEffect(() => {
+    if (cartItemsRef.current && items.length > 0) {
+      cartItemsRef.current.scrollTop = cartItemsRef.current.scrollHeight
+    }
+  }, [items.length])
+
+  const subtotal = getSubtotal()
+  const tax = getTax()
+  const total = getTotal()
+
+  const handleCheckoutComplete = (saleId: string) => {
+    toast.success('Sale completed successfully', {
+      description: `Sale ID: ${saleId}`,
+    })
+  }
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex-shrink-0 flex items-center justify-between p-4 pb-2 bg-gray-50">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <ShoppingCart className="h-5 w-5" />
+          Cart
+        </h2>
+        {items.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearCart}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Cart Items - Scrollable */}
+      <div ref={cartItemsRef} className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 space-y-2">
+        {items.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-gray-400">
+            <div className="text-center">
+              <ShoppingCart className="mx-auto h-12 w-12 mb-2" />
+              <p>Cart is empty</p>
+              <p className="text-sm">Add products to get started</p>
+            </div>
+          </div>
+        ) : (
+          items.map((item) => (
+            <Card key={item.productId} className="p-3">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1 pr-2">
+                  <h3 className="font-medium text-sm line-clamp-2">{item.name}</h3>
+                  <p className="text-xs text-gray-500">{item.sku}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => removeItem(item.productId)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                {/* Quantity Controls */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="w-10 text-center font-medium">{item.quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    disabled={item.quantity >= item.maxStock}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+
+                {/* Item Total */}
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">
+                    {formatCurrency(item.price)} each
+                  </p>
+                  <p className="font-bold">
+                    {formatCurrency(item.price * item.quantity)}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Totals - Fixed */}
+      {items.length > 0 && (
+        <div className="flex-shrink-0 border-t pt-4 px-4 pb-4 bg-gray-50 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Subtotal</span>
+            <span className="font-medium">{formatCurrency(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Tax (8.75%)</span>
+            <span className="font-medium">{formatCurrency(tax)}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between text-lg font-bold">
+            <span>Total</span>
+            <span>{formatCurrency(total)}</span>
+          </div>
+
+          {/* Checkout Button */}
+          <Button
+            className="w-full h-12 text-lg"
+            size="lg"
+            disabled={items.length === 0}
+            onClick={() => setCheckoutOpen(true)}
+          >
+            Checkout
+          </Button>
+        </div>
+      )}
+
+      {/* Checkout Modal */}
+      <POSCheckoutModal
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        storeId={storeId}
+        cashierId={cashierId}
+        onCheckoutComplete={handleCheckoutComplete}
+      />
+    </div>
+  )
+}
