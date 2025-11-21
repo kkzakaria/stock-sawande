@@ -5,14 +5,16 @@
  * Main POS interface with product grid and shopping cart
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart-store'
 import { useHydrated } from '@/lib/hooks/use-hydrated'
 import { POSProductGrid } from './pos-product-grid'
 import { POSCart } from './pos-cart'
 import { Button } from '@/components/ui/button'
 import { ShoppingCart } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Product {
   id: string
@@ -43,6 +45,7 @@ export function POSClient({
   const [searchQuery, setSearchQuery] = useState('')
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Prevent hydration mismatch: use 0 during SSR, real value after hydration
   const itemCount = hydrated ? storeItemCount : 0
@@ -51,6 +54,54 @@ export function POSClient({
   const handleCheckoutComplete = () => {
     router.refresh()
   }
+
+  // Realtime subscription for multi-cashier synchronization
+  useEffect(() => {
+    const supabase = createClient()
+
+    // Debounced refresh to avoid excessive updates
+    const debouncedRefresh = () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        router.refresh()
+      }, 500) // 500ms delay to batch multiple changes
+    }
+
+    // Subscribe to inventory changes for this store
+    const channel = supabase
+      .channel(`inventory-${storeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'product_inventory',
+          filter: `store_id=eq.${storeId}`,
+        },
+        (payload) => {
+          // Notify user of stock changes from other cashiers
+          toast.info('Stock updated by another cashier', {
+            duration: 2000,
+            position: 'bottom-right',
+          })
+
+          // Refresh data with debouncing
+          debouncedRefresh()
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      supabase.removeChannel(channel)
+    }
+  }, [storeId, router])
 
   // Filter products based on search query
   const filteredProducts = products.filter(
