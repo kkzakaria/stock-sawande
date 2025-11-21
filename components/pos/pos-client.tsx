@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/lib/store/cart-store'
 import { useHydrated } from '@/lib/hooks/use-hydrated'
 import { POSProductGrid } from './pos-product-grid'
@@ -38,12 +39,18 @@ export function POSClient({
   cashierId,
   cashierName,
 }: POSClientProps) {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
 
   // Prevent hydration mismatch: use 0 during SSR, real value after hydration
   const itemCount = hydrated ? storeItemCount : 0
+
+  // Refresh product data after checkout to update stock quantities
+  const handleCheckoutComplete = () => {
+    router.refresh()
+  }
 
   // Filter products based on search query
   const filteredProducts = products.filter(
@@ -71,6 +78,7 @@ export function POSClient({
           storeId={storeId}
           cashierId={cashierId}
           cashierName={cashierName}
+          onCheckoutComplete={handleCheckoutComplete}
         />
       </div>
 
