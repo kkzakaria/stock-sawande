@@ -12,7 +12,9 @@ import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
+import { POSReceipt, type ReceiptData } from './pos-receipt'
 import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
 
 interface POSCartProps {
   storeId: string
@@ -30,6 +32,10 @@ export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
   const getTotal = useCartStore((state) => state.getTotal)
 
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [receiptOpen, setReceiptOpen] = useState(false)
+  const [currentSaleId, setCurrentSaleId] = useState<string>('')
+  const [currentSaleNumber, setCurrentSaleNumber] = useState<string>('')
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null)
   const cartItemsRef = useRef<HTMLDivElement>(null)
 
   // Auto-scroll to bottom when new item is added
@@ -43,10 +49,52 @@ export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
   const tax = getTax()
   const total = getTotal()
 
-  const handleCheckoutComplete = (saleId: string) => {
-    toast.success('Sale completed successfully', {
-      description: `Sale ID: ${saleId}`,
-    })
+  const handleCheckoutComplete = async (saleId: string, saleNumber: string) => {
+    // Close checkout modal
+    setCheckoutOpen(false)
+
+    // Clear cart
+    clearCart()
+
+    // Show success toast
+    toast.success(`Sale completed successfully - Receipt #${saleNumber}`)
+
+    // Set sale info and open receipt
+    setCurrentSaleId(saleId)
+    setCurrentSaleNumber(saleNumber)
+
+    // Fetch receipt data
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('sales')
+      .select(`
+        id,
+        sale_number,
+        subtotal,
+        tax,
+        discount,
+        total,
+        payment_method,
+        created_at,
+        notes,
+        store:stores(name, address, phone),
+        cashier:profiles!sales_cashier_id_fkey(full_name),
+        sale_items(
+          quantity,
+          unit_price,
+          subtotal,
+          discount,
+          product:product_templates(name, sku)
+        )
+      `)
+      .eq('id', saleId)
+      .single()
+
+    if (!error && data) {
+      setReceiptData(data)
+    }
+
+    setReceiptOpen(true)
   }
 
   return (
@@ -172,6 +220,15 @@ export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
         storeId={storeId}
         cashierId={cashierId}
         onCheckoutComplete={handleCheckoutComplete}
+      />
+
+      {/* Receipt Modal */}
+      <POSReceipt
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        saleId={currentSaleId}
+        saleNumber={currentSaleNumber}
+        receiptData={receiptData}
       />
     </div>
   )

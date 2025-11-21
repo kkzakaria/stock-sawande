@@ -27,7 +27,7 @@ interface POSCheckoutModalProps {
   onOpenChange: (open: boolean) => void
   storeId: string
   cashierId: string
-  onCheckoutComplete: (saleId: string) => void
+  onCheckoutComplete: (saleId: string, saleNumber: string) => void
 }
 
 type PaymentMethod = 'cash' | 'card' | 'mobile'
@@ -89,12 +89,12 @@ export function POSCheckoutModal({
         throw new Error(data.error || 'Checkout failed')
       }
 
-      const { saleId } = await response.json()
+      const { saleId, saleNumber } = await response.json()
 
       // Clear cart and close modal
       clearCart()
       onOpenChange(false)
-      onCheckoutComplete(saleId)
+      onCheckoutComplete(saleId, saleNumber)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
