@@ -182,6 +182,19 @@ export async function POST(request: Request) {
 
     // Note: Inventory deduction happens automatically via database trigger
 
+    // Broadcast inventory update to other cashiers on the same store
+    // This ensures multi-cashier synchronization works in local development
+    const channel = supabase.channel(`inventory-${body.storeId}`)
+    await channel.send({
+      type: 'broadcast',
+      event: 'inventory_updated',
+      payload: {
+        store_id: body.storeId,
+        sale_id: sale.id,
+        updated_at: new Date().toISOString(),
+      },
+    })
+
     return NextResponse.json({
       success: true,
       saleId: sale.id,

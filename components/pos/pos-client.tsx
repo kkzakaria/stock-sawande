@@ -59,6 +59,8 @@ export function POSClient({
   useEffect(() => {
     const supabase = createClient()
 
+    console.log('[Realtime] Setting up subscription for store:', storeId)
+
     // Debounced refresh to avoid excessive updates
     const debouncedRefresh = () => {
       if (debounceTimerRef.current) {
@@ -66,22 +68,22 @@ export function POSClient({
       }
 
       debounceTimerRef.current = setTimeout(() => {
+        console.log('[Realtime] Refreshing product data')
         router.refresh()
       }, 500) // 500ms delay to batch multiple changes
     }
 
     // Subscribe to inventory changes for this store
+    // Using both broadcast (for local dev) and postgres_changes (for production)
     const channel = supabase
       .channel(`inventory-${storeId}`)
+      // Broadcast messages: client-to-client communication (works in local dev)
       .on(
-        'postgres_changes',
-        {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
-          schema: 'public',
-          table: 'product_inventory',
-          filter: `store_id=eq.${storeId}`,
-        },
+        'broadcast',
+        { event: 'inventory_updated' },
         (payload) => {
+          console.log('[Realtime] Broadcast inventory update received:', payload)
+
           // Notify user of stock changes from other cashiers
           toast.info('Stock updated by another cashier', {
             duration: 2000,
@@ -92,10 +94,35 @@ export function POSClient({
           debouncedRefresh()
         }
       )
-      .subscribe()
+      // Postgres changes: database-level events (works in production)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'product_inventory',
+          filter: `store_id=eq.${storeId}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Postgres change detected:', payload)
+
+          // Notify user of stock changes from other cashiers
+          toast.info('Stock updated by another cashier', {
+            duration: 2000,
+            position: 'bottom-right',
+          })
+
+          // Refresh data with debouncing
+          debouncedRefresh()
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Subscription status:', status)
+      })
 
     // Cleanup subscription on unmount
     return () => {
+      console.log('[Realtime] Cleaning up subscription')
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
       }
