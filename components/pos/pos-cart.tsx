@@ -10,6 +10,7 @@ import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
 import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
@@ -20,6 +21,82 @@ interface POSCartProps {
   storeId: string
   cashierId: string
   cashierName: string
+}
+
+interface QuantityEditorProps {
+  quantity: number
+  maxStock: number
+  onUpdate: (newQuantity: number) => void
+}
+
+function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputValue, setInputValue] = useState(quantity.toString())
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  const handleSubmit = () => {
+    const newQuantity = parseInt(inputValue, 10)
+
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      toast.error('Quantity must be at least 1')
+      setInputValue(quantity.toString())
+      setIsEditing(false)
+      return
+    }
+
+    if (newQuantity > maxStock) {
+      toast.error(`Maximum available stock is ${maxStock}`)
+      setInputValue(maxStock.toString())
+      onUpdate(maxStock)
+      setIsEditing(false)
+      return
+    }
+
+    onUpdate(newQuantity)
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSubmit()
+    } else if (e.key === 'Escape') {
+      setInputValue(quantity.toString())
+      setIsEditing(false)
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <Input
+        ref={inputRef}
+        type="number"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onBlur={handleSubmit}
+        onKeyDown={handleKeyDown}
+        className="w-14 h-7 text-center p-1"
+        min={1}
+        max={maxStock}
+      />
+    )
+  }
+
+  return (
+    <span
+      className="w-10 text-center font-medium cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors"
+      onClick={() => setIsEditing(true)}
+      title="Click to edit quantity"
+    >
+      {quantity}
+    </span>
+  )
 }
 
 export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
@@ -157,7 +234,11 @@ export function POSCart({ storeId, cashierId, cashierName }: POSCartProps) {
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                  <span className="w-10 text-center font-medium">{item.quantity}</span>
+                  <QuantityEditor
+                    quantity={item.quantity}
+                    maxStock={item.maxStock}
+                    onUpdate={(newQuantity) => updateQuantity(item.productId, newQuantity)}
+                  />
                   <Button
                     variant="outline"
                     size="icon"
