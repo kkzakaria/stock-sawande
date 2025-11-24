@@ -228,20 +228,21 @@ export function POSReceipt({
       `}</style>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader className="no-print">
+        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+          <DialogHeader className="no-print flex-shrink-0">
             <DialogTitle>Ticket de vente</DialogTitle>
             <DialogDescription>
               Ticket #{saleNumber} - Imprimez, partagez ou téléchargez
             </DialogDescription>
           </DialogHeader>
 
-          {/* Receipt Template */}
-          <div
-            ref={receiptRef}
-            className="receipt-container bg-white p-6 mx-auto"
-            style={{ width: '80mm', fontFamily: 'monospace' }}
-          >
+          {/* Receipt Template - Scrollable */}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            <div
+              ref={receiptRef}
+              className="receipt-container bg-white p-6 mx-auto"
+              style={{ width: '80mm', fontFamily: 'monospace' }}
+            >
             {/* Header */}
             <div className="text-center mb-4 border-b-2 border-dashed border-gray-300 pb-4">
               <h1 className="text-xl font-bold mb-1">{receiptData.store.name}</h1>
@@ -347,24 +348,24 @@ export function POSReceipt({
                 Note: {receiptData.notes}
               </div>
             )}
+            </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="no-print flex gap-2 mt-4">
+          {/* Action Buttons - Always visible */}
+          <div className="no-print flex gap-2 pt-4 flex-shrink-0 border-t">
             <Button
-              variant="outline"
               onClick={handlePrint}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Printer className="mr-2 h-4 w-4" />
               Imprimer
             </Button>
+            {/* TODO: Activer après intégration WhatsApp/Telegram API
             <Button
-              variant="outline"
               onClick={handleShare}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
             >
               {loading && action === 'share' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -373,11 +374,11 @@ export function POSReceipt({
               )}
               Partager
             </Button>
+            */}
             <Button
-              variant="outline"
               onClick={handleDownload}
               disabled={loading}
-              className="flex-1"
+              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
               {loading && action === 'download' ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
