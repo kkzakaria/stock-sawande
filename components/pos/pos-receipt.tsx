@@ -176,6 +176,14 @@ export function POSReceipt({
     }).format(amount)
   }
 
+  // Format number without currency symbol (for table cells)
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)
+  }
+
   const formatPaymentMethod = (method: string) => {
     const methods: Record<string, string> = {
       cash: 'Espèces',
@@ -281,8 +289,8 @@ export function POSReceipt({
                   <tr className="border-b border-gray-300">
                     <th className="text-left py-1">Article</th>
                     <th className="text-center py-1">Qté</th>
-                    <th className="text-right py-1">Prix</th>
-                    <th className="text-right py-1">Total</th>
+                    <th className="text-right py-1">Prix ($)</th>
+                    <th className="text-right py-1">Total ($)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,9 +301,9 @@ export function POSReceipt({
                         <div className="text-gray-500">{item.product.sku}</div>
                       </td>
                       <td className="text-center">{item.quantity}</td>
-                      <td className="text-right">{formatCurrency(item.unit_price)}</td>
+                      <td className="text-right">{formatAmount(item.unit_price)}</td>
                       <td className="text-right font-medium">
-                        {formatCurrency(item.subtotal)}
+                        {formatAmount(item.subtotal)}
                       </td>
                     </tr>
                   ))}
