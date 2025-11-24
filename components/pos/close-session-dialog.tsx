@@ -111,8 +111,8 @@ export function CloseSessionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
             Fermer la caisse
@@ -123,8 +123,8 @@ export function CloseSessionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="space-y-4 py-4 flex-1 overflow-y-auto">
             {error && (
               <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
                 {error}
@@ -247,7 +247,7 @@ export function CloseSessionDialog({
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 border-t pt-4">
             <Button
               type="button"
               variant="outline"
