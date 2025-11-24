@@ -19,6 +19,7 @@ interface CheckoutRequest {
   storeId: string
   cashierId: string
   customerId: string | null
+  sessionId?: string | null
   items: CheckoutItem[]
   subtotal: number
   tax: number
@@ -111,6 +112,7 @@ export async function POST(request: Request) {
       store_id: body.storeId,
       cashier_id: body.cashierId,
       customer_id: body.customerId,
+      cash_session_id: body.sessionId || null,
       subtotal: body.subtotal,
       tax: body.tax,
       discount: body.discount,
@@ -181,6 +183,45 @@ export async function POST(request: Request) {
     }
 
     // Note: Inventory deduction happens automatically via database trigger
+
+    // Update cash session counters if session is linked
+    if (body.sessionId) {
+      const { data: session } = await supabase
+        .from('cash_sessions')
+        .select('*')
+        .eq('id', body.sessionId)
+        .single()
+
+      if (session) {
+        const updateData: Record<string, number> = {
+          transaction_count: (session.transaction_count || 0) + 1,
+        }
+
+        // Update the appropriate sales counter based on payment method
+        switch (body.paymentMethod) {
+          case 'cash':
+            updateData.total_cash_sales =
+              Number(session.total_cash_sales || 0) + body.total
+            break
+          case 'card':
+            updateData.total_card_sales =
+              Number(session.total_card_sales || 0) + body.total
+            break
+          case 'mobile':
+            updateData.total_mobile_sales =
+              Number(session.total_mobile_sales || 0) + body.total
+            break
+          default:
+            updateData.total_other_sales =
+              Number(session.total_other_sales || 0) + body.total
+        }
+
+        await supabase
+          .from('cash_sessions')
+          .update(updateData)
+          .eq('id', body.sessionId)
+      }
+    }
 
     // Broadcast inventory update to other cashiers on the same store
     // This ensures multi-cashier synchronization works in local development

@@ -27,6 +27,7 @@ interface POSCheckoutModalProps {
   onOpenChange: (open: boolean) => void
   storeId: string
   cashierId: string
+  sessionId?: string | null
   onCheckoutComplete: (saleId: string, saleNumber: string) => void
 }
 
@@ -37,6 +38,7 @@ export function POSCheckoutModal({
   onOpenChange,
   storeId,
   cashierId,
+  sessionId,
   onCheckoutComplete,
 }: POSCheckoutModalProps) {
   const items = useCartStore((state) => state.items)
@@ -67,6 +69,7 @@ export function POSCheckoutModal({
         body: JSON.stringify({
           storeId,
           cashierId,
+          sessionId,
           customerId,
           items: items.map((item) => ({
             productId: item.productId,

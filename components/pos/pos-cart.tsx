@@ -21,6 +21,7 @@ interface POSCartProps {
   storeId: string
   cashierId: string
   cashierName: string
+  sessionId?: string | null
   onCheckoutComplete?: () => void
 }
 
@@ -100,7 +101,7 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
   )
 }
 
-export function POSCart({ storeId, cashierId, cashierName, onCheckoutComplete }: POSCartProps) {
+export function POSCart({ storeId, cashierId, cashierName, sessionId, onCheckoutComplete }: POSCartProps) {
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -304,6 +305,7 @@ export function POSCart({ storeId, cashierId, cashierName, onCheckoutComplete }:
         onOpenChange={setCheckoutOpen}
         storeId={storeId}
         cashierId={cashierId}
+        sessionId={sessionId}
         onCheckoutComplete={handleCheckoutComplete}
       />
 

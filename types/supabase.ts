@@ -34,6 +34,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      cash_sessions: {
+        Row: {
+          cashier_id: string
+          closed_at: string | null
+          closing_amount: number | null
+          closing_notes: string | null
+          created_at: string
+          discrepancy: number | null
+          expected_closing_amount: number | null
+          id: string
+          opened_at: string
+          opening_amount: number
+          opening_notes: string | null
+          status: Database["public"]["Enums"]["cash_session_status"]
+          store_id: string
+          total_card_sales: number
+          total_cash_sales: number
+          total_mobile_sales: number
+          total_other_sales: number
+          transaction_count: number
+          updated_at: string
+        }
+        Insert: {
+          cashier_id: string
+          closed_at?: string | null
+          closing_amount?: number | null
+          closing_notes?: string | null
+          created_at?: string
+          discrepancy?: number | null
+          expected_closing_amount?: number | null
+          id?: string
+          opened_at?: string
+          opening_amount?: number
+          opening_notes?: string | null
+          status?: Database["public"]["Enums"]["cash_session_status"]
+          store_id: string
+          total_card_sales?: number
+          total_cash_sales?: number
+          total_mobile_sales?: number
+          total_other_sales?: number
+          transaction_count?: number
+          updated_at?: string
+        }
+        Update: {
+          cashier_id?: string
+          closed_at?: string | null
+          closing_amount?: number | null
+          closing_notes?: string | null
+          created_at?: string
+          discrepancy?: number | null
+          expected_closing_amount?: number | null
+          id?: string
+          opened_at?: string
+          opening_amount?: number
+          opening_notes?: string | null
+          status?: Database["public"]["Enums"]["cash_session_status"]
+          store_id?: string
+          total_card_sales?: number
+          total_cash_sales?: number
+          total_mobile_sales?: number
+          total_other_sales?: number
+          transaction_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_sessions_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -386,6 +467,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          cash_session_id: string | null
           cashier_id: string
           created_at: string
           customer_id: string | null
@@ -405,6 +487,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cash_session_id?: string | null
           cashier_id: string
           created_at?: string
           customer_id?: string | null
@@ -424,6 +507,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cash_session_id?: string | null
           cashier_id?: string
           created_at?: string
           customer_id?: string | null
@@ -443,6 +527,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_cash_session_id_fkey"
+            columns: ["cash_session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_cashier_id_fkey"
             columns: ["cashier_id"]
@@ -528,8 +619,15 @@ export type Database = {
             foreignKeyName: "stock_movements_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "products_backup_old"
+            referencedRelation: "product_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_inventory"
+            referencedColumns: ["template_id"]
           },
           {
             foreignKeyName: "stock_movements_store_id_fkey"
@@ -670,6 +768,7 @@ export type Database = {
       }
     }
     Enums: {
+      cash_session_status: "open" | "closed"
       stock_movement_type:
         | "purchase"
         | "sale"
@@ -809,6 +908,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      cash_session_status: ["open", "closed"],
       stock_movement_type: [
         "purchase",
         "sale",
