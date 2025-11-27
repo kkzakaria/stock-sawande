@@ -29,13 +29,11 @@ import {
   AlertTriangle,
   UserCheck,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 
-interface Manager {
+interface Validator {
   id: string
   full_name: string | null
   role: string
-  hasPin: boolean
 }
 
 interface ManagerApprovalDialogProps {
@@ -55,14 +53,13 @@ export function ManagerApprovalDialog({
   onApproved,
   onCancel,
 }: ManagerApprovalDialogProps) {
-  const [managers, setManagers] = useState<Manager[]>([])
+  const [validators, setValidators] = useState<Validator[]>([])
+  const [validatorsWithoutPin, setValidatorsWithoutPin] = useState<Validator[]>([])
   const [selectedManager, setSelectedManager] = useState<string>('')
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(true)
   const [validating, setValidating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClient()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -71,10 +68,10 @@ export function ManagerApprovalDialog({
     }).format(amount)
   }
 
-  // Fetch managers/admins with PINs when dialog opens
+  // Fetch validators when dialog opens
   useEffect(() => {
     if (open) {
-      fetchManagers()
+      fetchValidators()
     } else {
       // Reset state when dialog closes
       setSelectedManager('')
@@ -83,62 +80,23 @@ export function ManagerApprovalDialog({
     }
   }, [open])
 
-  const fetchManagers = async () => {
+  const fetchValidators = async () => {
     setLoading(true)
     setError(null)
 
     try {
-      // Get current user to exclude from list
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const response = await fetch('/api/pos/session/validators')
+      const data = await response.json()
 
-      // Fetch managers from the same store + all admins (admins can approve any store)
-      // Admins may have store_id = null, so we fetch them separately
-      const { data: storeManagers, error: managersError } = await supabase
-        .from('profiles')
-        .select('id, full_name, role, store_id')
-        .eq('role', 'manager')
-        .eq('store_id', storeId)
-
-      const { data: admins, error: adminsError } = await supabase
-        .from('profiles')
-        .select('id, full_name, role, store_id')
-        .eq('role', 'admin')
-
-      if (managersError || adminsError) {
-        throw managersError || adminsError
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch validators')
       }
 
-      // Combine managers and admins
-      const profiles = [...(storeManagers || []), ...(admins || [])]
-
-      // Filter out current user and check which ones have PINs
-      const managersWithPinStatus: Manager[] = []
-
-      for (const profile of profiles || []) {
-        // Skip current user - they can't approve their own session
-        if (profile.id === user?.id) continue
-
-        // Check if this manager has a PIN configured
-        const { data: pinRecord } = await supabase
-          .from('manager_pins')
-          .select('id')
-          .eq('user_id', profile.id)
-          .single()
-
-        managersWithPinStatus.push({
-          id: profile.id,
-          full_name: profile.full_name,
-          role: profile.role,
-          hasPin: !!pinRecord,
-        })
-      }
-
-      setManagers(managersWithPinStatus)
+      setValidators(data.validators || [])
+      setValidatorsWithoutPin(data.validatorsWithoutPin || [])
     } catch (err) {
-      console.error('Failed to fetch managers:', err)
-      setError('Impossible de charger la liste des managers')
+      console.error('Failed to fetch validators:', err)
+      setError('Impossible de charger la liste des validateurs')
     } finally {
       setLoading(false)
     }
@@ -192,9 +150,6 @@ export function ManagerApprovalDialog({
     onOpenChange(false)
   }
 
-  const managersWithPin = managers.filter((m) => m.hasPin)
-  const managersWithoutPin = managers.filter((m) => !m.hasPin)
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -237,17 +192,17 @@ export function ManagerApprovalDialog({
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : managersWithPin.length === 0 ? (
+          ) : validators.length === 0 ? (
             <div className="bg-orange-50 text-orange-800 rounded-lg p-4">
               <p className="font-medium">Aucun validateur disponible</p>
               <p className="text-sm mt-1">
-                {managers.length === 0
+                {validators.length === 0 && validatorsWithoutPin.length === 0
                   ? 'Aucun manager ou admin trouvé pour ce magasin.'
                   : 'Aucun manager ou admin n\'a configuré son code PIN. Veuillez contacter un administrateur.'}
               </p>
-              {managersWithoutPin.length > 0 && (
+              {validatorsWithoutPin.length > 0 && (
                 <p className="text-sm mt-2 opacity-80">
-                  Managers sans PIN: {managersWithoutPin.map((m) => m.full_name || 'Sans nom').join(', ')}
+                  Managers sans PIN: {validatorsWithoutPin.map((m) => m.full_name || 'Sans nom').join(', ')}
                 </p>
               )}
             </div>
@@ -264,13 +219,13 @@ export function ManagerApprovalDialog({
                     <SelectValue placeholder="Choisir un manager ou admin" />
                   </SelectTrigger>
                   <SelectContent>
-                    {managersWithPin.map((manager) => (
-                      <SelectItem key={manager.id} value={manager.id}>
+                    {validators.map((validator) => (
+                      <SelectItem key={validator.id} value={validator.id}>
                         <div className="flex items-center gap-2">
                           <UserCheck className="h-4 w-4 text-green-600" />
-                          <span>{manager.full_name || 'Sans nom'}</span>
+                          <span>{validator.full_name || 'Sans nom'}</span>
                           <span className="text-xs text-muted-foreground capitalize">
-                            ({manager.role})
+                            ({validator.role})
                           </span>
                         </div>
                       </SelectItem>
@@ -318,7 +273,7 @@ export function ManagerApprovalDialog({
           >
             Annuler
           </Button>
-          {managersWithPin.length > 0 && (
+          {validators.length > 0 && (
             <Button
               type="submit"
               onClick={handleSubmit}

@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
@@ -95,8 +96,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get the manager's PIN hash
-    const { data: pinRecord, error: pinError } = await supabase
+    // Get the manager's PIN hash using service role to bypass RLS
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: pinRecord, error: pinError } = await serviceClient
       .from('manager_pins')
       .select('pin_hash')
       .eq('user_id', managerId)
