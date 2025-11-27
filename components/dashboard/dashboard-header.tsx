@@ -123,9 +123,11 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem disabled>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+            <DropdownMenuItem asChild>
+              <a href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres</span>
+              </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

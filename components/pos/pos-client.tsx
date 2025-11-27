@@ -261,6 +261,7 @@ export function POSClient({
         open={closeSessionDialogOpen}
         onOpenChange={setCloseSessionDialogOpen}
         session={activeSession}
+        storeId={storeId}
         onSessionClosed={handleSessionClosed}
       />
     </div>

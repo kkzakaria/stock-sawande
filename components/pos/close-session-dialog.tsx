@@ -22,8 +22,10 @@ import {
   Banknote,
   AlertTriangle,
   CheckCircle,
+  ShieldAlert,
 } from 'lucide-react'
 import { Tables } from '@/types/supabase'
+import { ManagerApprovalDialog } from './manager-approval-dialog'
 
 type CashSession = Tables<'cash_sessions'>
 
@@ -31,6 +33,7 @@ interface CloseSessionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   session: CashSession | null
+  storeId: string
   onSessionClosed: () => void
 }
 
@@ -38,12 +41,14 @@ export function CloseSessionDialog({
   open,
   onOpenChange,
   session,
+  storeId,
   onSessionClosed,
 }: CloseSessionDialogProps) {
   const [closingAmount, setClosingAmount] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false)
 
   if (!session) return null
 
@@ -63,6 +68,9 @@ export function CloseSessionDialog({
   const enteredAmount = parseFloat(closingAmount) || 0
   const discrepancy = closingAmount ? enteredAmount - expectedClosing : null
 
+  // Check if there's a discrepancy that requires approval
+  const hasDiscrepancy = discrepancy !== null && Math.abs(discrepancy) > 0.001
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -72,7 +80,19 @@ export function CloseSessionDialog({
       return
     }
 
+    // If there's a discrepancy, show the approval dialog
+    if (hasDiscrepancy) {
+      setShowApprovalDialog(true)
+      return
+    }
+
+    // No discrepancy, proceed with closing directly
+    await closeSession()
+  }
+
+  const closeSession = async (approvedBy?: string, approverPin?: string) => {
     setLoading(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/pos/session/close', {
@@ -82,6 +102,8 @@ export function CloseSessionDialog({
           sessionId: session.id,
           closingAmount: parseFloat(closingAmount),
           notes: notes || undefined,
+          approvedBy,
+          approverPin,
         }),
       })
 
@@ -94,6 +116,7 @@ export function CloseSessionDialog({
       // Reset form
       setClosingAmount('')
       setNotes('')
+      setShowApprovalDialog(false)
       onSessionClosed()
       onOpenChange(false)
     } catch (err) {
@@ -101,6 +124,14 @@ export function CloseSessionDialog({
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleApproval = async (managerId: string, pin: string) => {
+    await closeSession(managerId, pin)
+  }
+
+  const handleApprovalCancel = () => {
+    setShowApprovalDialog(false)
   }
 
   const totalSales =
@@ -222,7 +253,7 @@ export function CloseSessionDialog({
                 ) : (
                   <AlertTriangle className="h-5 w-5" />
                 )}
-                <div>
+                <div className="flex-1">
                   <span className="font-medium">
                     {discrepancy === 0
                       ? 'Caisse équilibrée'
@@ -230,6 +261,12 @@ export function CloseSessionDialog({
                         ? `Excédent: ${formatCurrency(discrepancy)}`
                         : `Manque: ${formatCurrency(Math.abs(discrepancy))}`}
                   </span>
+                  {hasDiscrepancy && (
+                    <p className="text-xs mt-1 flex items-center gap-1">
+                      <ShieldAlert className="h-3 w-3" />
+                      Validation manager requise
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -258,11 +295,21 @@ export function CloseSessionDialog({
             </Button>
             <Button type="submit" disabled={loading || !closingAmount}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Fermer la caisse
+              {hasDiscrepancy ? 'Demander validation' : 'Fermer la caisse'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Manager Approval Dialog */}
+      <ManagerApprovalDialog
+        open={showApprovalDialog}
+        onOpenChange={setShowApprovalDialog}
+        discrepancy={discrepancy || 0}
+        storeId={storeId}
+        onApproved={handleApproval}
+        onCancel={handleApprovalCancel}
+      />
     </Dialog>
   )
 }
