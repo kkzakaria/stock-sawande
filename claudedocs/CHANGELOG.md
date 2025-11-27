@@ -170,11 +170,11 @@ Complete implementation of the Product Management System with advanced features 
 
 ## Phase 3: POS System - IN PROGRESS 🔄
 **Started:** 2025-11-20
-**PRs:** #17-#23
-**Status:** 70% Complete
+**PRs:** #17-#24
+**Status:** 85% Complete
 
 ### 🎯 Overview
-Point of Sale system with cart management, checkout flow, receipt generation, and multi-cashier real-time synchronization.
+Point of Sale system with cart management, checkout flow, receipt generation, multi-cashier real-time synchronization, and cash drawer management with manager approval.
 
 ### 📦 Features Implemented
 
@@ -226,19 +226,33 @@ Point of Sale system with cart management, checkout flow, receipt generation, an
   - Auto-refresh product stock after checkout
   - Conflict prevention between cashiers
 
-### 📋 Features Remaining
-
-#### Cash Drawer Management 🔲
-- 🔲 **Session Opening**
-  - Initial cash count
+#### Cash Drawer Management ✅
+- ✅ **Session Opening**
+  - Initial cash count input
   - Opening balance recording
-  - Cashier assignment
+  - Cashier assignment automatic
+  - Session status display
 
-- 🔲 **Session Closing**
-  - Final cash count
-  - Expected vs actual balance
-  - Discrepancy reporting
-  - Daily summary generation
+- ✅ **Session Closing**
+  - Final cash count input
+  - Expected vs actual balance calculation
+  - Real-time discrepancy display
+  - Closing notes support
+
+- ✅ **Manager/Admin PIN Approval**
+  - PIN configuration in Settings (managers/admins only)
+  - Secure PIN storage with bcrypt hashing
+  - Discrepancy validation workflow
+  - Manager selection with PIN verification
+  - Server-side PIN validation (service role)
+  - RLS policies for secure access
+
+- ✅ **Approval Tracking**
+  - Approved by (manager/admin ID)
+  - Approval timestamp
+  - Discrepancy amount recorded
+
+### 📋 Features Remaining
 
 #### Sales History 🔲
 - 🔲 **Transaction History**
@@ -266,9 +280,9 @@ Point of Sale system with cart management, checkout flow, receipt generation, an
   - Minimal re-renders on updates
 
 ### 📊 Metrics
-- **PRs Merged:** 7 (#17-#23)
-- **Completed:** POS interface, Cart, Checkout, Receipts, Realtime sync
-- **Remaining:** Cash drawer, Sales history, Offline mode
+- **PRs Merged:** 8 (#17-#24)
+- **Completed:** POS interface, Cart, Checkout, Receipts, Realtime sync, Cash drawer, PIN approval
+- **Remaining:** Sales history, Offline mode (low priority)
 
 ---
 
@@ -291,6 +305,13 @@ Point of Sale system with cart management, checkout flow, receipt generation, an
 
 ## Version History
 
+### v2.6 - Phase 3 Progress (2025-11-27)
+- Cash Drawer Session Management (Open/Close)
+- Manager/Admin PIN Configuration
+- Cash Discrepancy Detection & Approval Workflow
+- Secure PIN Validation (bcrypt + service role)
+- Playwright E2E Tests for Approval Flow
+
 ### v2.5 - Phase 3 Progress (2025-11-24)
 - POS Interface & Cart Management
 - Checkout Flow & Payment Processing
@@ -311,5 +332,5 @@ Point of Sale system with cart management, checkout flow, receipt generation, an
 
 ---
 
-**Current Focus:** Phase 3 - Cash Drawer & Sales History
-**Overall Progress:** 70% (7/10 weeks complete)
+**Current Focus:** Phase 3 - Sales History
+**Overall Progress:** 85% (8.5/10 weeks complete)
