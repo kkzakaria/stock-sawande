@@ -1,15 +1,20 @@
 /**
  * POS Cash Session Close API Route
  * POST: Close an active cash session with final count
+ * Requires manager/admin approval if there is a discrepancy
  */
 
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 
 interface CloseSessionRequest {
   sessionId: string
   closingAmount: number
   notes?: string
+  // Required if discrepancy != 0
+  approvedBy?: string // UUID of manager/admin who approves
+  approverPin?: string // PIN of the approver
 }
 
 export async function POST(request: Request) {
@@ -89,6 +94,95 @@ export async function POST(request: Request) {
     // Calculate discrepancy
     const discrepancy = body.closingAmount - expectedClosing
 
+    // If there is a discrepancy, require manager/admin approval
+    const hasDiscrepancy = Math.abs(discrepancy) > 0.001 // Using small epsilon for float comparison
+    let approvalData: {
+      approved_by: string | null
+      approved_at: string | null
+      requires_approval: boolean
+    } = {
+      approved_by: null,
+      approved_at: null,
+      requires_approval: false,
+    }
+
+    if (hasDiscrepancy) {
+      // Discrepancy requires approval
+      if (!body.approvedBy || !body.approverPin) {
+        return NextResponse.json(
+          {
+            error: 'Manager approval required for cash discrepancy',
+            requiresApproval: true,
+            discrepancy: discrepancy,
+          },
+          { status: 403 }
+        )
+      }
+
+      // Verify the approver is a manager/admin
+      const { data: approverProfile, error: approverError } = await supabase
+        .from('profiles')
+        .select('id, role, store_id, full_name')
+        .eq('id', body.approvedBy)
+        .single()
+
+      if (approverError || !approverProfile) {
+        return NextResponse.json(
+          { error: 'Approver not found' },
+          { status: 404 }
+        )
+      }
+
+      if (!['manager', 'admin'].includes(approverProfile.role)) {
+        return NextResponse.json(
+          { error: 'Approver must be a manager or admin' },
+          { status: 403 }
+        )
+      }
+
+      // Verify approver is from same store (unless admin)
+      if (
+        approverProfile.role === 'manager' &&
+        approverProfile.store_id !== profile.store_id
+      ) {
+        return NextResponse.json(
+          { error: 'Manager must be from the same store' },
+          { status: 403 }
+        )
+      }
+
+      // Get and verify the approver's PIN
+      const { data: pinRecord, error: pinError } = await supabase
+        .from('manager_pins')
+        .select('pin_hash')
+        .eq('user_id', body.approvedBy)
+        .single()
+
+      if (pinError || !pinRecord) {
+        return NextResponse.json(
+          { error: 'Approver has not configured a PIN' },
+          { status: 400 }
+        )
+      }
+
+      // Verify PIN
+      const isPinValid = await bcrypt.compare(body.approverPin, pinRecord.pin_hash)
+
+      if (!isPinValid) {
+        return NextResponse.json(
+          { error: 'Invalid PIN' },
+          { status: 401 }
+        )
+      }
+
+      // Approval is valid
+      approvalData = {
+        approved_by: body.approvedBy,
+        approved_at: new Date().toISOString(),
+        requires_approval: true,
+      }
+    }
+
     // Update session to closed
     const { data: closedSession, error: updateError } = await supabase
       .from('cash_sessions')
@@ -99,6 +193,7 @@ export async function POST(request: Request) {
         closing_notes: body.notes || null,
         closed_at: new Date().toISOString(),
         status: 'closed',
+        ...approvalData,
       })
       .eq('id', body.sessionId)
       .select()
@@ -115,6 +210,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       session: closedSession,
+      wasApproved: hasDiscrepancy,
       summary: {
         openingAmount: Number(session.opening_amount),
         totalCashSales: Number(session.total_cash_sales),

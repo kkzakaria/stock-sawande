@@ -55,6 +55,9 @@ export type Database = {
           total_other_sales: number
           transaction_count: number
           updated_at: string
+          approved_by: string | null
+          approved_at: string | null
+          requires_approval: boolean
         }
         Insert: {
           cashier_id: string
@@ -76,6 +79,9 @@ export type Database = {
           total_other_sales?: number
           transaction_count?: number
           updated_at?: string
+          approved_by?: string | null
+          approved_at?: string | null
+          requires_approval?: boolean
         }
         Update: {
           cashier_id?: string
@@ -97,6 +103,9 @@ export type Database = {
           total_other_sales?: number
           transaction_count?: number
           updated_at?: string
+          approved_by?: string | null
+          approved_at?: string | null
+          requires_approval?: boolean
         }
         Relationships: [
           {
@@ -111,6 +120,13 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -138,6 +154,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      manager_pins: {
+        Row: {
+          id: string
+          user_id: string
+          pin_hash: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          pin_hash: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          pin_hash?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manager_pins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {
