@@ -241,7 +241,7 @@ async function processTransaction(
       store_id: tx.storeId,
       cashier_id: tx.cashierId,
       customer_id: tx.customerId,
-      session_id: tx.sessionId,
+      cash_session_id: tx.sessionId, // Column is named cash_session_id, not session_id
       sale_number: saleNumber,
       subtotal: adjustedSubtotal,
       tax: tx.tax,
