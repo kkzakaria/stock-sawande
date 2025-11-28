@@ -18,8 +18,6 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { CreditCard, Banknote, Smartphone, Loader2 } from 'lucide-react'
 
 interface POSCheckoutModalProps {

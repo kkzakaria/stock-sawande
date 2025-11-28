@@ -101,7 +101,7 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
   )
 }
 
-export function POSCart({ storeId, cashierId, cashierName, sessionId, onCheckoutComplete }: POSCartProps) {
+export function POSCart({ storeId, cashierId, cashierName: _cashierName, sessionId, onCheckoutComplete }: POSCartProps) {
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)

@@ -1,5 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -107,10 +108,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           <CardContent className="space-y-4">
             {product.image_url && (
               <div className="relative h-48 w-full overflow-hidden rounded-lg border">
-                <img
+                <Image
                   src={product.image_url}
                   alt={product.name}
-                  className="h-full w-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             )}
@@ -243,7 +245,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       </div>
 
       {/* Product Statistics */}
-      <ProductStatsComponent productId={product.template_id} price={product.price} />
+      <ProductStatsComponent productId={product.template_id} />
 
       {/* Stock Movement History */}
       <StockMovementsHistory productId={product.template_id} />

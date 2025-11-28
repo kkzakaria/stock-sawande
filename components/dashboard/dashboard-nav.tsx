@@ -42,7 +42,7 @@ const navItems = [
     title: 'Sales',
     href: '/sales',
     icon: ShoppingCart,
-    roles: ['admin', 'manager'],
+    roles: ['admin', 'manager', 'cashier'],
   },
   {
     title: 'POS',
@@ -104,16 +104,6 @@ export function DashboardNav({ profile }: DashboardNavProps) {
           )
         })}
       </nav>
-
-      {/* Store info */}
-      {profile?.stores && (
-        <div className="border-t p-4 flex-shrink-0">
-          <div className="text-sm">
-            <p className="text-muted-foreground">Current Store</p>
-            <p className="font-medium">{profile.stores.name}</p>
-          </div>
-        </div>
-      )}
     </aside>
   )
 }

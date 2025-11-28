@@ -38,7 +38,7 @@ async function login(page: Page, email: string, password: string) {
   await page.waitForURL(/\/(dashboard|pos|products|settings)/, { timeout: 15000 })
 }
 
-async function setupPinForUser(page: Page, email: string, password: string, pin: string) {
+async function _setupPinForUser(page: Page, email: string, password: string, pin: string) {
   await login(page, email, password)
 
   // Navigate to settings

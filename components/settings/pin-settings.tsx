@@ -117,7 +117,7 @@ export function PinSettings({ userRole }: PinSettingsProps) {
 
       setHasPin(false)
       toast.success('Code PIN supprimé')
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erreur lors de la suppression du PIN')
     } finally {
       setSaving(false)

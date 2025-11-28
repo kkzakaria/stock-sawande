@@ -28,15 +28,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     redirect('/dashboard')
   }
 
-  // Parse search params into filters (passed to client component via props if needed)
-  const params = await searchParams
-  // For future use when report data is implemented
-  const _reportType = ['sales', 'inventory', 'performance'].includes(params.reportType as string)
-    ? (params.reportType as 'sales' | 'inventory' | 'performance')
-    : 'sales'
-  const _groupBy = ['daily', 'weekly', 'monthly'].includes(params.groupBy as string)
-    ? (params.groupBy as 'daily' | 'weekly' | 'monthly')
-    : 'daily'
+  // searchParams available for future server-side filtering
+  await searchParams
 
   // Fetch stores for filter dropdown
   const { data: stores } = await getStores()

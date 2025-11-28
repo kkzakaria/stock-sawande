@@ -45,7 +45,7 @@ export async function refreshUserSession() {
  * Admin function to invalidate a specific user's session after role change
  * This forces the user to re-authenticate with their new role
  */
-export async function invalidateUserSession(userId: string) {
+export async function invalidateUserSession(_userId: string) {
   try {
     const supabase = await createClient()
 

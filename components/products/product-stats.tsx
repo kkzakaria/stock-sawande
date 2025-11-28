@@ -16,7 +16,6 @@ import { TrendingUp, TrendingDown, DollarSign, Package, Calendar } from 'lucide-
 
 interface ProductStatsProps {
   productId: string
-  price: number
 }
 
 const chartConfig = {
@@ -26,7 +25,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function ProductStatsComponent({ productId, price }: ProductStatsProps) {
+export function ProductStatsComponent({ productId }: ProductStatsProps) {
   const [stats, setStats] = useState<ProductStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)

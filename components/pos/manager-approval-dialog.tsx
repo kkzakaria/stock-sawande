@@ -49,7 +49,7 @@ export function ManagerApprovalDialog({
   open,
   onOpenChange,
   discrepancy,
-  storeId,
+  storeId: _storeId,
   onApproved,
   onCancel,
 }: ManagerApprovalDialogProps) {

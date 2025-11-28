@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Download, Printer, Share2, Loader2 } from 'lucide-react'
+import { Download, Printer, Loader2 } from 'lucide-react'
 
 export interface ReceiptItem {
   product: {
@@ -64,7 +64,7 @@ interface POSReceiptProps {
 export function POSReceipt({
   open,
   onOpenChange,
-  saleId,
+  saleId: _saleId,
   saleNumber,
   receiptData,
 }: POSReceiptProps) {
@@ -80,7 +80,7 @@ export function POSReceipt({
     }, 100)
   }
 
-  const handleShare = async () => {
+  const _handleShare = async () => {
     if (!receiptRef.current) return
 
     setLoading(true)

@@ -15,7 +15,6 @@ import { LogOut, Settings, User as UserIcon, RefreshCw } from 'lucide-react'
 import { logout } from '@/app/(auth)/actions'
 import { refreshUserSession } from '@/lib/actions/session'
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface Profile {
   id: string
@@ -35,7 +34,6 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefresh] = useTransition()
-  const router = useRouter()
 
   const handleLogout = () => {
     startTransition(async () => {

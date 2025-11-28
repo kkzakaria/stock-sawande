@@ -46,6 +46,15 @@ export function DataTable<TData, TValue>({
   onColumnVisibilityChange,
   onPaginationChange,
 }: DataTableProps<TData, TValue>) {
+  // Track if component is mounted to prevent state updates during render
+  const isMountedRef = React.useRef(false);
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // Local state initialized with URL values
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
@@ -56,60 +65,70 @@ export function DataTable<TData, TValue>({
     pageSize,
   });
 
-  // Wrapper setters that update local state
+  // Wrapper setters that update local state (only after mount to prevent render-time state updates)
   const handleColumnFiltersChange = React.useCallback(
     (updater: ColumnFiltersState | ((prev: ColumnFiltersState) => ColumnFiltersState)) => {
-      setColumnFilters(updater);
+      if (isMountedRef.current) {
+        setColumnFilters(updater);
+      }
     },
     []
   );
 
   const handleSortingChange = React.useCallback(
     (updater: SortingState | ((prev: SortingState) => SortingState)) => {
-      setSorting(updater);
+      if (isMountedRef.current) {
+        setSorting(updater);
+      }
     },
     []
   );
 
   const handleColumnVisibilityChange = React.useCallback(
     (updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
-      setColumnVisibility(updater);
+      if (isMountedRef.current) {
+        setColumnVisibility(updater);
+      }
     },
     []
   );
 
   const handlePaginationChange = React.useCallback(
     (updater: { pageIndex: number; pageSize: number } | ((prev: { pageIndex: number; pageSize: number }) => { pageIndex: number; pageSize: number })) => {
-      setPagination(updater);
+      if (isMountedRef.current) {
+        setPagination(updater);
+      }
     },
     []
   );
 
   // Call URL sync callbacks after state changes (outside of render)
+  // Skip initial render to prevent state updates before mount
   React.useEffect(() => {
-    if (onColumnFiltersChange) {
+    if (isMountedRef.current && onColumnFiltersChange) {
       onColumnFiltersChange(columnFilters);
     }
   }, [columnFilters, onColumnFiltersChange]);
 
   React.useEffect(() => {
-    if (onSortingChange) {
+    if (isMountedRef.current && onSortingChange) {
       onSortingChange(sorting);
     }
   }, [sorting, onSortingChange]);
 
   React.useEffect(() => {
-    if (onColumnVisibilityChange) {
+    if (isMountedRef.current && onColumnVisibilityChange) {
       onColumnVisibilityChange(columnVisibility);
     }
   }, [columnVisibility, onColumnVisibilityChange]);
 
   React.useEffect(() => {
-    if (onPaginationChange) {
+    if (isMountedRef.current && onPaginationChange) {
       onPaginationChange(pagination);
     }
   }, [pagination, onPaginationChange]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

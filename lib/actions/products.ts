@@ -18,13 +18,6 @@ const productTemplateSchema = z.object({
   is_active: z.boolean().default(true),
 })
 
-// Validation schema for inventory
-const inventorySchema = z.object({
-  product_id: z.string().uuid(),
-  store_id: z.string().uuid('Invalid store'),
-  quantity: z.number().int().min(0, 'Quantity must be non-negative'),
-})
-
 // Combined schema for product creation
 const productSchema = productTemplateSchema.extend({
   store_id: z.string().uuid('Invalid store'),
@@ -32,7 +25,6 @@ const productSchema = productTemplateSchema.extend({
 })
 
 type ProductInput = z.infer<typeof productSchema>
-type ProductTemplateInput = z.infer<typeof productTemplateSchema>
 
 interface ActionResult<T = unknown> {
   success: boolean

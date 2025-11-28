@@ -29,10 +29,8 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
     redirect('/dashboard')
   }
 
-  // Parse search params (for future server-side filtering if needed)
-  const params = await searchParams
-  const _search = typeof params.search === 'string' ? params.search : undefined
-  const _status = params.status === 'active' || params.status === 'inactive' ? params.status : undefined
+  // searchParams available for future server-side filtering
+  await searchParams
 
   // Get all stores (filtering is done client-side for simplicity)
   const { data: stores } = await supabase

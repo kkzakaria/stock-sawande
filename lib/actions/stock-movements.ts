@@ -334,8 +334,7 @@ export async function getProductStats(
         dailyMap.set(date, movement.new_quantity)
       })
 
-      // Convert to array and fill in missing days
-      const dates = Array.from(dailyMap.keys()).sort()
+      // Fill in missing days
       let lastQuantity = allMovements[0].new_quantity
 
       for (let i = 0; i < days; i++) {

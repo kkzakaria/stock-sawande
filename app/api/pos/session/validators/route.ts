@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
  * Returns list of managers/admins who can validate cash session discrepancies
  * Only returns users who have configured a PIN (checked server-side for security)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
 
