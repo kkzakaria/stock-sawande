@@ -20,6 +20,7 @@ import { OpenSessionDialog } from './open-session-dialog'
 import { CloseSessionDialog } from './close-session-dialog'
 import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
+import { NetworkBanner } from './network-banner'
 import { SyncConflictDialog } from './sync-conflict-dialog'
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2 } from 'lucide-react'
@@ -235,6 +236,9 @@ export function POSClient({
 
   return (
     <div className="relative flex h-full gap-4">
+      {/* Network Status Banner */}
+      <NetworkBanner />
+
       {/* Session Required Overlay */}
       {!activeSession && (
         <SessionRequiredOverlay
