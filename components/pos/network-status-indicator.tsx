@@ -30,12 +30,14 @@ interface NetworkStatusIndicatorProps {
   storeId?: string
   showDetails?: boolean
   className?: string
+  onSyncComplete?: () => void
 }
 
 export function NetworkStatusIndicator({
   storeId,
   showDetails = true,
   className = '',
+  onSyncComplete,
 }: NetworkStatusIndicatorProps) {
   // Read from the store (updated by useNetworkStatus hook in pos-client)
   const isOnline = useOfflineStore((state) => state.isOnline)
@@ -91,11 +93,18 @@ export function NetworkStatusIndicator({
       }
     }
 
-    // Also sync products
+    // Sync products with forceFullSync=true after transactions to get updated stock levels
+    // This is needed because product_templates.updated_at doesn't change when inventory is updated
     if (storeId) {
-      await syncProducts(storeId)
+      const hadTransactions = report ? report.totalTransactions > 0 : false
+      await syncProducts(storeId, hadTransactions)
     }
-  }, [triggerSync, storeId, syncProducts])
+
+    // Notify parent to refresh data from server
+    if (onSyncComplete) {
+      onSyncComplete()
+    }
+  }, [triggerSync, storeId, syncProducts, onSyncComplete])
 
   // Auto-sync when coming back online
   useEffect(() => {

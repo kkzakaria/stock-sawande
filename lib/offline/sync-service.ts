@@ -267,12 +267,15 @@ class SyncService {
 
   /**
    * Sync products from server
+   * @param storeId - Store ID to sync products for
+   * @param forceFullSync - If true, ignores lastSync and fetches all products, and clears reservations
    */
-  async syncProducts(storeId: string): Promise<boolean> {
+  async syncProducts(storeId: string, forceFullSync: boolean = false): Promise<boolean> {
     try {
       const lastSync = await getLastProductSync()
       // Handle Date serialization (IndexedDB may store as string)
-      const since = lastSync
+      // Skip delta sync if forceFullSync is true (needed after transaction sync to get updated stock)
+      const since = (!forceFullSync && lastSync)
         ? (lastSync instanceof Date ? lastSync.toISOString() : new Date(lastSync).toISOString())
         : null
 
@@ -291,7 +294,9 @@ class SyncService {
       const { products } = await response.json()
 
       // Update product cache store
-      await useProductCacheStore.getState().updateFromServer(products)
+      // When forceFullSync is true (after transaction sync), clear all reservations
+      // because the transactions have been synced and reservations released
+      await useProductCacheStore.getState().updateFromServer(products, forceFullSync)
       await setLastProductSync(new Date())
 
       return true
@@ -378,12 +383,12 @@ export function useSyncService() {
     }
   }
 
-  const syncProducts = async (storeId: string): Promise<boolean> => {
+  const syncProducts = async (storeId: string, forceFullSync: boolean = false): Promise<boolean> => {
     if (!isOnline) {
       return false
     }
 
-    return syncService.syncProducts(storeId)
+    return syncService.syncProducts(storeId, forceFullSync)
   }
 
   return {

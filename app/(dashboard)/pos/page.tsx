@@ -8,6 +8,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { POSClient } from '@/components/pos/pos-client'
 
+// Force dynamic rendering to always get fresh inventory data
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Point of Sale | Next-Stock',
   description: 'Point of sale checkout system',

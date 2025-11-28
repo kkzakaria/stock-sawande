@@ -77,6 +77,8 @@ export function POSClient({
   const { isOnline } = useNetworkStatus()
   const initializeProductCache = useProductCacheStore((state) => state.initialize)
   const updateFromServer = useProductCacheStore((state) => state.updateFromServer)
+  const cachedProducts = useProductCacheStore((state) => state.products)
+  const cacheIsInitialized = useProductCacheStore((state) => state.isInitialized)
   const unacknowledgedConflicts = useOfflineStore((state) => state.unacknowledgedConflicts)
 
   // Initialize product cache for offline mode
@@ -223,8 +225,29 @@ export function POSClient({
     }
   }, [storeId, router])
 
+  // Determine which products to display:
+  // Always use cached products when cache is initialized and has products.
+  // This ensures consistent stock display (localStock = serverStock - reservedStock)
+  // The cache is updated:
+  // - From server props via useEffect when online
+  // - Via reserveStock() during offline sales
+  // - Via syncProducts() after transaction sync (with clearReservations=true)
+  const displayProducts: Product[] = (cacheIsInitialized && cachedProducts.length > 0)
+    ? cachedProducts.map((cp) => ({
+        id: cp.id,
+        sku: cp.sku,
+        name: cp.name,
+        price: cp.price,
+        barcode: cp.barcode,
+        imageUrl: cp.imageUrl,
+        category: cp.category,
+        inventoryId: cp.inventoryId,
+        quantity: cp.localStock, // Use local stock (server stock - reserved)
+      }))
+    : products
+
   // Filter products based on search query
-  const filteredProducts = products.filter(
+  const filteredProducts = displayProducts.filter(
     (product) =>
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -263,7 +286,7 @@ export function POSClient({
               onCloseSession={() => setCloseSessionDialogOpen(true)}
             />
           </div>
-          <NetworkStatusIndicator storeId={storeId} />
+          <NetworkStatusIndicator storeId={storeId} onSyncComplete={handleCheckoutComplete} />
           {unacknowledgedConflicts > 0 && (
             <Button
               variant="destructive"
