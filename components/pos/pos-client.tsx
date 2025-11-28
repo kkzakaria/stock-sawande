@@ -46,6 +46,11 @@ interface POSClientProps {
   storeId: string
   cashierId: string
   cashierName: string
+  storeInfo: {
+    name: string
+    address: string | null
+    phone: string | null
+  }
 }
 
 export function POSClient({
@@ -53,6 +58,7 @@ export function POSClient({
   storeId,
   cashierId,
   cashierName,
+  storeInfo,
 }: POSClientProps) {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
@@ -283,6 +289,7 @@ export function POSClient({
           storeId={storeId}
           cashierId={cashierId}
           cashierName={cashierName}
+          storeInfo={storeInfo}
           sessionId={activeSession?.id}
           onCheckoutComplete={handleCheckoutComplete}
         />

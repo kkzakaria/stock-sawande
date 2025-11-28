@@ -25,10 +25,10 @@ export default async function POSPage() {
     redirect('/auth/login')
   }
 
-  // Get user profile with store information
+  // Get user profile with store information (including address/phone for offline receipts)
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, store_id, role, full_name, store:stores(id, name)')
+    .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
     .eq('id', user.id)
     .single()
 
@@ -111,6 +111,11 @@ export default async function POSPage() {
         storeId={profile.store_id}
         cashierId={user.id}
         cashierName={profile.full_name || 'User'}
+        storeInfo={{
+          name: profile.store?.name || 'Store',
+          address: profile.store?.address || null,
+          phone: profile.store?.phone || null,
+        }}
       />
     </div>
   )

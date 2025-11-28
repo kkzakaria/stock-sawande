@@ -41,6 +41,20 @@ export interface PendingTransactionItem {
   discount: number
 }
 
+// ============================================
+// Offline Receipt Data (for local ticket generation)
+// ============================================
+export interface OfflineReceiptData {
+  store: {
+    name: string
+    address: string | null
+    phone: string | null
+  }
+  cashier: {
+    full_name: string | null
+  }
+}
+
 export interface PendingTransaction {
   id: string // Local UUID (crypto.randomUUID())
   localReceiptNumber: string // Format: OFF-{timestamp}
@@ -63,6 +77,7 @@ export interface PendingTransaction {
   serverSaleId: string | null // Populated after successful sync
   serverSaleNumber: string | null // Populated after successful sync
   conflictResolution: ConflictResolution | null
+  receiptData: OfflineReceiptData | null // Store/cashier info for offline receipt generation
 }
 
 // ============================================

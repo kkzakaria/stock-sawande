@@ -29,6 +29,12 @@ interface POSCheckoutModalProps {
   onOpenChange: (open: boolean) => void
   storeId: string
   cashierId: string
+  cashierName: string
+  storeInfo: {
+    name: string
+    address: string | null
+    phone: string | null
+  }
   sessionId?: string | null
   onCheckoutComplete: (saleId: string, saleNumber: string, isOffline?: boolean) => void
 }
@@ -40,6 +46,8 @@ export function POSCheckoutModal({
   onOpenChange,
   storeId,
   cashierId,
+  cashierName,
+  storeInfo,
   sessionId,
   onCheckoutComplete,
 }: POSCheckoutModalProps) {
@@ -140,6 +148,9 @@ export function POSCheckoutModal({
       total,
       paymentMethod,
       notes,
+      // Receipt metadata for offline ticket generation
+      storeInfo,
+      cashierName,
     })
 
     if (!result.success) {

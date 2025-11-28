@@ -16,11 +16,18 @@ import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { getTransaction } from '@/lib/offline/indexed-db'
+import { buildReceiptFromTransaction } from '@/lib/offline/receipt-utils'
 
 interface POSCartProps {
   storeId: string
   cashierId: string
   cashierName: string
+  storeInfo: {
+    name: string
+    address: string | null
+    phone: string | null
+  }
   sessionId?: string | null
   onCheckoutComplete?: () => void
 }
@@ -101,7 +108,7 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
   )
 }
 
-export function POSCart({ storeId, cashierId, cashierName: _cashierName, sessionId, onCheckoutComplete }: POSCartProps) {
+export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId, onCheckoutComplete }: POSCartProps) {
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -128,7 +135,7 @@ export function POSCart({ storeId, cashierId, cashierName: _cashierName, session
   const tax = getTax()
   const total = getTotal()
 
-  const handleCheckoutComplete = async (saleId: string, saleNumber: string) => {
+  const handleCheckoutComplete = async (saleId: string, saleNumber: string, isOffline?: boolean) => {
     // Close checkout modal
     setCheckoutOpen(false)
 
@@ -142,35 +149,48 @@ export function POSCart({ storeId, cashierId, cashierName: _cashierName, session
     setCurrentSaleId(saleId)
     setCurrentSaleNumber(saleNumber)
 
-    // Fetch receipt data
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('sales')
-      .select(`
-        id,
-        sale_number,
-        subtotal,
-        tax,
-        discount,
-        total,
-        payment_method,
-        created_at,
-        notes,
-        store:stores(name, address, phone),
-        cashier:profiles!sales_cashier_id_fkey(full_name),
-        sale_items(
-          quantity,
-          unit_price,
+    if (isOffline) {
+      // Offline: Build receipt from IndexedDB transaction
+      try {
+        const transaction = await getTransaction(saleId)
+        if (transaction) {
+          const offlineReceipt = buildReceiptFromTransaction(transaction)
+          setReceiptData(offlineReceipt)
+        }
+      } catch (error) {
+        console.error('Failed to load offline receipt:', error)
+      }
+    } else {
+      // Online: Fetch receipt data from Supabase
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('sales')
+        .select(`
+          id,
+          sale_number,
           subtotal,
+          tax,
           discount,
-          product:product_templates(name, sku)
-        )
-      `)
-      .eq('id', saleId)
-      .single()
+          total,
+          payment_method,
+          created_at,
+          notes,
+          store:stores(name, address, phone),
+          cashier:profiles!sales_cashier_id_fkey(full_name),
+          sale_items(
+            quantity,
+            unit_price,
+            subtotal,
+            discount,
+            product:product_templates(name, sku)
+          )
+        `)
+        .eq('id', saleId)
+        .single()
 
-    if (!error && data) {
-      setReceiptData(data)
+      if (!error && data) {
+        setReceiptData(data)
+      }
     }
 
     // Refresh product data to update stock quantities
@@ -305,6 +325,8 @@ export function POSCart({ storeId, cashierId, cashierName: _cashierName, session
         onOpenChange={setCheckoutOpen}
         storeId={storeId}
         cashierId={cashierId}
+        cashierName={cashierName}
+        storeInfo={storeInfo}
         sessionId={sessionId}
         onCheckoutComplete={handleCheckoutComplete}
       />

@@ -47,6 +47,13 @@ export interface OfflineCheckoutData {
   total: number
   paymentMethod: PaymentMethod
   notes: string
+  // Receipt metadata for offline ticket generation
+  storeInfo: {
+    name: string
+    address: string | null
+    phone: string | null
+  }
+  cashierName: string
 }
 
 export interface OfflineCheckoutResult {
@@ -124,6 +131,11 @@ export function useOfflineCheckout() {
           serverSaleId: null,
           serverSaleNumber: null,
           conflictResolution: null,
+          // Store receipt metadata for offline ticket generation
+          receiptData: {
+            store: data.storeInfo,
+            cashier: { full_name: data.cashierName },
+          },
         }
 
         // Save transaction to IndexedDB
