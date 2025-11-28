@@ -164,7 +164,10 @@ class SyncService {
         total: tx.total,
         paymentMethod: tx.paymentMethod,
         notes: tx.notes,
-        createdAt: tx.createdAt.toISOString(),
+        // Handle Date serialization (IndexedDB may store as string after persistence)
+        createdAt: tx.createdAt instanceof Date
+          ? tx.createdAt.toISOString()
+          : new Date(tx.createdAt).toISOString(),
       }))
 
       // Send to server
@@ -268,7 +271,10 @@ class SyncService {
   async syncProducts(storeId: string): Promise<boolean> {
     try {
       const lastSync = await getLastProductSync()
-      const since = lastSync ? lastSync.toISOString() : null
+      // Handle Date serialization (IndexedDB may store as string)
+      const since = lastSync
+        ? (lastSync instanceof Date ? lastSync.toISOString() : new Date(lastSync).toISOString())
+        : null
 
       const url = new URL('/api/pos/products/sync', window.location.origin)
       url.searchParams.set('storeId', storeId)
