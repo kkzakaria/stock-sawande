@@ -10,12 +10,17 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart-store'
 import { useHydrated } from '@/lib/hooks/use-hydrated'
+import { useNetworkStatus } from '@/lib/hooks/use-network-status'
+import { useProductCacheStore } from '@/lib/store/product-cache-store'
+import { useOfflineStore } from '@/lib/store/offline-store'
 import { POSProductGrid } from './pos-product-grid'
 import { POSCart } from './pos-cart'
 import { CashSessionStatus } from './cash-session-status'
 import { OpenSessionDialog } from './open-session-dialog'
 import { CloseSessionDialog } from './close-session-dialog'
 import { SessionRequiredOverlay } from './session-required-overlay'
+import { NetworkStatusIndicator } from './network-status-indicator'
+import { SyncConflictDialog } from './sync-conflict-dialog'
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -59,6 +64,38 @@ export function POSClient({
   const [sessionLoading, setSessionLoading] = useState(true)
   const [openSessionDialogOpen, setOpenSessionDialogOpen] = useState(false)
   const [closeSessionDialogOpen, setCloseSessionDialogOpen] = useState(false)
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
+
+  // Offline mode hooks
+  const { isOnline } = useNetworkStatus()
+  const initializeProductCache = useProductCacheStore((state) => state.initialize)
+  const updateFromServer = useProductCacheStore((state) => state.updateFromServer)
+  const unacknowledgedConflicts = useOfflineStore((state) => state.unacknowledgedConflicts)
+
+  // Initialize product cache for offline mode
+  useEffect(() => {
+    initializeProductCache(storeId)
+  }, [storeId, initializeProductCache])
+
+  // Update product cache when products change (from server)
+  useEffect(() => {
+    if (isOnline && products.length > 0) {
+      const serverProducts = products.map((p) => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        price: p.price,
+        barcode: p.barcode,
+        image_url: p.imageUrl,
+        category: p.category,
+        inventory: {
+          id: p.inventoryId,
+          quantity: p.quantity,
+        },
+      }))
+      updateFromServer(serverProducts)
+    }
+  }, [products, isOnline, updateFromServer])
 
   // Prevent hydration mismatch: use 0 during SSR, real value after hydration
   const itemCount = hydrated ? storeItemCount : 0
@@ -207,13 +244,25 @@ export function POSClient({
 
       {/* Left side: Product Grid */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Session Status Bar */}
-        <div className="flex-shrink-0 mb-4">
-          <CashSessionStatus
-            session={activeSession}
-            onOpenSession={() => setOpenSessionDialogOpen(true)}
-            onCloseSession={() => setCloseSessionDialogOpen(true)}
-          />
+        {/* Session Status Bar with Network Indicator */}
+        <div className="flex-shrink-0 mb-4 flex items-center gap-2">
+          <div className="flex-1">
+            <CashSessionStatus
+              session={activeSession}
+              onOpenSession={() => setOpenSessionDialogOpen(true)}
+              onCloseSession={() => setCloseSessionDialogOpen(true)}
+            />
+          </div>
+          <NetworkStatusIndicator storeId={storeId} />
+          {unacknowledgedConflicts > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConflictDialogOpen(true)}
+            >
+              {unacknowledgedConflicts} Conflict(s)
+            </Button>
+          )}
         </div>
 
         {/* Product Grid */}
@@ -263,6 +312,13 @@ export function POSClient({
         session={activeSession}
         storeId={storeId}
         onSessionClosed={handleSessionClosed}
+      />
+
+      {/* Sync Conflict Dialog */}
+      <SyncConflictDialog
+        open={conflictDialogOpen}
+        onOpenChange={setConflictDialogOpen}
+        userId={cashierId}
       />
     </div>
   )
