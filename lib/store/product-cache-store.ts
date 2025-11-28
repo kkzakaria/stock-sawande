@@ -30,7 +30,7 @@ interface ProductCacheState {
   // Actions
   initialize: (storeId: string) => Promise<void>
   loadFromIndexedDB: (storeId: string) => Promise<void>
-  updateFromServer: (products: ServerProduct[]) => Promise<void>
+  updateFromServer: (products: ServerProduct[], clearReservations?: boolean) => Promise<void>
   getProduct: (id: string) => CachedProduct | undefined
   getProductByBarcode: (barcode: string) => Promise<CachedProduct | undefined>
   searchProducts: (query: string) => CachedProduct[]
@@ -120,8 +120,10 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
 
   /**
    * Update cache from server products
+   * @param serverProducts - Products from server
+   * @param clearReservations - If true, resets all reservations to 0 (used after sync)
    */
-  updateFromServer: async (serverProducts: ServerProduct[]) => {
+  updateFromServer: async (serverProducts: ServerProduct[], clearReservations: boolean = false) => {
     const { storeId, products: existingProducts } = get()
 
     if (!storeId) {
@@ -142,6 +144,10 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
         const existing = existingMap.get(sp.id)
         const serverStock = sp.inventory?.quantity ?? 0
 
+        // When clearReservations is true (after sync), reset reservedStock to 0
+        // because all pending transactions have been synced and their reservations released
+        const reservedStock = clearReservations ? 0 : (existing?.reservedStock ?? 0)
+
         return {
           id: sp.id,
           sku: sp.sku,
@@ -152,11 +158,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
           category: sp.category ?? null,
           inventoryId: sp.inventory?.id ?? '',
           serverStock,
-          // Preserve local adjustments if product existed
-          localStock: existing
-            ? serverStock - existing.reservedStock
-            : serverStock,
-          reservedStock: existing?.reservedStock ?? 0,
+          localStock: serverStock - reservedStock,
+          reservedStock,
           cachedAt: now,
           storeId,
         }
