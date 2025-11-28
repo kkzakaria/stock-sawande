@@ -33,9 +33,9 @@ interface NetworkInformation extends EventTarget {
 // ============================================
 
 const PING_URL = '/api/health' // A lightweight endpoint to check connectivity
-const PING_TIMEOUT = 5000 // 5 seconds timeout
-const CHECK_INTERVAL = 30000 // Check every 30 seconds when online
-const OFFLINE_CHECK_INTERVAL = 5000 // Check more frequently when offline
+const PING_TIMEOUT = 3000 // 3 seconds timeout
+const CHECK_INTERVAL = 15000 // Check every 15 seconds when online
+const OFFLINE_CHECK_INTERVAL = 3000 // Check every 3 seconds when offline
 
 // ============================================
 // Hook
@@ -53,6 +53,12 @@ export function useNetworkStatus(): NetworkStatus {
   const [lastCheck, setLastCheck] = useState<Date | null>(null)
 
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isOnlineRef = useRef(isOnline)
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isOnlineRef.current = isOnline
+  }, [isOnline])
 
   /**
    * Check actual connectivity by making a network request
@@ -96,9 +102,8 @@ export function useNetworkStatus(): NetworkStatus {
     setIsOnline(true)
     setOnlineStatus(true)
     setLastOnline(new Date())
-
-    // Verify connectivity with a real check
-    checkConnection()
+    // Verify connectivity with a real check (deferred)
+    setTimeout(checkConnection, 100)
   }, [checkConnection, setOnlineStatus])
 
   const handleOffline = useCallback(() => {
@@ -123,7 +128,7 @@ export function useNetworkStatus(): NetworkStatus {
     }
   }, [])
 
-  // Set up event listeners and interval checks
+  // Set up event listeners and initial check
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -138,47 +143,30 @@ export function useNetworkStatus(): NetworkStatus {
       connection.addEventListener('change', updateConnectionInfo)
     }
 
-    // Periodic connectivity check
-    const startInterval = () => {
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current)
-      }
-
-      const interval = isOnline ? CHECK_INTERVAL : OFFLINE_CHECK_INTERVAL
-      checkIntervalRef.current = setInterval(checkConnection, interval)
-    }
-
-    startInterval()
-
-    // Note: Initial state is already set from navigator.onLine
-    // checkConnection will run on the first interval tick
+    // Initial connectivity check on mount (deferred to avoid synchronous setState)
+    const initialCheckTimeout = setTimeout(checkConnection, 100)
 
     return () => {
+      clearTimeout(initialCheckTimeout)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
 
       if (connection) {
         connection.removeEventListener('change', updateConnectionInfo)
       }
-
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current)
-      }
     }
-  }, [
-    handleOnline,
-    handleOffline,
-    updateConnectionInfo,
-    checkConnection,
-    isOnline,
-  ])
+  }, [handleOnline, handleOffline, updateConnectionInfo, checkConnection])
 
-  // Adjust check interval based on online status
+  // Manage periodic connectivity checks based on online status
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Clear existing interval
     if (checkIntervalRef.current) {
       clearInterval(checkIntervalRef.current)
     }
 
+    // Set new interval based on current status
     const interval = isOnline ? CHECK_INTERVAL : OFFLINE_CHECK_INTERVAL
     checkIntervalRef.current = setInterval(checkConnection, interval)
 
