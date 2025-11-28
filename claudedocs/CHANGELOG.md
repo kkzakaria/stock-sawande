@@ -216,10 +216,10 @@ Complete implementation of the Product Management System with advanced features 
 
 ---
 
-## Phase 3: POS System - IN PROGRESS 🔄
+## Phase 3: POS System - COMPLETED ✅
 **Started:** 2025-11-20
-**PRs:** #17-#24
-**Status:** 85% Complete
+**PRs:** #17-#25
+**Status:** 95% Complete (Offline mode low priority)
 
 ### 🎯 Overview
 Point of Sale system with cart management, checkout flow, receipt generation, multi-cashier real-time synchronization, and cash drawer management with manager approval.
@@ -300,14 +300,22 @@ Point of Sale system with cart management, checkout flow, receipt generation, mu
   - Approval timestamp
   - Discrepancy amount recorded
 
-### 📋 Features Remaining
+#### Sales History ✅
+- ✅ **Transaction History**
+  - List of past sales with DataTable
+  - Filter by status/payment method
+  - Search by invoice number
+  - Sale details view with items
+  - Refund functionality with inventory restoration
+  - Real-time updates via Supabase Realtime
 
-#### Sales History 🔲
-- 🔲 **Transaction History**
-  - List of past sales
-  - Filter by date/cashier/payment method
-  - Sale details view
-  - Reprint receipt functionality
+- ✅ **Role-Based Access (PR #25)**
+  - Admin: view all sales
+  - Manager: view store sales only
+  - Cashier: view own sales only
+  - Sidebar navigation updated for cashiers
+
+### 📋 Features Remaining
 
 #### Offline Mode 🔲 (Low Priority)
 - 🔲 **Offline Support**
@@ -328,9 +336,9 @@ Point of Sale system with cart management, checkout flow, receipt generation, mu
   - Minimal re-renders on updates
 
 ### 📊 Metrics
-- **PRs Merged:** 8 (#17-#24)
-- **Completed:** POS interface, Cart, Checkout, Receipts, Realtime sync, Cash drawer, PIN approval
-- **Remaining:** Sales history, Offline mode (low priority)
+- **PRs Merged:** 9 (#17-#25)
+- **Completed:** POS interface, Cart, Checkout, Receipts, Realtime sync, Cash drawer, PIN approval, Sales history
+- **Remaining:** Offline mode (low priority)
 
 ---
 
@@ -378,7 +386,13 @@ Point of Sale system with cart management, checkout flow, receipt generation, mu
 - Supabase-First Architecture
 - Initial Setup
 
+### v2.7 - Sales History Complete (2025-11-28)
+- Sales History with role-based access
+- Cashiers can view their own sales
+- Hydration fix for DataTable
+- Sidebar navigation updated
+
 ---
 
-**Current Focus:** Phase 3 - Sales History
-**Overall Progress:** 85% (8.5/10 weeks complete)
+**Current Focus:** Phase 4 - Analytics & Multi-Store
+**Overall Progress:** 95% Phase 3 Complete
