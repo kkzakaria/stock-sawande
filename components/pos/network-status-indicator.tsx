@@ -5,8 +5,7 @@
  * Shows online/offline status with sync information
  */
 
-import { useEffect, useCallback } from 'react'
-import { useNetworkStatus } from '@/lib/hooks/use-network-status'
+import { useEffect, useCallback, useState } from 'react'
 import { useOfflineStore, formatLastSyncTime } from '@/lib/store/offline-store'
 import { useSyncService } from '@/lib/offline/sync-service'
 import { Button } from '@/components/ui/button'
@@ -38,12 +37,42 @@ export function NetworkStatusIndicator({
   showDetails = true,
   className = '',
 }: NetworkStatusIndicatorProps) {
-  const { isOnline, lastOnline, checkConnection } = useNetworkStatus()
+  // Read from the store (updated by useNetworkStatus hook in pos-client)
+  const isOnline = useOfflineStore((state) => state.isOnline)
+  const lastOnlineAt = useOfflineStore((state) => state.lastOnlineAt)
+  const setOnlineStatus = useOfflineStore((state) => state.setOnlineStatus)
   const pendingCount = useOfflineStore((state) => state.pendingTransactionsCount)
   const lastSyncTime = useOfflineStore((state) => state.lastSyncTime)
   const unacknowledgedConflicts = useOfflineStore(
     (state) => state.unacknowledgedConflicts
   )
+
+  const [isChecking, setIsChecking] = useState(false)
+
+  // Manual connection check
+  const checkConnection = useCallback(async (): Promise<boolean> => {
+    setIsChecking(true)
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000)
+
+      const response = await fetch('/api/health', {
+        method: 'HEAD',
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+
+      clearTimeout(timeoutId)
+      const online = response.ok
+      setOnlineStatus(online)
+      return online
+    } catch {
+      setOnlineStatus(false)
+      return false
+    } finally {
+      setIsChecking(false)
+    }
+  }, [setOnlineStatus])
 
   const { triggerSync, syncProducts, isSyncing, canSync } = useSyncService()
 
@@ -82,9 +111,9 @@ export function NetworkStatusIndicator({
   const handleManualCheck = async () => {
     const online = await checkConnection()
     if (online) {
-      toast.success('Connection restored')
+      toast.success('Connexion rétablie')
     } else {
-      toast.error('Still offline')
+      toast.error('Toujours hors ligne')
     }
   }
 
@@ -160,9 +189,9 @@ export function NetworkStatusIndicator({
               variant="ghost"
               size="sm"
               onClick={handleManualCheck}
-              disabled={isSyncing}
+              disabled={isSyncing || isChecking}
             >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${isSyncing || isChecking ? 'animate-spin' : ''}`} />
             </Button>
           </div>
 
@@ -197,9 +226,9 @@ export function NetworkStatusIndicator({
           </div>
 
           {/* Last Online */}
-          {!isOnline && lastOnline && (
+          {!isOnline && lastOnlineAt && (
             <div className="text-xs text-gray-500">
-              Last online: {lastOnline.toLocaleTimeString()}
+              Dernière connexion: {new Date(lastOnlineAt).toLocaleTimeString()}
             </div>
           )}
 
