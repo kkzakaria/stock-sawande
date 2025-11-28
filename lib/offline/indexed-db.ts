@@ -205,7 +205,7 @@ export async function getPendingTransactions(): Promise<PendingTransaction[]> {
   const retriable = failed.filter((tx) => tx.syncAttempts < 5)
 
   return [...pending, ...retriable].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    (a, b) => safeGetTime(a.createdAt) - safeGetTime(b.createdAt)
   )
 }
 
@@ -249,7 +249,7 @@ export async function getSyncedTransactions(
 
   return all
     .filter((tx) => tx.status === 'synced')
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .sort((a, b) => safeGetTime(b.createdAt) - safeGetTime(a.createdAt))
     .slice(0, limit)
 }
 
@@ -268,7 +268,7 @@ export async function cleanupOldTransactions(daysOld = 30): Promise<number> {
   while (cursor) {
     if (
       cursor.value.status === 'synced' &&
-      cursor.value.createdAt < cutoff
+      safeGetTime(cursor.value.createdAt) < cutoff.getTime()
     ) {
       await cursor.delete()
       deleted++
@@ -372,7 +372,7 @@ export async function getNextSyncItems(limit = 10): Promise<SyncQueueItem[]> {
   const pending = await db.getAllFromIndex('syncQueue', 'by-status', 'pending')
 
   return pending
-    .sort((a, b) => b.priority - a.priority || a.createdAt.getTime() - b.createdAt.getTime())
+    .sort((a, b) => b.priority - a.priority || safeGetTime(a.createdAt) - safeGetTime(b.createdAt))
     .slice(0, limit)
 }
 
@@ -528,4 +528,25 @@ export function generateLocalReceiptNumber(): string {
     .toString()
     .padStart(3, '0')
   return `OFF-${timestamp}-${random}`
+}
+
+/**
+ * Safely get timestamp from a Date that may be serialized as string
+ * IndexedDB may store Date objects as strings after persistence
+ */
+export function safeGetTime(date: Date | string): number {
+  if (date instanceof Date) {
+    return date.getTime()
+  }
+  return new Date(date).getTime()
+}
+
+/**
+ * Safely convert a potential string date to Date object
+ */
+export function safeToDate(date: Date | string): Date {
+  if (date instanceof Date) {
+    return date
+  }
+  return new Date(date)
 }
