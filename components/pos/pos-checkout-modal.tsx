@@ -3,10 +3,13 @@
 /**
  * POS Checkout Modal Component
  * Handles payment method selection and order confirmation
+ * Supports offline checkout with transaction queuing
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
+import { useOfflineCheckout } from '@/lib/hooks/use-offline-checkout'
+import { useOfflineStore } from '@/lib/store/offline-store'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,7 +21,8 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { CreditCard, Banknote, Smartphone, Loader2 } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { CreditCard, Banknote, Smartphone, Loader2, WifiOff, AlertTriangle } from 'lucide-react'
 
 interface POSCheckoutModalProps {
   open: boolean
@@ -26,7 +30,7 @@ interface POSCheckoutModalProps {
   storeId: string
   cashierId: string
   sessionId?: string | null
-  onCheckoutComplete: (saleId: string, saleNumber: string) => void
+  onCheckoutComplete: (saleId: string, saleNumber: string, isOffline?: boolean) => void
 }
 
 type PaymentMethod = 'cash' | 'card' | 'mobile'
@@ -48,54 +52,140 @@ export function POSCheckoutModal({
   const getTotal = useCartStore((state) => state.getTotal)
   const clearCart = useCartStore((state) => state.clearCart)
 
+  const isOnline = useOfflineStore((state) => state.isOnline)
+  const { processOfflineCheckout, validateOfflineCheckout } = useOfflineCheckout()
+
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [offlineWarnings, setOfflineWarnings] = useState<string[]>([])
 
   const subtotal = getSubtotal()
   const tax = getTax()
   const total = getTotal()
+
+  // Validate offline checkout when offline
+  useEffect(() => {
+    if (!isOnline && open) {
+      const offlineItems = items.map((item) => ({
+        productId: item.productId,
+        inventoryId: item.inventoryId,
+        name: item.name,
+        sku: item.sku,
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount,
+      }))
+      const validation = validateOfflineCheckout(offlineItems)
+      setOfflineWarnings(validation.warnings)
+    } else {
+      setOfflineWarnings([])
+    }
+  }, [isOnline, open, items, validateOfflineCheckout])
+
+  const handleOnlineCheckout = async () => {
+    const response = await fetch('/api/pos/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        storeId,
+        cashierId,
+        sessionId,
+        customerId,
+        items: items.map((item) => ({
+          productId: item.productId,
+          inventoryId: item.inventoryId,
+          quantity: item.quantity,
+          price: item.price,
+          discount: item.discount,
+        })),
+        subtotal,
+        tax,
+        discount,
+        total,
+        paymentMethod,
+        notes,
+      }),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || 'Checkout failed')
+    }
+
+    const { saleId, saleNumber } = await response.json()
+    return { saleId, saleNumber }
+  }
+
+  const handleOfflineCheckout = async () => {
+    const offlineItems = items.map((item) => ({
+      productId: item.productId,
+      inventoryId: item.inventoryId,
+      name: item.name,
+      sku: item.sku,
+      quantity: item.quantity,
+      price: item.price,
+      discount: item.discount,
+    }))
+
+    const result = await processOfflineCheckout({
+      storeId,
+      cashierId,
+      sessionId: sessionId ?? null,
+      customerId,
+      items: offlineItems,
+      subtotal,
+      tax,
+      discount,
+      total,
+      paymentMethod,
+      notes,
+    })
+
+    if (!result.success) {
+      throw new Error(result.error || 'Offline checkout failed')
+    }
+
+    return {
+      saleId: result.localId!,
+      saleNumber: result.localReceiptNumber!,
+    }
+  }
 
   const handleCheckout = async () => {
     setIsProcessing(true)
     setError(null)
 
     try {
-      const response = await fetch('/api/pos/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          storeId,
-          cashierId,
-          sessionId,
-          customerId,
-          items: items.map((item) => ({
-            productId: item.productId,
-            inventoryId: item.inventoryId,
-            quantity: item.quantity,
-            price: item.price,
-            discount: item.discount,
-          })),
-          subtotal,
-          tax,
-          discount,
-          total,
-          paymentMethod,
-          notes,
-        }),
-      })
+      let result: { saleId: string; saleNumber: string }
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Checkout failed')
+      if (isOnline) {
+        // Try online checkout first
+        try {
+          result = await handleOnlineCheckout()
+        } catch (onlineError) {
+          // If online checkout fails due to network, fall back to offline
+          if (
+            onlineError instanceof Error &&
+            (onlineError.message.includes('fetch') ||
+              onlineError.message.includes('network') ||
+              onlineError.message.includes('Failed to fetch'))
+          ) {
+            console.log('Online checkout failed, falling back to offline mode')
+            result = await handleOfflineCheckout()
+          } else {
+            throw onlineError
+          }
+        }
+      } else {
+        // Offline checkout
+        result = await handleOfflineCheckout()
       }
-
-      const { saleId, saleNumber } = await response.json()
 
       // Clear cart and close modal
       clearCart()
       onOpenChange(false)
-      onCheckoutComplete(saleId, saleNumber)
+      onCheckoutComplete(result.saleId, result.saleNumber, !isOnline)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -107,13 +197,49 @@ export function POSCheckoutModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Complete Sale</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Complete Sale
+            {!isOnline && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                <WifiOff className="h-3 w-3" />
+                Offline
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Review order details and select payment method
+            {isOnline
+              ? 'Review order details and select payment method'
+              : 'This sale will be saved locally and synced when back online'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Offline Mode Warning */}
+          {!isOnline && (
+            <Alert className="bg-orange-50 border-orange-200">
+              <WifiOff className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800">
+                <strong>Offline Mode:</strong> This transaction will be queued and
+                synchronized when connection is restored.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Stock Warnings */}
+          {offlineWarnings.length > 0 && (
+            <Alert className="bg-yellow-50 border-yellow-200">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                <strong>Stock Warnings:</strong>
+                <ul className="mt-1 text-sm list-disc list-inside">
+                  {offlineWarnings.map((warning, i) => (
+                    <li key={i}>{warning}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Order Summary */}
           <div className="space-y-2">
             <h3 className="font-semibold text-sm">Order Summary</h3>
@@ -186,11 +312,20 @@ export function POSCheckoutModal({
           >
             Cancel
           </Button>
-          <Button onClick={handleCheckout} disabled={isProcessing}>
+          <Button
+            onClick={handleCheckout}
+            disabled={isProcessing}
+            className={!isOnline ? 'bg-orange-600 hover:bg-orange-700' : ''}
+          >
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
+              </>
+            ) : !isOnline ? (
+              <>
+                <WifiOff className="mr-2 h-4 w-4" />
+                Save Offline - {formatCurrency(total)}
               </>
             ) : (
               `Complete Sale - ${formatCurrency(total)}`
