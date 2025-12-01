@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart-store'
 import { useHydrated } from '@/lib/hooks/use-hydrated'
 import { useNetworkStatus } from '@/lib/hooks/use-network-status'
+import { useHeartbeat } from '@/lib/hooks/use-heartbeat'
 import { useProductCacheStore } from '@/lib/store/product-cache-store'
 import { useOfflineStore } from '@/lib/store/offline-store'
 import { POSProductGrid } from './pos-product-grid'
@@ -73,8 +74,9 @@ export function POSClient({
   const [closeSessionDialogOpen, setCloseSessionDialogOpen] = useState(false)
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
 
-  // Offline mode hooks
+  // Offline mode hooks - use both polling and SSE for fast detection
   const { isOnline } = useNetworkStatus()
+  useHeartbeat() // SSE heartbeat for ultra-fast offline detection
   const initializeProductCache = useProductCacheStore((state) => state.initialize)
   const updateFromServer = useProductCacheStore((state) => state.updateFromServer)
   const cachedProducts = useProductCacheStore((state) => state.products)
