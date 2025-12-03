@@ -459,16 +459,23 @@
   },
 
   "DataTable": {
+    "loading": "Loading...",
     "search": "Search...",
     "noResults": "No results.",
-    "rowsSelected": "{count} row(s) selected",
+    "rowsSelected": "{count} of {total} row(s) selected.",
     "page": "Page {current} of {total}",
     "rowsPerPage": "Rows per page",
     "goToFirst": "Go to first page",
-    "goToPrevious": "Previous page",
-    "goToNext": "Next page",
+    "goToPrevious": "Go to previous page",
+    "goToNext": "Go to next page",
     "goToLast": "Go to last page",
-    "columns": "Columns",
+    "view": "View",
+    "toggleColumns": "Toggle columns",
+    "sortAsc": "Asc",
+    "sortDesc": "Desc",
+    "hide": "Hide",
+    "clearFilters": "Clear filters",
+    "nSelected": "{count} selected",
     "export": {
       "button": "Export",
       "csv": "CSV",
@@ -479,7 +486,8 @@
     "import": {
       "button": "Import",
       "success": "Successfully imported {count} rows",
-      "error": "Import failed: {message}"
+      "error": "Import failed: {message}",
+      "failed": "Failed to import file"
     }
   },
 

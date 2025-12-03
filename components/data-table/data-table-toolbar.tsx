@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Table } from "@tanstack/react-table";
 import { Download, Plus, Upload, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,8 @@ export function DataTableToolbar<TData>({
   table,
   config,
 }: DataTableToolbarProps<TData>) {
+  const t = useTranslations("DataTable");
+  const tCommon = useTranslations("Common");
   const isFiltered = table.getState().columnFilters.length > 0;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -37,12 +40,12 @@ export function DataTableToolbar<TData>({
 
       if (result.success && config?.onImport) {
         await config.onImport(result.data);
-        toast.success(`Successfully imported ${result.data.length} rows`);
+        toast.success(t("import.success", { count: result.data.length }));
       } else if (result.errors.length > 0) {
-        toast.error(`Import failed: ${result.errors[0].message}`);
+        toast.error(t("import.error", { message: result.errors[0].message }));
       }
     } catch {
-      toast.error("Failed to import file");
+      toast.error(t("import.failed"));
     }
 
     // Reset input
@@ -53,22 +56,20 @@ export function DataTableToolbar<TData>({
 
   const handleExport = (format: "csv" | "excel") => {
     const hasSelection = table.getFilteredSelectedRowModel().rows.length > 0;
+    const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+    const totalCount = table.getFilteredRowModel().rows.length;
 
     if (format === "csv") {
       exportToCSV(table, "export.csv", hasSelection);
-      toast.success(
-        hasSelection
-          ? `Exported ${table.getFilteredSelectedRowModel().rows.length} selected rows`
-          : `Exported ${table.getFilteredRowModel().rows.length} rows`
-      );
     } else {
       exportToExcel(table, "export.xlsx", hasSelection);
-      toast.success(
-        hasSelection
-          ? `Exported ${table.getFilteredSelectedRowModel().rows.length} selected rows`
-          : `Exported ${table.getFilteredRowModel().rows.length} rows`
-      );
     }
+
+    toast.success(
+      hasSelection
+        ? t("export.selectedSuccess", { count: selectedCount })
+        : t("export.success", { count: totalCount })
+    );
   };
 
   return (
@@ -76,7 +77,7 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         {config?.searchKey && (
           <Input
-            placeholder={config.searchPlaceholder ?? "Search..."}
+            placeholder={config.searchPlaceholder ?? t("search")}
             value={
               (table.getColumn(config.searchKey)?.getFilterValue() as string) ??
               ""
@@ -106,7 +107,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            {tCommon("reset")}
             <X className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -115,7 +116,7 @@ export function DataTableToolbar<TData>({
         {config?.onAdd && (
           <Button onClick={config.onAdd} size="sm" className="h-8">
             <Plus className="mr-2 h-4 w-4" />
-            {config.addLabel ?? "Add"}
+            {config.addLabel ?? tCommon("add")}
           </Button>
         )}
         {config?.enableImport && (
@@ -134,7 +135,7 @@ export function DataTableToolbar<TData>({
               onClick={() => fileInputRef.current?.click()}
             >
               <Upload className="mr-2 h-4 w-4" />
-              Import
+              {t("import.button")}
             </Button>
           </>
         )}
@@ -146,7 +147,7 @@ export function DataTableToolbar<TData>({
             onClick={() => handleExport("csv")}
           >
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t("export.button")}
           </Button>
         )}
         <DataTableViewOptions table={table} />

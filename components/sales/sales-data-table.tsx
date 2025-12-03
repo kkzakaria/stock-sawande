@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, Eye, RotateCcw, Receipt, CreditCard, Banknote, Smartphone } from 'lucide-react'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { fr, enUS } from 'date-fns/locale'
+import { useTranslations, useLocale } from 'next-intl'
 import { DataTable } from '@/components/data-table'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,11 @@ export function SalesDataTable({
   isLoading = false,
   onRefresh,
 }: SalesDataTableProps) {
+  const t = useTranslations('Sales')
+  const tCommon = useTranslations('Common')
+  const locale = useLocale()
+  const dateLocale = locale === 'fr' ? fr : enUS
+
   const [selectedSale, setSelectedSale] = useState<SaleWithDetails | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [refundDialogOpen, setRefundDialogOpen] = useState(false)
@@ -57,11 +63,11 @@ export function SalesDataTable({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>
+        return <Badge className="bg-green-500 hover:bg-green-600">{t('status.completed')}</Badge>
       case 'refunded':
-        return <Badge variant="destructive">Refunded</Badge>
+        return <Badge variant="destructive">{t('status.refunded')}</Badge>
       case 'pending':
-        return <Badge variant="secondary">Pending</Badge>
+        return <Badge variant="secondary">{t('status.pending')}</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -83,13 +89,13 @@ export function SalesDataTable({
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {
       case 'cash':
-        return 'Cash'
+        return t('paymentMethods.cash')
       case 'card':
-        return 'Card'
+        return t('paymentMethods.card')
       case 'mobile':
-        return 'Mobile'
+        return t('paymentMethods.mobile')
       default:
-        return 'Other'
+        return t('paymentMethods.other')
     }
   }
 
@@ -104,7 +110,7 @@ export function SalesDataTable({
     {
       accessorKey: 'sale_number',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Invoice #" />
+        <DataTableColumnHeader column={column} title={t('columns.invoice')} />
       ),
       cell: ({ row }) => (
         <span className="font-mono text-sm font-medium">
@@ -115,14 +121,14 @@ export function SalesDataTable({
     {
       accessorKey: 'created_at',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Date" />
+        <DataTableColumnHeader column={column} title={t('columns.date')} />
       ),
       cell: ({ row }) => {
         const date = new Date(row.getValue('created_at'))
         return (
           <div className="flex flex-col">
             <span className="text-sm">
-              {format(date, 'dd MMM yyyy', { locale: fr })}
+              {format(date, 'dd MMM yyyy', { locale: dateLocale })}
             </span>
             <span className="text-xs text-muted-foreground">
               {format(date, 'HH:mm')}
@@ -134,13 +140,13 @@ export function SalesDataTable({
     {
       id: 'cashier',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Cashier" />
+        <DataTableColumnHeader column={column} title={t('columns.cashier')} />
       ),
       cell: ({ row }) => {
         const cashier = row.original.cashier
         return (
           <span className="text-sm">
-            {cashier?.full_name || cashier?.email || 'N/A'}
+            {cashier?.full_name || cashier?.email || t('detail.notAvailable')}
           </span>
         )
       },
@@ -148,13 +154,13 @@ export function SalesDataTable({
     {
       id: 'customer',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Customer" />
+        <DataTableColumnHeader column={column} title={t('columns.customer')} />
       ),
       cell: ({ row }) => {
         const customer = row.original.customer
         return (
           <span className="text-sm text-muted-foreground">
-            {customer?.name || 'Walk-in'}
+            {customer?.name || t('customer.walkIn')}
           </span>
         )
       },
@@ -162,7 +168,7 @@ export function SalesDataTable({
     {
       accessorKey: 'total',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Total" />
+        <DataTableColumnHeader column={column} title={t('columns.total')} />
       ),
       cell: ({ row }) => (
         <span className="font-medium">
@@ -173,7 +179,7 @@ export function SalesDataTable({
     {
       accessorKey: 'payment_method',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Payment" />
+        <DataTableColumnHeader column={column} title={t('columns.payment')} />
       ),
       cell: ({ row }) => {
         const method = row.getValue('payment_method') as string
@@ -188,7 +194,7 @@ export function SalesDataTable({
     {
       accessorKey: 'status',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
+        <DataTableColumnHeader column={column} title={t('columns.status')} />
       ),
       cell: ({ row }) => getStatusBadge(row.getValue('status')),
       filterFn: (row, id, value) => {
@@ -204,15 +210,15 @@ export function SalesDataTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{tCommon('actions')}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleViewDetail(sale)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t('actions.viewDetail')}
               </DropdownMenuItem>
               {sale.status === 'completed' && (
                 <>
@@ -222,7 +228,7 @@ export function SalesDataTable({
                     className="text-destructive"
                   >
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    Refund
+                    {t('actions.refund')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -241,32 +247,32 @@ export function SalesDataTable({
         isLoading={isLoading}
         toolbar={{
           searchKey: 'sale_number',
-          searchPlaceholder: 'Search by invoice number...',
+          searchPlaceholder: t('searchPlaceholder'),
           filterableColumns: [
             {
               id: 'status',
-              title: 'Status',
+              title: t('columns.status'),
               options: [
-                { label: 'Completed', value: 'completed' },
-                { label: 'Refunded', value: 'refunded' },
-                { label: 'Pending', value: 'pending' },
+                { label: t('status.completed'), value: 'completed' },
+                { label: t('status.refunded'), value: 'refunded' },
+                { label: t('status.pending'), value: 'pending' },
               ],
             },
             {
               id: 'payment_method',
-              title: 'Payment',
+              title: t('columns.payment'),
               options: [
-                { label: 'Cash', value: 'cash' },
-                { label: 'Card', value: 'card' },
-                { label: 'Mobile', value: 'mobile' },
-                { label: 'Other', value: 'other' },
+                { label: t('paymentMethods.cash'), value: 'cash' },
+                { label: t('paymentMethods.card'), value: 'card' },
+                { label: t('paymentMethods.mobile'), value: 'mobile' },
+                { label: t('paymentMethods.other'), value: 'other' },
               ],
             },
           ],
           enableExport: true,
         }}
         pageSizeOptions={[10, 25, 50, 100]}
-        emptyMessage="No sales found."
+        emptyMessage={t('empty')}
       />
 
       {/* Sale Detail Dialog */}

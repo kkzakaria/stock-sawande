@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,8 @@ export function ProductsDataTable({
   initialSorting = [],
   initialPagination = { pageIndex: 0, pageSize: 10 },
 }: ProductsDataTableProps) {
+  const t = useTranslations("Products");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -137,10 +140,10 @@ export function ProductsDataTable({
       if (result.success) {
         setDeleteDialogOpen(false);
         setProductToDelete(null);
-        toast.success("Product deleted successfully");
+        toast.success(t("messages.deleted"));
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to delete product");
+        toast.error(result.error || t("errors.deleteFailed"));
       }
     });
   };
@@ -149,10 +152,10 @@ export function ProductsDataTable({
     startTransition(async () => {
       const result = await toggleProductStatus(id, !currentStatus);
       if (result.success) {
-        toast.success(`Product ${!currentStatus ? "activated" : "deactivated"}`);
+        toast.success(!currentStatus ? t("messages.activated") : t("messages.deactivated"));
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to update product status");
+        toast.error(result.error || t("errors.updateFailed"));
       }
     });
   };
@@ -164,17 +167,17 @@ export function ProductsDataTable({
 
   const getStockBadge = (quantity: number, minLevel: number | null) => {
     if (quantity === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
+      return <Badge variant="destructive">{t("status.outOfStock")}</Badge>;
     } else if (minLevel !== null && quantity <= minLevel) {
       return (
         <Badge variant="outline" className="border-orange-500 text-orange-500">
-          Low Stock
+          {t("status.lowStock")}
         </Badge>
       );
     }
     return (
       <Badge variant="outline" className="border-green-500 text-green-500">
-        In Stock
+        {t("status.inStock")}
       </Badge>
     );
   };
@@ -205,7 +208,7 @@ export function ProductsDataTable({
     {
       accessorKey: "name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Product" />
+        <DataTableColumnHeader column={column} title={t("columns.product")} />
       ),
       cell: ({ row }) => {
         const imageUrl = row.original.image_url;
@@ -216,7 +219,7 @@ export function ProductsDataTable({
               {imageUrl ? (
                 <Image
                   src={imageUrl}
-                  alt={name || "Product"}
+                  alt={name || t("columns.product")}
                   fill
                   className="object-cover"
                   sizes="40px"
@@ -235,7 +238,7 @@ export function ProductsDataTable({
     {
       accessorKey: "sku",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="SKU" />
+        <DataTableColumnHeader column={column} title={t("columns.sku")} />
       ),
       cell: ({ row }) => (
         <span className="font-mono text-sm">{row.getValue("sku")}</span>
@@ -245,11 +248,11 @@ export function ProductsDataTable({
       accessorKey: "category_name",
       id: "category",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Category" />
+        <DataTableColumnHeader column={column} title={t("columns.category")} />
       ),
       cell: ({ row }) => {
         const category = row.original.category_name;
-        return <span>{category || "Uncategorized"}</span>;
+        return <span>{category || t("categories.uncategorized")}</span>;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.original.category_name || "uncategorized");
@@ -258,7 +261,7 @@ export function ProductsDataTable({
     {
       accessorKey: "price",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Price" />
+        <DataTableColumnHeader column={column} title={t("columns.price")} />
       ),
       cell: ({ row }) => {
         const price = parseFloat(row.getValue("price"));
@@ -271,7 +274,7 @@ export function ProductsDataTable({
     {
       accessorKey: "quantity",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Quantity" />
+        <DataTableColumnHeader column={column} title={t("columns.quantity")} />
       ),
       cell: ({ row }) => {
         const quantity = row.getValue("quantity") as number;
@@ -287,14 +290,14 @@ export function ProductsDataTable({
     {
       accessorKey: "is_active",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
+        <DataTableColumnHeader column={column} title={t("columns.status")} />
       ),
       cell: ({ row }) => {
         const isActive = row.getValue("is_active");
         return isActive ? (
-          <Badge variant="default">Active</Badge>
+          <Badge variant="default">{t("status.active")}</Badge>
         ) : (
-          <Badge variant="secondary">Inactive</Badge>
+          <Badge variant="secondary">{t("status.inactive")}</Badge>
         );
       },
       filterFn: (row, id, value) => {
@@ -310,22 +313,22 @@ export function ProductsDataTable({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">{tCommon("actions")}</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuLabel>{tCommon("actions")}</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link href={`/products/${product.template_id}`}>
                   <Eye className="mr-2 h-4 w-4" />
-                  View Details
+                  {t("actions.viewDetails")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/products/${product.template_id}/edit`}>
                   <Pencil className="mr-2 h-4 w-4" />
-                  Edit
+                  {t("actions.edit")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -338,12 +341,12 @@ export function ProductsDataTable({
                 {product.is_active ? (
                   <>
                     <XCircle className="mr-2 h-4 w-4" />
-                    Deactivate
+                    {t("actions.deactivate")}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Activate
+                    {t("actions.activate")}
                   </>
                 )}
               </DropdownMenuItem>
@@ -354,7 +357,7 @@ export function ProductsDataTable({
                 disabled={isPending}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {t("actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -373,7 +376,7 @@ export function ProductsDataTable({
 
   const handleImport = async (importedProducts: Product[]) => {
     // TODO: Implement import logic
-    toast.success(`Imported ${importedProducts.length} products`);
+    toast.success(t("messages.imported", { count: importedProducts.length }));
     router.refresh();
   };
 
@@ -385,34 +388,34 @@ export function ProductsDataTable({
         enableRowSelection
         toolbar={{
           searchKey: "name",
-          searchPlaceholder: "Search products...",
+          searchPlaceholder: t("searchPlaceholder"),
           filterableColumns: [
             {
               id: "category",
-              title: "Category",
+              title: t("columns.category"),
               options: [
-                { label: "Uncategorized", value: "uncategorized" },
+                { label: t("categories.uncategorized"), value: "uncategorized" },
                 ...categories,
               ],
             },
             {
               id: "is_active",
-              title: "Status",
+              title: t("columns.status"),
               options: [
-                { label: "Active", value: "active" },
-                { label: "Inactive", value: "inactive" },
+                { label: t("status.active"), value: "active" },
+                { label: t("status.inactive"), value: "inactive" },
               ],
             },
           ],
           onAdd: onAddProduct,
-          addLabel: "Add Product",
+          addLabel: t("addProduct"),
           enableImport: true,
           enableExport: true,
           onImport: handleImport,
         }}
         pageSize={pageSize || 10}
         pageSizeOptions={[10, 20, 50, 100]}
-        emptyMessage="No products found. Add your first product to get started."
+        emptyMessage={t("empty")}
         manualPagination={!!pageCount}
         pageCount={pageCount}
         // Initial state from URL + URL sync callbacks
@@ -427,20 +430,19 @@ export function ProductsDataTable({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              product and all associated stock movements.
+              {t("deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isPending}>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isPending ? "Deleting..." : "Delete"}
+              {isPending ? t("deleteDialog.deleting") : t("deleteDialog.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

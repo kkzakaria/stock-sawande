@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -30,7 +31,7 @@ export function DataTable<TData, TValue>({
   enableRowSelection = false,
   enableSorting = true,
   isLoading = false,
-  emptyMessage = "No results.",
+  emptyMessage,
   getRowId,
   onRowSelectionChange,
   manualPagination = false,
@@ -46,6 +47,8 @@ export function DataTable<TData, TValue>({
   onColumnVisibilityChange,
   onPaginationChange,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations("DataTable");
+
   // Track if component is mounted to prevent state updates during render
   const isMountedRef = React.useRef(false);
   React.useEffect(() => {
@@ -237,7 +240,7 @@ export function DataTable<TData, TValue>({
                       "h-24 text-center"
                     )}
                   >
-                    Loading...
+                    {t("loading")}
                   </td>
                 </tr>
               ) : table.getRowModel().rows?.length ? (
@@ -277,7 +280,7 @@ export function DataTable<TData, TValue>({
                       "h-24 text-center"
                     )}
                   >
-                    {emptyMessage}
+                    {emptyMessage ?? t("noResults")}
                   </td>
                 </tr>
               )}

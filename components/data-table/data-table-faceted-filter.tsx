@@ -1,6 +1,10 @@
+"use client";
+
 import * as React from "react";
 import { Column } from "@tanstack/react-table";
 import { PlusCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +29,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   title,
   options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
+  const t = useTranslations("DataTable");
   const facets = column?.getFacetedUniqueValues();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
 
@@ -49,7 +54,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     variant="secondary"
                     className="rounded-sm px-1 font-normal"
                   >
-                    {selectedValues.size} selected
+                    {t("nSelected", { count: selectedValues.size })}
                   </Badge>
                 ) : (
                   options
@@ -110,7 +115,7 @@ export function DataTableFacetedFilter<TData, TValue>({
               onCheckedChange={() => column?.setFilterValue(undefined)}
               className="justify-center text-center"
             >
-              Clear filters
+              {t("clearFilters")}
             </DropdownMenuCheckboxItem>
           </>
         )}
