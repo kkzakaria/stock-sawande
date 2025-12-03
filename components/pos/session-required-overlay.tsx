@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Wallet, AlertCircle } from 'lucide-react'
 
@@ -10,6 +11,8 @@ interface SessionRequiredOverlayProps {
 export function SessionRequiredOverlay({
   onOpenSession,
 }: SessionRequiredOverlayProps) {
+  const t = useTranslations('POS.session')
+
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
       <div className="text-center space-y-6 max-w-md p-8">
@@ -18,11 +21,9 @@ export function SessionRequiredOverlay({
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Caisse fermée</h2>
+          <h2 className="text-2xl font-bold">{t('registerClosed')}</h2>
           <p className="text-muted-foreground">
-            Vous devez ouvrir une session de caisse avant de pouvoir effectuer
-            des ventes. Cela permet de suivre les transactions et de faire le
-            bilan en fin de journée.
+            {t('registerClosedDescription')}
           </p>
         </div>
 
@@ -30,10 +31,9 @@ export function SessionRequiredOverlay({
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
             <div>
-              <p className="font-medium">Qu&apos;est-ce que le fond de caisse ?</p>
+              <p className="font-medium">{t('whatIsOpeningFund')}</p>
               <p className="text-muted-foreground">
-                C&apos;est le montant initial en espèces dans votre tiroir-caisse au
-                début de votre session de travail.
+                {t('openingFundExplanation')}
               </p>
             </div>
           </div>
@@ -41,7 +41,7 @@ export function SessionRequiredOverlay({
 
         <Button size="lg" onClick={onOpenSession} className="gap-2">
           <Wallet className="h-5 w-5" />
-          Ouvrir ma caisse
+          {t('openMyRegister')}
         </Button>
       </div>
     </div>

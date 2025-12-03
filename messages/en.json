@@ -1,0 +1,532 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "edit": "Edit",
+    "add": "Add",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "export": "Export",
+    "import": "Import",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "noResults": "No results.",
+    "actions": "Actions",
+    "status": "Status",
+    "details": "Details",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "selected": "selected",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing..."
+  },
+
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "sales": "Sales",
+    "pos": "POS",
+    "reports": "Reports",
+    "stores": "Stores",
+    "settings": "Settings"
+  },
+
+  "Auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Login to your Next Stock account",
+      "email": "Email",
+      "emailPlaceholder": "m@example.com",
+      "password": "Password",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "termsNotice": "By clicking continue, you agree to our",
+      "termsOfService": "Terms of Service",
+      "and": "and",
+      "privacyPolicy": "Privacy Policy"
+    },
+    "signup": {
+      "title": "Create an account",
+      "subtitle": "Enter your email to create your Next Stock account",
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "Must be at least 8 characters long.",
+      "confirmPassword": "Confirm password",
+      "submit": "Create Account",
+      "submitting": "Creating account...",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "emailHint": "We'll use this to contact you. We will not share your email with anyone else."
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email to receive a reset link",
+      "email": "Email",
+      "submit": "Send Reset Link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "checkEmail": "Check your email for the reset link"
+    },
+    "otp": {
+      "title": "OTP Verification",
+      "subtitle": "Enter the code sent to your email",
+      "submit": "Verify",
+      "submitting": "Verifying..."
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "passwordMismatch": "Passwords do not match",
+      "passwordTooShort": "Password must be at least 8 characters long",
+      "notAuthenticated": "Not authenticated",
+      "insufficientPermissions": "Insufficient permissions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "manager": "Manager",
+      "cashier": "Cashier"
+    },
+    "logout": "Log out",
+    "loggingOut": "Logging out..."
+  },
+
+  "Dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "stats": {
+      "totalProducts": "Total Products",
+      "productsInInventory": "Products in inventory",
+      "todaySales": "Today Sales",
+      "salesToday": "Sales today",
+      "revenue": "Revenue",
+      "totalRevenue": "Total revenue",
+      "activeUsers": "Active Users",
+      "teamMembers": "Team members"
+    }
+  },
+
+  "Products": {
+    "title": "Products",
+    "addProduct": "Add Product",
+    "newProduct": "New Product",
+    "editProduct": "Edit Product",
+    "searchPlaceholder": "Search products...",
+    "columns": {
+      "product": "Product",
+      "name": "Name",
+      "sku": "SKU",
+      "category": "Category",
+      "price": "Price",
+      "cost": "Cost",
+      "quantity": "Quantity",
+      "status": "Status",
+      "minStock": "Min Stock",
+      "description": "Description"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "outOfStock": "Out of Stock",
+      "lowStock": "Low Stock",
+      "inStock": "In Stock"
+    },
+    "categories": {
+      "uncategorized": "Uncategorized",
+      "all": "All categories"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delete": "Delete"
+    },
+    "deleteDialog": {
+      "title": "Are you sure?",
+      "description": "This action cannot be undone. This will permanently delete the product and all associated stock movements.",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "messages": {
+      "created": "Product created successfully",
+      "updated": "Product updated successfully",
+      "deleted": "Product deleted successfully",
+      "activated": "Product activated",
+      "deactivated": "Product deactivated",
+      "imported": "{count} products imported",
+      "statusUpdated": "Product status updated"
+    },
+    "errors": {
+      "createFailed": "Failed to create product",
+      "updateFailed": "Failed to update product",
+      "deleteFailed": "Failed to delete product",
+      "notFound": "Product not found",
+      "skuExists": "Product with this SKU already exists",
+      "skuRequired": "SKU is required",
+      "nameRequired": "Name is required",
+      "pricePositive": "Price must be positive",
+      "costPositive": "Cost must be positive",
+      "minStockNonNegative": "Min stock level must be non-negative",
+      "quantityNonNegative": "Quantity must be non-negative",
+      "quantityNegative": "Quantity cannot be negative"
+    },
+    "empty": "No products found. Add your first product to get started.",
+    "form": {
+      "basicInfo": "Basic Information",
+      "pricing": "Pricing",
+      "inventory": "Inventory"
+    }
+  },
+
+  "Sales": {
+    "title": "Sales",
+    "searchPlaceholder": "Search sales...",
+    "columns": {
+      "invoice": "Invoice #",
+      "date": "Date",
+      "cashier": "Cashier",
+      "customer": "Customer",
+      "total": "Total",
+      "payment": "Payment",
+      "status": "Status",
+      "items": "Items"
+    },
+    "status": {
+      "completed": "Completed",
+      "refunded": "Refunded",
+      "pending": "Pending",
+      "partial": "Partial"
+    },
+    "paymentMethods": {
+      "cash": "Cash",
+      "card": "Card",
+      "mobile": "Mobile",
+      "other": "Other"
+    },
+    "customer": {
+      "walkIn": "Walk-in"
+    },
+    "actions": {
+      "viewDetail": "View Detail",
+      "printReceipt": "Print Receipt",
+      "refund": "Refund"
+    },
+    "refund": {
+      "title": "Refund Sale",
+      "reason": "Refund Reason",
+      "reasonPlaceholder": "Enter the reason for this refund...",
+      "reasonRequired": "Please provide a reason for the refund",
+      "confirm": "Confirm Refund",
+      "success": "Sale refunded successfully",
+      "error": "Failed to refund sale"
+    },
+    "detail": {
+      "title": "Sale Detail",
+      "product": "Product",
+      "quantity": "Quantity",
+      "unitPrice": "Unit Price",
+      "subtotal": "Subtotal",
+      "unknownProduct": "Unknown Product",
+      "notAvailable": "N/A"
+    },
+    "empty": "No sales found.",
+    "filters": {
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "status": "Status",
+      "paymentMethod": "Payment method"
+    }
+  },
+
+  "POS": {
+    "title": "Point of Sale",
+    "cart": {
+      "title": "Cart",
+      "clear": "Clear",
+      "empty": "Cart is empty",
+      "emptyHint": "Add products to get started",
+      "subtotal": "Subtotal",
+      "tax": "Tax ({rate})",
+      "total": "Total",
+      "checkout": "Checkout",
+      "editQuantity": "Click to edit quantity"
+    },
+    "checkout": {
+      "title": "Complete Sale",
+      "titleOffline": "Offline Mode",
+      "subtitle": "Review order details and select payment method",
+      "subtitleOffline": "This sale will be saved locally and synced when back online",
+      "orderSummary": "Order Summary",
+      "items": "Items ({count})",
+      "discount": "Discount",
+      "paymentMethod": "Payment Method",
+      "cash": "Cash",
+      "card": "Card",
+      "mobile": "Mobile Payment",
+      "cancel": "Cancel",
+      "complete": "Complete Sale",
+      "processing": "Processing...",
+      "saveOffline": "Save Offline",
+      "saleCompleted": "Sale completed - Receipt #{number}"
+    },
+    "quantity": {
+      "minError": "Quantity must be at least 1",
+      "maxError": "Maximum available stock is {max}"
+    },
+    "offline": {
+      "banner": {
+        "disconnected": "Connection lost",
+        "disconnectedHint": "Offline mode activated - Sales will be synced automatically",
+        "pending": "{count} pending",
+        "reconnected": "Connection restored",
+        "syncing": "Syncing {count} sale(s)...",
+        "synced": "All data is synchronized"
+      },
+      "warning": "Offline Mode",
+      "warningDescription": "This transaction will be queued and synchronized when connection is restored.",
+      "stockWarning": "Stock Warnings"
+    },
+    "session": {
+      "open": "Open Register",
+      "close": "Close Register",
+      "opening": "Opening Register",
+      "closing": "Closing Register",
+      "openingAmount": "Opening Amount",
+      "closingAmount": "Closing Amount",
+      "expectedAmount": "Expected Amount",
+      "difference": "Difference",
+      "notes": "Notes",
+      "openingNotes": "Opening notes...",
+      "closingNotes": "Closing notes...",
+      "noActiveSession": "No active session",
+      "startSession": "Start a session",
+      "sessionActive": "Session active",
+      "error": "An error occurred",
+      "enterFinalAmount": "Please enter the final amount",
+      "openDescription": "Enter the initial cash amount (opening fund) to start your session.",
+      "openingFund": "Opening Fund",
+      "openingFundHint": "Cash amount in the register drawer",
+      "notesOptional": "Notes (optional)",
+      "closeDescription": "Review the session summary and enter the final cash amount.",
+      "sessionSummary": "Session Summary",
+      "cashPayments": "Cash",
+      "cardPayments": "Card",
+      "mobilePayments": "Mobile",
+      "transactionCount": "Number of transactions",
+      "totalSales": "Total sales",
+      "cashCalculation": "Cash Calculation",
+      "cashSales": "Cash sales",
+      "expectedCash": "Expected cash",
+      "finalCountedAmount": "Final counted amount",
+      "balanced": "Register balanced",
+      "surplus": "Surplus",
+      "shortage": "Shortage",
+      "managerValidationRequired": "Manager validation required",
+      "requestValidation": "Request validation",
+      "closingNotesOptional": "Closing notes (optional)",
+      "closingNotesPlaceholder": "Observations, incidents...",
+      "registerClosed": "Register Closed",
+      "registerClosedDescription": "You must open a cash session before making sales. This allows tracking transactions and balancing at the end of the day.",
+      "whatIsOpeningFund": "What is the opening fund?",
+      "openingFundExplanation": "It's the initial cash amount in your register drawer at the start of your work session.",
+      "openMyRegister": "Open my register"
+    },
+    "approval": {
+      "title": "Validation Required",
+      "description": "A discrepancy was detected. Manager or administrator approval is required to close this register.",
+      "selectManager": "Select a manager or admin",
+      "selectValidator": "Select validator",
+      "enterPin": "Enter PIN code",
+      "validatorPin": "Validator PIN code",
+      "validatorPinHint": "The validator must enter their personal PIN code",
+      "approve": "Validate",
+      "approving": "Approving...",
+      "noValidators": "No validators available",
+      "noValidatorsFound": "No manager or admin found for this store.",
+      "noPinConfigured": "No manager or admin has configured their PIN code. Please contact an administrator.",
+      "managersWithoutPin": "Managers without PIN",
+      "selectValidatorError": "Please select a validator",
+      "pinLengthError": "PIN code must be 6 digits",
+      "invalidPin": "Invalid PIN code",
+      "validationError": "Validation error",
+      "loadError": "Unable to load validators list",
+      "unnamed": "Unnamed"
+    },
+    "status": {
+      "registerClosed": "Register closed",
+      "registerOpen": "Register open",
+      "fund": "Fund",
+      "sales": "sale(s)"
+    },
+    "search": {
+      "placeholder": "Search product...",
+      "noResults": "No products found"
+    }
+  },
+
+  "Settings": {
+    "title": "Settings",
+    "pin": {
+      "title": "Validation PIN Code",
+      "description": "This 6-digit PIN code is used to approve cash register closings with discrepancies. You will need to enter it when a cashier requests your validation.",
+      "configured": "PIN code configured",
+      "configuredHint": "You can approve cash register closings with discrepancies.",
+      "notConfigured": "No PIN code configured",
+      "notConfiguredHint": "Configure a PIN code to approve cash register closings.",
+      "configure": "Configure PIN",
+      "modify": "Modify PIN",
+      "delete": "Delete",
+      "newPin": "New PIN code (6 digits)",
+      "confirmPin": "Confirm PIN code",
+      "create": "Create",
+      "cancel": "Cancel",
+      "errors": {
+        "length": "PIN code must be 6 digits",
+        "mismatch": "PIN codes do not match",
+        "generic": "An error occurred"
+      },
+      "messages": {
+        "created": "PIN code created",
+        "modified": "PIN code modified",
+        "deleted": "PIN code deleted",
+        "deleteConfirm": "Are you sure you want to delete your PIN code?",
+        "deleteError": "Error deleting PIN"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "description": "Select your preferred language",
+      "french": "French",
+      "english": "English"
+    }
+  },
+
+  "Reports": {
+    "title": "Reports",
+    "types": {
+      "sales": "Sales",
+      "inventory": "Inventory",
+      "performance": "Performance"
+    },
+    "filters": {
+      "reportType": "Report Type",
+      "store": "Store",
+      "allStores": "All Stores",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "groupBy": "Group By"
+    },
+    "groupBy": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    }
+  },
+
+  "Stores": {
+    "title": "Stores",
+    "addStore": "Add Store",
+    "searchPlaceholder": "Search stores...",
+    "columns": {
+      "name": "Name",
+      "address": "Address",
+      "phone": "Phone",
+      "manager": "Manager",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": "No stores found."
+  },
+
+  "DataTable": {
+    "search": "Search...",
+    "noResults": "No results.",
+    "rowsSelected": "{count} row(s) selected",
+    "page": "Page {current} of {total}",
+    "rowsPerPage": "Rows per page",
+    "goToFirst": "Go to first page",
+    "goToPrevious": "Previous page",
+    "goToNext": "Next page",
+    "goToLast": "Go to last page",
+    "columns": "Columns",
+    "export": {
+      "button": "Export",
+      "csv": "CSV",
+      "excel": "Excel",
+      "success": "Exported {count} rows",
+      "selectedSuccess": "Exported {count} selected rows"
+    },
+    "import": {
+      "button": "Import",
+      "success": "Successfully imported {count} rows",
+      "error": "Import failed: {message}"
+    }
+  },
+
+  "Landing": {
+    "hero": {
+      "title": "Modern Inventory Management Made Simple",
+      "subtitle": "Streamline your stock management with Next Stock. Track inventory, manage sales, and gain insights into your business - all in one powerful platform.",
+      "cta": "Start Free Trial",
+      "signIn": "Sign In"
+    },
+    "features": {
+      "title": "Everything you need to manage your inventory",
+      "subtitle": "Powerful features designed for businesses of all sizes",
+      "products": {
+        "title": "Product Management",
+        "description": "Organize and track your entire product catalog with ease"
+      },
+      "pos": {
+        "title": "Point of Sale",
+        "description": "Fast and intuitive POS system for seamless transactions"
+      },
+      "reports": {
+        "title": "Analytics & Reports",
+        "description": "Gain insights with comprehensive sales and inventory reports"
+      },
+      "multiUser": {
+        "title": "Multi-User Access",
+        "description": "Role-based access control for your entire team"
+      }
+    },
+    "cta": {
+      "title": "Ready to get started?",
+      "subtitle": "Join businesses already using Next Stock to manage their inventory efficiently",
+      "button": "Create your account"
+    },
+    "footer": {
+      "copyright": "2025 Next Stock. All rights reserved."
+    }
+  },
+
+  "Errors": {
+    "notFound": "Page not found",
+    "serverError": "An error occurred",
+    "unauthorized": "Unauthorized access",
+    "generic": "An error occurred",
+    "tryAgain": "Try again",
+    "goBack": "Go back",
+    "goHome": "Go home"
+  }
+}

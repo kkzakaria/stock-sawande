@@ -1,7 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/src/i18n/navigation'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -27,37 +27,37 @@ interface DashboardNavProps {
 
 const navItems = [
   {
-    title: 'Dashboard',
+    titleKey: 'dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
     roles: ['admin', 'manager', 'cashier'],
   },
   {
-    title: 'Products',
+    titleKey: 'products',
     href: '/products',
     icon: Package,
     roles: ['admin', 'manager'],
   },
   {
-    title: 'Sales',
+    titleKey: 'sales',
     href: '/sales',
     icon: ShoppingCart,
     roles: ['admin', 'manager', 'cashier'],
   },
   {
-    title: 'POS',
+    titleKey: 'pos',
     href: '/pos',
     icon: CreditCard,
     roles: ['admin', 'manager', 'cashier'],
   },
   {
-    title: 'Reports',
+    titleKey: 'reports',
     href: '/reports',
     icon: BarChart3,
     roles: ['admin', 'manager'],
   },
   {
-    title: 'Stores',
+    titleKey: 'stores',
     href: '/stores',
     icon: Store,
     roles: ['admin'],
@@ -66,6 +66,7 @@ const navItems = [
 
 export function DashboardNav({ profile }: DashboardNavProps) {
   const pathname = usePathname()
+  const t = useTranslations('Navigation')
   const userRole = profile?.role || 'cashier'
 
   // Filter nav items based on user role
@@ -99,7 +100,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
               )}
             >
               <Icon className="h-4 w-4" />
-              {item.title}
+              {t(item.titleKey)}
             </Link>
           )
         })}

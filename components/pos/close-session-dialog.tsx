@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,9 @@ export function CloseSessionDialog({
   storeId,
   onSessionClosed,
 }: CloseSessionDialogProps) {
+  const t = useTranslations('POS.session')
+  const tCommon = useTranslations('Common')
+
   const [closingAmount, setClosingAmount] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -76,7 +80,7 @@ export function CloseSessionDialog({
     setError(null)
 
     if (!closingAmount) {
-      setError('Veuillez entrer le montant final')
+      setError(t('enterFinalAmount'))
       return
     }
 
@@ -120,7 +124,7 @@ export function CloseSessionDialog({
       onSessionClosed()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : t('error'))
     } finally {
       setLoading(false)
     }
@@ -146,11 +150,10 @@ export function CloseSessionDialog({
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            Fermer la caisse
+            {t('close')}
           </DialogTitle>
           <DialogDescription>
-            Vérifiez le résumé de la session et entrez le montant final en
-            espèces.
+            {t('closeDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -164,12 +167,12 @@ export function CloseSessionDialog({
 
             {/* Session Summary */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-              <h4 className="font-medium">Résumé de la session</h4>
+              <h4 className="font-medium">{t('sessionSummary')}</h4>
 
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Banknote className="h-4 w-4 text-green-600" />
-                  <span>Espèces:</span>
+                  <span>{t('cashPayments')}:</span>
                 </div>
                 <span className="text-right font-medium">
                   {formatCurrency(Number(session.total_cash_sales || 0))}
@@ -177,7 +180,7 @@ export function CloseSessionDialog({
 
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-blue-600" />
-                  <span>Carte:</span>
+                  <span>{t('cardPayments')}:</span>
                 </div>
                 <span className="text-right font-medium">
                   {formatCurrency(Number(session.total_card_sales || 0))}
@@ -185,7 +188,7 @@ export function CloseSessionDialog({
 
                 <div className="flex items-center gap-2">
                   <Smartphone className="h-4 w-4 text-purple-600" />
-                  <span>Mobile:</span>
+                  <span>{t('mobilePayments')}:</span>
                 </div>
                 <span className="text-right font-medium">
                   {formatCurrency(Number(session.total_mobile_sales || 0))}
@@ -195,35 +198,35 @@ export function CloseSessionDialog({
               <Separator />
 
               <div className="flex justify-between text-sm">
-                <span>Nombre de transactions:</span>
+                <span>{t('transactionCount')}:</span>
                 <span className="font-medium">{session.transaction_count}</span>
               </div>
 
               <div className="flex justify-between font-medium">
-                <span>Total des ventes:</span>
+                <span>{t('totalSales')}:</span>
                 <span>{formatCurrency(totalSales)}</span>
               </div>
             </div>
 
             {/* Cash Calculation */}
             <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-              <h4 className="font-medium text-blue-900">Calcul espèces</h4>
+              <h4 className="font-medium text-blue-900">{t('cashCalculation')}</h4>
               <div className="grid grid-cols-2 gap-1 text-sm text-blue-800">
-                <span>Fond de caisse:</span>
+                <span>{t('openingFund')}:</span>
                 <span className="text-right">{formatCurrency(openingAmount)}</span>
-                <span>+ Ventes espèces:</span>
+                <span>+ {t('cashSales')}:</span>
                 <span className="text-right">{formatCurrency(totalCashSales)}</span>
               </div>
               <Separator className="bg-blue-200" />
               <div className="flex justify-between font-bold text-blue-900">
-                <span>Espèces attendues:</span>
+                <span>{t('expectedCash')}:</span>
                 <span>{formatCurrency(expectedClosing)}</span>
               </div>
             </div>
 
             {/* Closing Amount Input */}
             <div className="space-y-2">
-              <Label htmlFor="closingAmount">Montant final compté ($)</Label>
+              <Label htmlFor="closingAmount">{t('finalCountedAmount')} ($)</Label>
               <Input
                 id="closingAmount"
                 type="number"
@@ -256,15 +259,15 @@ export function CloseSessionDialog({
                 <div className="flex-1">
                   <span className="font-medium">
                     {discrepancy === 0
-                      ? 'Caisse équilibrée'
+                      ? t('balanced')
                       : discrepancy > 0
-                        ? `Excédent: ${formatCurrency(discrepancy)}`
-                        : `Manque: ${formatCurrency(Math.abs(discrepancy))}`}
+                        ? `${t('surplus')}: ${formatCurrency(discrepancy)}`
+                        : `${t('shortage')}: ${formatCurrency(Math.abs(discrepancy))}`}
                   </span>
                   {hasDiscrepancy && (
                     <p className="text-xs mt-1 flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" />
-                      Validation manager requise
+                      {t('managerValidationRequired')}
                     </p>
                   )}
                 </div>
@@ -273,10 +276,10 @@ export function CloseSessionDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes de fermeture (optionnel)</Label>
+              <Label htmlFor="notes">{t('closingNotesOptional')}</Label>
               <Textarea
                 id="notes"
-                placeholder="Observations, incidents..."
+                placeholder={t('closingNotesPlaceholder')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -291,11 +294,11 @@ export function CloseSessionDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Annuler
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={loading || !closingAmount}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {hasDiscrepancy ? 'Demander validation' : 'Fermer la caisse'}
+              {hasDiscrepancy ? t('requestValidation') : t('close')}
             </Button>
           </DialogFooter>
         </form>

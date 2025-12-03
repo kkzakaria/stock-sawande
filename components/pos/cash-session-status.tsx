@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Wallet, Clock, LogOut } from 'lucide-react'
@@ -18,6 +19,9 @@ export function CashSessionStatus({
   onOpenSession,
   onCloseSession,
 }: CashSessionStatusProps) {
+  const t = useTranslations('POS.session')
+  const tStatus = useTranslations('POS.status')
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -37,10 +41,10 @@ export function CashSessionStatus({
       <div className="flex items-center gap-2">
         <Badge variant="destructive" className="gap-1">
           <Wallet className="h-3 w-3" />
-          Caisse fermée
+          {tStatus('registerClosed')}
         </Badge>
         <Button size="sm" onClick={onOpenSession}>
-          Ouvrir la caisse
+          {t('open')}
         </Button>
       </div>
     )
@@ -50,7 +54,7 @@ export function CashSessionStatus({
     <div className="flex items-center gap-3">
       <Badge variant="default" className="gap-1 bg-green-600">
         <Wallet className="h-3 w-3" />
-        Caisse ouverte
+        {tStatus('registerOpen')}
       </Badge>
 
       <div className="hidden sm:flex items-center gap-4 text-sm text-muted-foreground">
@@ -58,8 +62,8 @@ export function CashSessionStatus({
           <Clock className="h-3 w-3" />
           {formatTime(session.opened_at)}
         </span>
-        <span>Fond: {formatCurrency(Number(session.opening_amount))}</span>
-        <span>{session.transaction_count} vente(s)</span>
+        <span>{tStatus('fund')}: {formatCurrency(Number(session.opening_amount))}</span>
+        <span>{session.transaction_count} {tStatus('sales')}</span>
       </div>
 
       <Button
@@ -69,7 +73,7 @@ export function CashSessionStatus({
         className="gap-1"
       >
         <LogOut className="h-3 w-3" />
-        Fermer
+        {t('close')}
       </Button>
     </div>
   )

@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 import withPWAInit from "next-pwa";
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 // next-pwa is not yet fully compatible with Turbopack
 // Disable in build for now - PWA will work with webpack in dev
@@ -88,8 +91,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Enable Turbopack (Next.js 16 default)
   turbopack: {},
 };
 
-export default withPWA(nextConfig);
+// Compose plugins: withNextIntl wraps withPWA wraps nextConfig
+export default withNextIntl(withPWA(nextConfig));

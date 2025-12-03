@@ -1,6 +1,7 @@
 'use client'
 
 import { User } from '@supabase/supabase-js'
+import { useTranslations } from 'next-intl'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -12,9 +13,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { LogOut, Settings, User as UserIcon, RefreshCw } from 'lucide-react'
-import { logout } from '@/app/(auth)/actions'
+import { logout } from '@/app/[locale]/(auth)/actions'
 import { refreshUserSession } from '@/lib/actions/session'
 import { useTransition } from 'react'
+import { LocaleSwitcher } from '@/components/locale-switcher'
+import { Link } from '@/src/i18n/navigation'
 
 interface Profile {
   id: string
@@ -32,6 +35,9 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
+  const t = useTranslations('Auth')
+  const tNav = useTranslations('Navigation')
+  const tCommon = useTranslations('Common')
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefresh] = useTransition()
 
@@ -65,12 +71,8 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   }
 
   const getRoleBadge = (role: string) => {
-    const badges = {
-      admin: 'Admin',
-      manager: 'Manager',
-      cashier: 'Cashier',
-    }
-    return badges[role as keyof typeof badges] || role
+    const roleKey = role as 'admin' | 'manager' | 'cashier'
+    return t(`roles.${roleKey}`)
   }
 
   return (
@@ -82,6 +84,9 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Language Switcher */}
+        <LocaleSwitcher className="hidden md:flex" />
+
         {/* User role badge */}
         <div className="hidden md:flex flex-col items-end">
           <p className="text-sm font-medium">{profile?.full_name || user.email}</p>
@@ -122,10 +127,10 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <a href="/settings">
+              <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Paramètres</span>
-              </a>
+                <span>{tNav('settings')}</span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -133,11 +138,11 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               disabled={isRefreshing || isPending}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span>{isRefreshing ? 'Refreshing...' : 'Refresh Session'}</span>
+              <span>{isRefreshing ? tCommon('refreshing') : tCommon('refresh')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout} disabled={isPending || isRefreshing}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>{isPending ? 'Logging out...' : 'Log out'}</span>
+              <span>{isPending ? t('loggingOut') : t('logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

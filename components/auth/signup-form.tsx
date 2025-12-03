@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/src/i18n/navigation'
 import Image from 'next/image'
-import { signup } from '@/app/(auth)/actions'
+import { signup } from '@/app/[locale]/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +20,8 @@ export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
+  const t = useTranslations('Auth.signup')
+  const tLogin = useTranslations('Auth.login')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -39,9 +42,9 @@ export function SignupForm({
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Create your account</h1>
+                <h1 className="text-2xl font-bold">{t('title')}</h1>
                 <p className="text-muted-foreground text-sm text-balance">
-                  Enter your email to create your Next Stock account
+                  {t('subtitle')}
                 </p>
               </div>
 
@@ -52,25 +55,24 @@ export function SignupForm({
               )}
 
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">{t('email')}</FieldLabel>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={tLogin('emailPlaceholder')}
                   required
                   disabled={isPending}
                 />
                 <FieldDescription>
-                  We&apos;ll use this to contact you. We will not share your
-                  email with anyone else.
+                  {t('emailHint')}
                 </FieldDescription>
               </Field>
 
               <Field>
                 <Field className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
+                    <FieldLabel htmlFor="password">{t('password')}</FieldLabel>
                     <Input
                       id="password"
                       name="password"
@@ -81,7 +83,7 @@ export function SignupForm({
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="confirm-password">
-                      Confirm Password
+                      {t('confirmPassword')}
                     </FieldLabel>
                     <Input
                       id="confirm-password"
@@ -93,20 +95,20 @@ export function SignupForm({
                   </Field>
                 </Field>
                 <FieldDescription>
-                  Must be at least 8 characters long.
+                  {t('passwordHint')}
                 </FieldDescription>
               </Field>
 
               <Field>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? 'Creating account...' : 'Create Account'}
+                  {isPending ? t('submitting') : t('submit')}
                 </Button>
               </Field>
 
               <FieldDescription className="text-center">
-                Already have an account?{' '}
+                {t('hasAccount')}{' '}
                 <Link href="/login" className="underline underline-offset-2">
-                  Sign in
+                  {t('signIn')}
                 </Link>
               </FieldDescription>
             </FieldGroup>
@@ -122,13 +124,13 @@ export function SignupForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our{' '}
+        {tLogin('termsNotice')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Terms of Service
+          {tLogin('termsOfService')}
         </Link>{' '}
-        and{' '}
+        {tLogin('and')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Privacy Policy
+          {tLogin('privacyPolicy')}
         </Link>
         .
       </FieldDescription>
