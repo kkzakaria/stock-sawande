@@ -10,14 +10,14 @@ import { getProduct } from '@/lib/actions/products'
 export const dynamic = 'force-dynamic'
 
 interface EditProductPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+    locale: string
+  }>
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
-  // Next.js 16: params is now a Promise and must be awaited
-  const resolvedParams = await params
+  const { id, locale } = await params
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -35,7 +35,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   }
 
   // Fetch product
-  const productResult = await getProduct(resolvedParams.id)
+  const productResult = await getProduct(id)
   if (!productResult.success || !productResult.data) {
     notFound()
   }

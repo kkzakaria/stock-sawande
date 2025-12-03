@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
 import { useOfflineCheckout } from '@/lib/hooks/use-offline-checkout'
 import { useOfflineStore } from '@/lib/store/offline-store'
@@ -51,6 +52,10 @@ export function POSCheckoutModal({
   sessionId,
   onCheckoutComplete,
 }: POSCheckoutModalProps) {
+  const t = useTranslations('POS.checkout')
+  const tOffline = useTranslations('POS.offline')
+  const tCommon = useTranslations('Common')
+
   const items = useCartStore((state) => state.items)
   const customerId = useCartStore((state) => state.customerId)
   const discount = useCartStore((state) => state.discount)
@@ -209,18 +214,16 @@ export function POSCheckoutModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            Complete Sale
+            {t('title')}
             {!isOnline && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
                 <WifiOff className="h-3 w-3" />
-                Offline
+                {t('titleOffline')}
               </span>
             )}
           </DialogTitle>
           <DialogDescription>
-            {isOnline
-              ? 'Review order details and select payment method'
-              : 'This sale will be saved locally and synced when back online'}
+            {isOnline ? t('subtitle') : t('subtitleOffline')}
           </DialogDescription>
         </DialogHeader>
 
@@ -230,8 +233,7 @@ export function POSCheckoutModal({
             <Alert className="bg-orange-50 border-orange-200">
               <WifiOff className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800">
-                <strong>Offline Mode:</strong> This transaction will be queued and
-                synchronized when connection is restored.
+                <strong>{tOffline('warning')}:</strong> {tOffline('warningDescription')}
               </AlertDescription>
             </Alert>
           )}
@@ -241,7 +243,7 @@ export function POSCheckoutModal({
             <Alert className="bg-yellow-50 border-yellow-200">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="text-yellow-800">
-                <strong>Stock Warnings:</strong>
+                <strong>{tOffline('stockWarning')}:</strong>
                 <ul className="mt-1 text-sm list-disc list-inside">
                   {offlineWarnings.map((warning, i) => (
                     <li key={i}>{warning}</li>
@@ -253,15 +255,15 @@ export function POSCheckoutModal({
 
           {/* Order Summary */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-sm">Order Summary</h3>
+            <h3 className="font-semibold text-sm">{t('orderSummary')}</h3>
             <div className="bg-gray-50 rounded-lg p-3 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Items ({items.length})</span>
+                <span className="text-gray-600">{t('items', { count: items.length })}</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
+                  <span>{t('discount')}</span>
                   <span>-{formatCurrency(discount)}</span>
                 </div>
               )}
@@ -278,7 +280,7 @@ export function POSCheckoutModal({
 
           {/* Payment Method */}
           <div className="space-y-3">
-            <Label>Payment Method</Label>
+            <Label>{t('paymentMethod')}</Label>
             <RadioGroup
               value={paymentMethod}
               onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
@@ -287,21 +289,21 @@ export function POSCheckoutModal({
                 <RadioGroupItem value="cash" id="cash" />
                 <Label htmlFor="cash" className="flex items-center gap-2 cursor-pointer flex-1">
                   <Banknote className="h-5 w-5 text-green-600" />
-                  <span>Cash</span>
+                  <span>{t('cash')}</span>
                 </Label>
               </div>
               <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
                 <RadioGroupItem value="card" id="card" />
                 <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer flex-1">
                   <CreditCard className="h-5 w-5 text-blue-600" />
-                  <span>Card</span>
+                  <span>{t('card')}</span>
                 </Label>
               </div>
               <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
                 <RadioGroupItem value="mobile" id="mobile" />
                 <Label htmlFor="mobile" className="flex items-center gap-2 cursor-pointer flex-1">
                   <Smartphone className="h-5 w-5 text-purple-600" />
-                  <span>Mobile Payment</span>
+                  <span>{t('mobile')}</span>
                 </Label>
               </div>
             </RadioGroup>
@@ -321,7 +323,7 @@ export function POSCheckoutModal({
             onClick={() => onOpenChange(false)}
             disabled={isProcessing}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleCheckout}
@@ -331,15 +333,15 @@ export function POSCheckoutModal({
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {t('processing')}
               </>
             ) : !isOnline ? (
               <>
                 <WifiOff className="mr-2 h-4 w-4" />
-                Save Offline - {formatCurrency(total)}
+                {t('saveOffline')} - {formatCurrency(total)}
               </>
             ) : (
-              `Complete Sale - ${formatCurrency(total)}`
+              `${t('complete')} - ${formatCurrency(total)}`
             )}
           </Button>
         </DialogFooter>

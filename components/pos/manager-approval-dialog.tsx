@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,10 @@ export function ManagerApprovalDialog({
   onApproved,
   onCancel,
 }: ManagerApprovalDialogProps) {
+  const t = useTranslations('POS.approval')
+  const tSession = useTranslations('POS.session')
+  const tCommon = useTranslations('Common')
+
   const [validators, setValidators] = useState<Validator[]>([])
   const [validatorsWithoutPin, setValidatorsWithoutPin] = useState<Validator[]>([])
   const [selectedManager, setSelectedManager] = useState<string>('')
@@ -96,7 +101,7 @@ export function ManagerApprovalDialog({
       setValidatorsWithoutPin(data.validatorsWithoutPin || [])
     } catch (err) {
       console.error('Failed to fetch validators:', err)
-      setError('Impossible de charger la liste des validateurs')
+      setError(t('loadError'))
     } finally {
       setLoading(false)
     }
@@ -107,12 +112,12 @@ export function ManagerApprovalDialog({
     setError(null)
 
     if (!selectedManager) {
-      setError('Veuillez sélectionner un validateur')
+      setError(t('selectValidatorError'))
       return
     }
 
     if (pin.length !== 6) {
-      setError('Le code PIN doit contenir 6 chiffres')
+      setError(t('pinLengthError'))
       return
     }
 
@@ -132,13 +137,13 @@ export function ManagerApprovalDialog({
       const data = await response.json()
 
       if (!response.ok || !data.valid) {
-        throw new Error(data.error || 'Code PIN invalide')
+        throw new Error(data.error || t('invalidPin'))
       }
 
       // PIN is valid, call the approval callback
       onApproved(selectedManager, pin)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de validation')
+      setError(err instanceof Error ? err.message : t('validationError'))
       setPin('') // Clear PIN on error
     } finally {
       setValidating(false)
@@ -156,11 +161,10 @@ export function ManagerApprovalDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-orange-500" />
-            Validation requise
+            {t('title')}
           </DialogTitle>
           <DialogDescription>
-            Un écart a été détecté. L&apos;approbation d&apos;un manager ou
-            administrateur est nécessaire pour fermer cette caisse.
+            {t('description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +180,7 @@ export function ManagerApprovalDialog({
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               <span className="font-medium">
-                {discrepancy > 0 ? 'Excédent' : 'Manque'}:{' '}
+                {discrepancy > 0 ? tSession('surplus') : tSession('shortage')}:{' '}
                 {formatCurrency(Math.abs(discrepancy))}
               </span>
             </div>
@@ -194,15 +198,15 @@ export function ManagerApprovalDialog({
             </div>
           ) : validators.length === 0 ? (
             <div className="bg-orange-50 text-orange-800 rounded-lg p-4">
-              <p className="font-medium">Aucun validateur disponible</p>
+              <p className="font-medium">{t('noValidators')}</p>
               <p className="text-sm mt-1">
                 {validators.length === 0 && validatorsWithoutPin.length === 0
-                  ? 'Aucun manager ou admin trouvé pour ce magasin.'
-                  : 'Aucun manager ou admin n\'a configuré son code PIN. Veuillez contacter un administrateur.'}
+                  ? t('noValidatorsFound')
+                  : t('noPinConfigured')}
               </p>
               {validatorsWithoutPin.length > 0 && (
                 <p className="text-sm mt-2 opacity-80">
-                  Managers sans PIN: {validatorsWithoutPin.map((m) => m.full_name || 'Sans nom').join(', ')}
+                  {t('managersWithoutPin')}: {validatorsWithoutPin.map((m) => m.full_name || t('unnamed')).join(', ')}
                 </p>
               )}
             </div>
@@ -210,20 +214,20 @@ export function ManagerApprovalDialog({
             <>
               {/* Manager selection */}
               <div className="space-y-2">
-                <Label>Sélectionner le validateur</Label>
+                <Label>{t('selectValidator')}</Label>
                 <Select
                   value={selectedManager}
                   onValueChange={setSelectedManager}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Choisir un manager ou admin" />
+                    <SelectValue placeholder={t('selectManager')} />
                   </SelectTrigger>
                   <SelectContent>
                     {validators.map((validator) => (
                       <SelectItem key={validator.id} value={validator.id}>
                         <div className="flex items-center gap-2">
                           <UserCheck className="h-4 w-4 text-green-600" />
-                          <span>{validator.full_name || 'Sans nom'}</span>
+                          <span>{validator.full_name || t('unnamed')}</span>
                           <span className="text-xs text-muted-foreground capitalize">
                             ({validator.role})
                           </span>
@@ -237,7 +241,7 @@ export function ManagerApprovalDialog({
               {/* PIN input */}
               {selectedManager && (
                 <div className="space-y-3">
-                  <Label>Code PIN du validateur</Label>
+                  <Label>{t('validatorPin')}</Label>
                   <div className="flex justify-center">
                     <InputOTP
                       maxLength={6}
@@ -256,7 +260,7 @@ export function ManagerApprovalDialog({
                     </InputOTP>
                   </div>
                   <p className="text-xs text-center text-muted-foreground">
-                    Le validateur doit saisir son code PIN personnel
+                    {t('validatorPinHint')}
                   </p>
                 </div>
               )}
@@ -271,7 +275,7 @@ export function ManagerApprovalDialog({
             onClick={handleCancel}
             disabled={validating}
           >
-            Annuler
+            {tCommon('cancel')}
           </Button>
           {validators.length > 0 && (
             <Button
@@ -280,7 +284,7 @@ export function ManagerApprovalDialog({
               disabled={validating || !selectedManager || pin.length !== 6}
             >
               {validating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Valider
+              {t('approve')}
             </Button>
           )}
         </DialogFooter>

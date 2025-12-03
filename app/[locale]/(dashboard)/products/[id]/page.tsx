@@ -14,14 +14,14 @@ import { StockMovementsHistory } from '@/components/products/stock-movements-his
 export const dynamic = 'force-dynamic'
 
 interface ProductDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+    locale: string
+  }>
 }
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  // Next.js 16: params is now a Promise and must be awaited
-  const resolvedParams = await params
+  const { id } = await params
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -39,7 +39,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   }
 
   // Fetch product
-  const productResult = await getProduct(resolvedParams.id)
+  const productResult = await getProduct(id)
   if (!productResult.success || !productResult.data) {
     notFound()
   }
@@ -89,7 +89,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
               <Badge variant="secondary">Inactive</Badge>
             )}
             <Button asChild>
-              <Link href={`/products/${resolvedParams.id}/edit`}>
+              <Link href={`/products/${id}/edit`}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </Link>

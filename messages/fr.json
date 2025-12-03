@@ -1,0 +1,532 @@
+{
+  "Common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "deleting": "Suppression...",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "create": "Creer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "reset": "Reinitialiser",
+    "export": "Exporter",
+    "import": "Importer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "yes": "Oui",
+    "no": "Non",
+    "success": "Succes",
+    "error": "Erreur",
+    "warning": "Attention",
+    "noResults": "Aucun resultat.",
+    "actions": "Actions",
+    "status": "Statut",
+    "details": "Details",
+    "all": "Tous",
+    "none": "Aucun",
+    "select": "Selectionner",
+    "selected": "selectionne(s)",
+    "refresh": "Actualiser",
+    "refreshing": "Actualisation..."
+  },
+
+  "Navigation": {
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "sales": "Ventes",
+    "pos": "Caisse",
+    "reports": "Rapports",
+    "stores": "Magasins",
+    "settings": "Parametres"
+  },
+
+  "Auth": {
+    "login": {
+      "title": "Bon retour",
+      "subtitle": "Connectez-vous a votre compte Next Stock",
+      "email": "Email",
+      "emailPlaceholder": "m@exemple.com",
+      "password": "Mot de passe",
+      "forgotPassword": "Mot de passe oublie ?",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours...",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "signUp": "S'inscrire",
+      "termsNotice": "En continuant, vous acceptez nos",
+      "termsOfService": "Conditions d'utilisation",
+      "and": "et",
+      "privacyPolicy": "Politique de confidentialite"
+    },
+    "signup": {
+      "title": "Creer un compte",
+      "subtitle": "Entrez votre email pour creer votre compte Next Stock",
+      "fullName": "Nom complet",
+      "email": "Email",
+      "password": "Mot de passe",
+      "passwordHint": "Doit contenir au moins 8 caracteres.",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Creer le compte",
+      "submitting": "Creation du compte...",
+      "hasAccount": "Vous avez deja un compte ?",
+      "signIn": "Se connecter",
+      "emailHint": "Nous utiliserons cet email pour vous contacter. Nous ne partagerons pas votre email."
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublie",
+      "subtitle": "Entrez votre email pour recevoir un lien de reinitialisation",
+      "email": "Email",
+      "submit": "Envoyer le lien",
+      "submitting": "Envoi en cours...",
+      "backToLogin": "Retour a la connexion",
+      "checkEmail": "Verifiez votre email pour le lien de reinitialisation"
+    },
+    "otp": {
+      "title": "Verification OTP",
+      "subtitle": "Entrez le code envoye a votre email",
+      "submit": "Verifier",
+      "submitting": "Verification..."
+    },
+    "errors": {
+      "invalidCredentials": "Email ou mot de passe incorrect",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caracteres",
+      "notAuthenticated": "Non authentifie",
+      "insufficientPermissions": "Permissions insuffisantes"
+    },
+    "roles": {
+      "admin": "Administrateur",
+      "manager": "Manager",
+      "cashier": "Caissier"
+    },
+    "logout": "Se deconnecter",
+    "loggingOut": "Deconnexion..."
+  },
+
+  "Dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue",
+    "stats": {
+      "totalProducts": "Total Produits",
+      "productsInInventory": "Produits en inventaire",
+      "todaySales": "Ventes du jour",
+      "salesToday": "Ventes aujourd'hui",
+      "revenue": "Chiffre d'affaires",
+      "totalRevenue": "Chiffre d'affaires total",
+      "activeUsers": "Utilisateurs actifs",
+      "teamMembers": "Membres de l'equipe"
+    }
+  },
+
+  "Products": {
+    "title": "Produits",
+    "addProduct": "Ajouter un produit",
+    "newProduct": "Nouveau produit",
+    "editProduct": "Modifier le produit",
+    "searchPlaceholder": "Rechercher des produits...",
+    "columns": {
+      "product": "Produit",
+      "name": "Nom",
+      "sku": "SKU",
+      "category": "Categorie",
+      "price": "Prix",
+      "cost": "Cout",
+      "quantity": "Quantite",
+      "status": "Statut",
+      "minStock": "Stock minimum",
+      "description": "Description"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "outOfStock": "Rupture de stock",
+      "lowStock": "Stock faible",
+      "inStock": "En stock"
+    },
+    "categories": {
+      "uncategorized": "Non categorise",
+      "all": "Toutes les categories"
+    },
+    "actions": {
+      "viewDetails": "Voir les details",
+      "edit": "Modifier",
+      "activate": "Activer",
+      "deactivate": "Desactiver",
+      "delete": "Supprimer"
+    },
+    "deleteDialog": {
+      "title": "Etes-vous sur ?",
+      "description": "Cette action est irreversible. Ce produit et tous les mouvements de stock associes seront definitivement supprimes.",
+      "confirm": "Supprimer",
+      "deleting": "Suppression..."
+    },
+    "messages": {
+      "created": "Produit cree avec succes",
+      "updated": "Produit mis a jour avec succes",
+      "deleted": "Produit supprime avec succes",
+      "activated": "Produit active",
+      "deactivated": "Produit desactive",
+      "imported": "{count} produits importes",
+      "statusUpdated": "Statut du produit mis a jour"
+    },
+    "errors": {
+      "createFailed": "Echec de la creation du produit",
+      "updateFailed": "Echec de la mise a jour du produit",
+      "deleteFailed": "Echec de la suppression du produit",
+      "notFound": "Produit non trouve",
+      "skuExists": "Un produit avec ce SKU existe deja",
+      "skuRequired": "Le SKU est requis",
+      "nameRequired": "Le nom est requis",
+      "pricePositive": "Le prix doit etre positif",
+      "costPositive": "Le cout doit etre positif",
+      "minStockNonNegative": "Le stock minimum doit etre positif ou nul",
+      "quantityNonNegative": "La quantite doit etre positive ou nulle",
+      "quantityNegative": "La quantite ne peut pas etre negative"
+    },
+    "empty": "Aucun produit trouve. Ajoutez votre premier produit pour commencer.",
+    "form": {
+      "basicInfo": "Informations de base",
+      "pricing": "Prix",
+      "inventory": "Inventaire"
+    }
+  },
+
+  "Sales": {
+    "title": "Ventes",
+    "searchPlaceholder": "Rechercher des ventes...",
+    "columns": {
+      "invoice": "N° Facture",
+      "date": "Date",
+      "cashier": "Caissier",
+      "customer": "Client",
+      "total": "Total",
+      "payment": "Paiement",
+      "status": "Statut",
+      "items": "Articles"
+    },
+    "status": {
+      "completed": "Terminee",
+      "refunded": "Remboursee",
+      "pending": "En attente",
+      "partial": "Partielle"
+    },
+    "paymentMethods": {
+      "cash": "Especes",
+      "card": "Carte",
+      "mobile": "Mobile",
+      "other": "Autre"
+    },
+    "customer": {
+      "walkIn": "Client de passage"
+    },
+    "actions": {
+      "viewDetail": "Voir le detail",
+      "printReceipt": "Imprimer le ticket",
+      "refund": "Rembourser"
+    },
+    "refund": {
+      "title": "Rembourser la vente",
+      "reason": "Raison du remboursement",
+      "reasonPlaceholder": "Entrez la raison du remboursement...",
+      "reasonRequired": "Veuillez fournir une raison pour le remboursement",
+      "confirm": "Confirmer le remboursement",
+      "success": "Vente remboursee avec succes",
+      "error": "Echec du remboursement"
+    },
+    "detail": {
+      "title": "Detail de la vente",
+      "product": "Produit",
+      "quantity": "Quantite",
+      "unitPrice": "Prix unitaire",
+      "subtotal": "Sous-total",
+      "unknownProduct": "Produit inconnu",
+      "notAvailable": "N/A"
+    },
+    "empty": "Aucune vente trouvee.",
+    "filters": {
+      "dateFrom": "Date de debut",
+      "dateTo": "Date de fin",
+      "status": "Statut",
+      "paymentMethod": "Mode de paiement"
+    }
+  },
+
+  "POS": {
+    "title": "Point de vente",
+    "cart": {
+      "title": "Panier",
+      "clear": "Vider",
+      "empty": "Panier vide",
+      "emptyHint": "Ajoutez des produits pour commencer",
+      "subtotal": "Sous-total",
+      "tax": "TVA ({rate})",
+      "total": "Total",
+      "checkout": "Payer",
+      "editQuantity": "Cliquez pour modifier la quantite"
+    },
+    "checkout": {
+      "title": "Finaliser la vente",
+      "titleOffline": "Mode hors ligne",
+      "subtitle": "Verifiez les details et selectionnez le mode de paiement",
+      "subtitleOffline": "Cette vente sera sauvegardee localement et synchronisee une fois en ligne",
+      "orderSummary": "Resume de la commande",
+      "items": "Articles ({count})",
+      "discount": "Remise",
+      "paymentMethod": "Mode de paiement",
+      "cash": "Especes",
+      "card": "Carte",
+      "mobile": "Paiement mobile",
+      "cancel": "Annuler",
+      "complete": "Finaliser la vente",
+      "processing": "Traitement en cours...",
+      "saveOffline": "Sauvegarder hors ligne",
+      "saleCompleted": "Vente terminee - Ticket #{number}"
+    },
+    "quantity": {
+      "minError": "La quantite doit etre d'au moins 1",
+      "maxError": "Stock maximum disponible: {max}"
+    },
+    "offline": {
+      "banner": {
+        "disconnected": "Connexion perdue",
+        "disconnectedHint": "Mode hors ligne active - Les ventes seront synchronisees automatiquement",
+        "pending": "{count} en attente",
+        "reconnected": "Connexion retablie",
+        "syncing": "Synchronisation de {count} vente(s) en cours...",
+        "synced": "Toutes les donnees sont synchronisees"
+      },
+      "warning": "Mode hors ligne",
+      "warningDescription": "Cette transaction sera mise en file d'attente et synchronisee au retour de la connexion.",
+      "stockWarning": "Alertes de stock"
+    },
+    "session": {
+      "open": "Ouvrir la caisse",
+      "close": "Fermer la caisse",
+      "opening": "Ouverture de la caisse",
+      "closing": "Fermeture de la caisse",
+      "openingAmount": "Montant d'ouverture",
+      "closingAmount": "Montant de fermeture",
+      "expectedAmount": "Montant attendu",
+      "difference": "Ecart",
+      "notes": "Notes",
+      "openingNotes": "Notes d'ouverture...",
+      "closingNotes": "Notes de fermeture...",
+      "noActiveSession": "Aucune session active",
+      "startSession": "Demarrer une session",
+      "sessionActive": "Session active",
+      "error": "Une erreur est survenue",
+      "enterFinalAmount": "Veuillez entrer le montant final",
+      "openDescription": "Entrez le montant initial en especes (fond de caisse) pour demarrer votre session.",
+      "openingFund": "Fond de caisse",
+      "openingFundHint": "Montant en especes dans le tiroir-caisse",
+      "notesOptional": "Notes (optionnel)",
+      "closeDescription": "Verifiez le resume de la session et entrez le montant final en especes.",
+      "sessionSummary": "Resume de la session",
+      "cashPayments": "Especes",
+      "cardPayments": "Carte",
+      "mobilePayments": "Mobile",
+      "transactionCount": "Nombre de transactions",
+      "totalSales": "Total des ventes",
+      "cashCalculation": "Calcul especes",
+      "cashSales": "Ventes especes",
+      "expectedCash": "Especes attendues",
+      "finalCountedAmount": "Montant final compte",
+      "balanced": "Caisse equilibree",
+      "surplus": "Excedent",
+      "shortage": "Manque",
+      "managerValidationRequired": "Validation manager requise",
+      "requestValidation": "Demander validation",
+      "closingNotesOptional": "Notes de fermeture (optionnel)",
+      "closingNotesPlaceholder": "Observations, incidents...",
+      "registerClosed": "Caisse fermee",
+      "registerClosedDescription": "Vous devez ouvrir une session de caisse avant de pouvoir effectuer des ventes. Cela permet de suivre les transactions et de faire le bilan en fin de journee.",
+      "whatIsOpeningFund": "Qu'est-ce que le fond de caisse ?",
+      "openingFundExplanation": "C'est le montant initial en especes dans votre tiroir-caisse au debut de votre session de travail.",
+      "openMyRegister": "Ouvrir ma caisse"
+    },
+    "approval": {
+      "title": "Validation requise",
+      "description": "Un ecart a ete detecte. L'approbation d'un manager ou administrateur est necessaire pour fermer cette caisse.",
+      "selectManager": "Choisir un manager ou admin",
+      "selectValidator": "Selectionner le validateur",
+      "enterPin": "Entrer le code PIN",
+      "validatorPin": "Code PIN du validateur",
+      "validatorPinHint": "Le validateur doit saisir son code PIN personnel",
+      "approve": "Valider",
+      "approving": "Approbation...",
+      "noValidators": "Aucun validateur disponible",
+      "noValidatorsFound": "Aucun manager ou admin trouve pour ce magasin.",
+      "noPinConfigured": "Aucun manager ou admin n'a configure son code PIN. Veuillez contacter un administrateur.",
+      "managersWithoutPin": "Managers sans PIN",
+      "selectValidatorError": "Veuillez selectionner un validateur",
+      "pinLengthError": "Le code PIN doit contenir 6 chiffres",
+      "invalidPin": "Code PIN invalide",
+      "validationError": "Erreur de validation",
+      "loadError": "Impossible de charger la liste des validateurs",
+      "unnamed": "Sans nom"
+    },
+    "status": {
+      "registerClosed": "Caisse fermee",
+      "registerOpen": "Caisse ouverte",
+      "fund": "Fond",
+      "sales": "vente(s)"
+    },
+    "search": {
+      "placeholder": "Rechercher un produit...",
+      "noResults": "Aucun produit trouve"
+    }
+  },
+
+  "Settings": {
+    "title": "Parametres",
+    "pin": {
+      "title": "Code PIN de validation",
+      "description": "Ce code PIN a 6 chiffres est utilise pour approuver les fermetures de caisse avec ecart. Vous devrez le saisir lorsqu'un caissier demande votre validation.",
+      "configured": "Code PIN configure",
+      "configuredHint": "Vous pouvez approuver les fermetures de caisse avec ecart.",
+      "notConfigured": "Aucun code PIN configure",
+      "notConfiguredHint": "Configurez un code PIN pour pouvoir approuver les fermetures de caisse.",
+      "configure": "Configurer le PIN",
+      "modify": "Modifier le PIN",
+      "delete": "Supprimer",
+      "newPin": "Nouveau code PIN (6 chiffres)",
+      "confirmPin": "Confirmer le code PIN",
+      "create": "Creer",
+      "cancel": "Annuler",
+      "errors": {
+        "length": "Le code PIN doit contenir 6 chiffres",
+        "mismatch": "Les codes PIN ne correspondent pas",
+        "generic": "Une erreur est survenue"
+      },
+      "messages": {
+        "created": "Code PIN cree",
+        "modified": "Code PIN modifie",
+        "deleted": "Code PIN supprime",
+        "deleteConfirm": "Etes-vous sur de vouloir supprimer votre code PIN ?",
+        "deleteError": "Erreur lors de la suppression du PIN"
+      }
+    },
+    "language": {
+      "title": "Langue",
+      "description": "Selectionnez votre langue preferee",
+      "french": "Francais",
+      "english": "Anglais"
+    }
+  },
+
+  "Reports": {
+    "title": "Rapports",
+    "types": {
+      "sales": "Ventes",
+      "inventory": "Inventaire",
+      "performance": "Performance"
+    },
+    "filters": {
+      "reportType": "Type de rapport",
+      "store": "Magasin",
+      "allStores": "Tous les magasins",
+      "dateFrom": "Date de debut",
+      "dateTo": "Date de fin",
+      "groupBy": "Grouper par"
+    },
+    "groupBy": {
+      "day": "Jour",
+      "week": "Semaine",
+      "month": "Mois"
+    }
+  },
+
+  "Stores": {
+    "title": "Magasins",
+    "addStore": "Ajouter un magasin",
+    "searchPlaceholder": "Rechercher des magasins...",
+    "columns": {
+      "name": "Nom",
+      "address": "Adresse",
+      "phone": "Telephone",
+      "manager": "Manager",
+      "status": "Statut"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "empty": "Aucun magasin trouve."
+  },
+
+  "DataTable": {
+    "search": "Rechercher...",
+    "noResults": "Aucun resultat.",
+    "rowsSelected": "{count} ligne(s) selectionnee(s)",
+    "page": "Page {current} sur {total}",
+    "rowsPerPage": "Lignes par page",
+    "goToFirst": "Aller a la premiere page",
+    "goToPrevious": "Page precedente",
+    "goToNext": "Page suivante",
+    "goToLast": "Aller a la derniere page",
+    "columns": "Colonnes",
+    "export": {
+      "button": "Exporter",
+      "csv": "CSV",
+      "excel": "Excel",
+      "success": "{count} lignes exportees",
+      "selectedSuccess": "{count} lignes selectionnees exportees"
+    },
+    "import": {
+      "button": "Importer",
+      "success": "{count} lignes importees avec succes",
+      "error": "Echec de l'import: {message}"
+    }
+  },
+
+  "Landing": {
+    "hero": {
+      "title": "Gestion de Stock Moderne et Simple",
+      "subtitle": "Simplifiez la gestion de votre stock avec Next Stock. Suivez votre inventaire, gerez les ventes et obtenez des insights sur votre activite - tout en une seule plateforme.",
+      "cta": "Essai gratuit",
+      "signIn": "Se connecter"
+    },
+    "features": {
+      "title": "Tout ce dont vous avez besoin pour gerer votre inventaire",
+      "subtitle": "Des fonctionnalites puissantes concues pour les entreprises de toutes tailles",
+      "products": {
+        "title": "Gestion des Produits",
+        "description": "Organisez et suivez tout votre catalogue de produits facilement"
+      },
+      "pos": {
+        "title": "Point de Vente",
+        "description": "Systeme de caisse rapide et intuitif pour des transactions fluides"
+      },
+      "reports": {
+        "title": "Analyses et Rapports",
+        "description": "Obtenez des insights avec des rapports complets sur les ventes et l'inventaire"
+      },
+      "multiUser": {
+        "title": "Acces Multi-Utilisateurs",
+        "description": "Controle d'acces base sur les roles pour toute votre equipe"
+      }
+    },
+    "cta": {
+      "title": "Pret a commencer ?",
+      "subtitle": "Rejoignez les entreprises qui utilisent deja Next Stock pour gerer leur inventaire efficacement",
+      "button": "Creer votre compte"
+    },
+    "footer": {
+      "copyright": "2025 Next Stock. Tous droits reserves."
+    }
+  },
+
+  "Errors": {
+    "notFound": "Page non trouvee",
+    "serverError": "Une erreur est survenue",
+    "unauthorized": "Acces non autorise",
+    "generic": "Une erreur est survenue",
+    "tryAgain": "Reessayer",
+    "goBack": "Retour",
+    "goHome": "Accueil"
+  }
+}

@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -36,9 +37,11 @@ interface QuantityEditorProps {
   quantity: number
   maxStock: number
   onUpdate: (newQuantity: number) => void
+  t: ReturnType<typeof useTranslations<'POS.quantity'>>
+  tCart: ReturnType<typeof useTranslations<'POS.cart'>>
 }
 
-function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
+function QuantityEditor({ quantity, maxStock, onUpdate, t, tCart }: QuantityEditorProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [inputValue, setInputValue] = useState(quantity.toString())
   const inputRef = useRef<HTMLInputElement>(null)
@@ -54,14 +57,14 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
     const newQuantity = parseInt(inputValue, 10)
 
     if (isNaN(newQuantity) || newQuantity < 1) {
-      toast.error('Quantity must be at least 1')
+      toast.error(t('minError'))
       setInputValue(quantity.toString())
       setIsEditing(false)
       return
     }
 
     if (newQuantity > maxStock) {
-      toast.error(`Maximum available stock is ${maxStock}`)
+      toast.error(t('maxError', { max: maxStock }))
       setInputValue(maxStock.toString())
       onUpdate(maxStock)
       setIsEditing(false)
@@ -101,7 +104,7 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
     <span
       className="w-10 text-center font-medium cursor-pointer hover:bg-gray-100 rounded px-2 py-1 transition-colors"
       onClick={() => setIsEditing(true)}
-      title="Click to edit quantity"
+      title={tCart('editQuantity')}
     >
       {quantity}
     </span>
@@ -109,6 +112,10 @@ function QuantityEditor({ quantity, maxStock, onUpdate }: QuantityEditorProps) {
 }
 
 export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId, onCheckoutComplete }: POSCartProps) {
+  const t = useTranslations('POS.cart')
+  const tQuantity = useTranslations('POS.quantity')
+  const tCheckout = useTranslations('POS.checkout')
+
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -143,7 +150,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
     clearCart()
 
     // Show success toast
-    toast.success(`Sale completed successfully - Receipt #${saleNumber}`)
+    toast.success(tCheckout('saleCompleted', { number: saleNumber }))
 
     // Set sale info and open receipt
     setCurrentSaleId(saleId)
@@ -205,7 +212,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
       <div className="flex-shrink-0 flex items-center justify-between p-4 pb-2 bg-gray-50">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          Cart
+          {t('title')}
         </h2>
         {items.length > 0 && (
           <Button
@@ -214,7 +221,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
             onClick={clearCart}
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
           >
-            Clear
+            {t('clear')}
           </Button>
         )}
       </div>
@@ -225,8 +232,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
           <div className="flex h-full items-center justify-center text-gray-400">
             <div className="text-center">
               <ShoppingCart className="mx-auto h-12 w-12 mb-2" />
-              <p>Cart is empty</p>
-              <p className="text-sm">Add products to get started</p>
+              <p>{t('empty')}</p>
+              <p className="text-sm">{t('emptyHint')}</p>
             </div>
           </div>
         ) : (
@@ -263,6 +270,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
                     quantity={item.quantity}
                     maxStock={item.maxStock}
                     onUpdate={(newQuantity) => updateQuantity(item.productId, newQuantity)}
+                    t={tQuantity}
+                    tCart={t}
                   />
                   <Button
                     variant="outline"
@@ -294,16 +303,16 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
       {items.length > 0 && (
         <div className="flex-shrink-0 border-t pt-4 px-4 pb-4 bg-gray-50 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Subtotal</span>
+            <span className="text-gray-600">{t('subtotal')}</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Tax (8.75%)</span>
+            <span className="text-gray-600">{t('tax', { rate: '8.75%' })}</span>
             <span className="font-medium">{formatCurrency(tax)}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-lg font-bold">
-            <span>Total</span>
+            <span>{t('total')}</span>
             <span>{formatCurrency(total)}</span>
           </div>
 
@@ -314,7 +323,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
             disabled={items.length === 0}
             onClick={() => setCheckoutOpen(true)}
           >
-            Checkout
+            {t('checkout')}
           </Button>
         </div>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,9 @@ export function OpenSessionDialog({
   storeId,
   onSessionOpened,
 }: OpenSessionDialogProps) {
+  const t = useTranslations('POS.session')
+  const tCommon = useTranslations('Common')
+
   const [openingAmount, setOpeningAmount] = useState('')
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -63,7 +67,7 @@ export function OpenSessionDialog({
       onSessionOpened()
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue')
+      setError(err instanceof Error ? err.message : t('error'))
     } finally {
       setLoading(false)
     }
@@ -75,11 +79,10 @@ export function OpenSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            Ouvrir la caisse
+            {t('open')}
           </DialogTitle>
           <DialogDescription>
-            Entrez le montant initial en espèces (fond de caisse) pour démarrer
-            votre session.
+            {t('openDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -92,7 +95,7 @@ export function OpenSessionDialog({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="openingAmount">Fond de caisse ($)</Label>
+              <Label htmlFor="openingAmount">{t('openingFund')} ($)</Label>
               <Input
                 id="openingAmount"
                 type="number"
@@ -104,15 +107,15 @@ export function OpenSessionDialog({
                 autoFocus
               />
               <p className="text-xs text-muted-foreground">
-                Montant en espèces dans le tiroir-caisse
+                {t('openingFundHint')}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optionnel)</Label>
+              <Label htmlFor="notes">{t('notesOptional')}</Label>
               <Textarea
                 id="notes"
-                placeholder="Notes d'ouverture..."
+                placeholder={t('openingNotes')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -127,11 +130,11 @@ export function OpenSessionDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              Annuler
+              {tCommon('cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Ouvrir la caisse
+              {t('open')}
             </Button>
           </DialogFooter>
         </form>

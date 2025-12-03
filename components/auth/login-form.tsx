@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/src/i18n/navigation'
 import Image from 'next/image'
-import { login } from '@/app/(auth)/actions'
+import { login } from '@/app/[locale]/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -24,6 +25,7 @@ export function LoginForm({
   redirectUrl,
   ...props
 }: LoginFormProps) {
+  const t = useTranslations('Auth.login')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -44,9 +46,9 @@ export function LoginForm({
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <h1 className="text-2xl font-bold">{t('title')}</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Next Stock account
+                  {t('subtitle')}
                 </p>
               </div>
 
@@ -62,12 +64,12 @@ export function LoginForm({
               )}
 
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">{t('email')}</FieldLabel>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={t('emailPlaceholder')}
                   required
                   disabled={isPending}
                 />
@@ -75,12 +77,12 @@ export function LoginForm({
 
               <Field>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">{t('password')}</FieldLabel>
                   <Link
                     href="/forgot-password"
                     className="ml-auto text-sm underline-offset-2 hover:underline"
                   >
-                    Forgot your password?
+                    {t('forgotPassword')}
                   </Link>
                 </div>
                 <Input
@@ -94,14 +96,14 @@ export function LoginForm({
 
               <Field>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? 'Logging in...' : 'Login'}
+                  {isPending ? t('submitting') : t('submit')}
                 </Button>
               </Field>
 
               <FieldDescription className="text-center">
-                Don&apos;t have an account?{' '}
+                {t('noAccount')}{' '}
                 <Link href="/signup" className="underline underline-offset-2">
-                  Sign up
+                  {t('signUp')}
                 </Link>
               </FieldDescription>
             </FieldGroup>
@@ -117,13 +119,13 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our{' '}
+        {t('termsNotice')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Terms of Service
+          {t('termsOfService')}
         </Link>{' '}
-        and{' '}
+        {t('and')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Privacy Policy
+          {t('privacyPolicy')}
         </Link>
         .
       </FieldDescription>

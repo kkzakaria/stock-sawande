@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/src/i18n/navigation'
 import Image from 'next/image'
-import { resetPassword } from '@/app/(auth)/actions'
+import { resetPassword } from '@/app/[locale]/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -19,6 +20,8 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
+  const t = useTranslations('Auth.forgotPassword')
+  const tLogin = useTranslations('Auth.login')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -31,7 +34,7 @@ export function ForgotPasswordForm({
       if (result?.error) {
         setError(result.error)
       } else if (result?.success) {
-        setSuccess(result.message || 'Check your email for the reset link')
+        setSuccess(result.message || t('checkEmail'))
       }
     })
   }
@@ -43,9 +46,9 @@ export function ForgotPasswordForm({
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Reset your password</h1>
+                <h1 className="text-2xl font-bold">{t('title')}</h1>
                 <p className="text-muted-foreground text-balance">
-                  Enter your email and we&apos;ll send you a reset link
+                  {t('subtitle')}
                 </p>
               </div>
 
@@ -62,30 +65,26 @@ export function ForgotPasswordForm({
               )}
 
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">{t('email')}</FieldLabel>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={tLogin('emailPlaceholder')}
                   required
                   disabled={isPending || !!success}
                 />
-                <FieldDescription>
-                  We&apos;ll send a password reset link to this email
-                </FieldDescription>
               </Field>
 
               <Field>
                 <Button type="submit" disabled={isPending || !!success}>
-                  {isPending ? 'Sending...' : 'Send Reset Link'}
+                  {isPending ? t('submitting') : t('submit')}
                 </Button>
               </Field>
 
               <FieldDescription className="text-center">
-                Remember your password?{' '}
                 <Link href="/login" className="underline underline-offset-2">
-                  Sign in
+                  {t('backToLogin')}
                 </Link>
               </FieldDescription>
             </FieldGroup>
@@ -101,13 +100,13 @@ export function ForgotPasswordForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our{' '}
+        {tLogin('termsNotice')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Terms of Service
+          {tLogin('termsOfService')}
         </Link>{' '}
-        and{' '}
+        {tLogin('and')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Privacy Policy
+          {tLogin('privacyPolicy')}
         </Link>
         .
       </FieldDescription>

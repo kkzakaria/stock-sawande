@@ -6,6 +6,7 @@
  */
 
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { useCartStore } from '@/lib/store/cart-store'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -36,6 +37,8 @@ export function POSProductGrid({
   searchQuery,
   onSearchChange,
 }: POSProductGridProps) {
+  const t = useTranslations('POS.search')
+  const tCommon = useTranslations('Common')
   const addItem = useCartStore((state) => state.addItem)
 
   const handleAddToCart = (product: Product) => {
@@ -63,7 +66,7 @@ export function POSProductGrid({
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search by name, SKU, or barcode..."
+            placeholder={t('placeholder')}
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10"
@@ -78,10 +81,7 @@ export function POSProductGrid({
           <div className="flex h-full items-center justify-center text-gray-400">
             <div className="text-center">
               <Package className="mx-auto h-12 w-12 mb-2" />
-              <p>No products found</p>
-              {searchQuery && (
-                <p className="text-sm">Try a different search term</p>
-              )}
+              <p>{t('noResults')}</p>
             </div>
           </div>
         ) : (
@@ -147,7 +147,7 @@ export function POSProductGrid({
                     }}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Add
+                    {tCommon('add')}
                   </Button>
                 </div>
               </Card>

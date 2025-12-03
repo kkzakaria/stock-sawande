@@ -1,9 +1,21 @@
 import Link from 'next/link'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Package, ShoppingCart, BarChart3, Users } from 'lucide-react'
 
-export default function Home() {
+type Props = {
+  params: Promise<{ locale: string }>
+}
+
+export default async function Home({ params }: Props) {
+  const { locale } = await params
+
+  // Enable static rendering
+  setRequestLocale(locale)
+
+  const t = await getTranslations('Landing')
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -14,11 +26,11 @@ export default function Home() {
             <span className="text-xl font-bold">Next Stock</span>
           </div>
           <nav className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Login</Button>
+            <Link href={`/${locale}/login`}>
+              <Button variant="ghost">{t('hero.signIn')}</Button>
             </Link>
-            <Link href="/signup">
-              <Button>Get Started</Button>
+            <Link href={`/${locale}/signup`}>
+              <Button>{t('hero.cta')}</Button>
             </Link>
           </nav>
         </div>
@@ -29,19 +41,18 @@ export default function Home() {
         <div className="container px-4 py-16 md:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              Modern Inventory Management Made Simple
+              {t('hero.title')}
             </h1>
             <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Streamline your stock management with Next Stock. Track inventory, manage sales,
-              and gain insights into your business - all in one powerful platform.
+              {t('hero.subtitle')}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
-              <Link href="/signup">
-                <Button size="lg">Start Free Trial</Button>
+              <Link href={`/${locale}/signup`}>
+                <Button size="lg">{t('hero.cta')}</Button>
               </Link>
-              <Link href="/login">
+              <Link href={`/${locale}/login`}>
                 <Button size="lg" variant="outline">
-                  Sign In
+                  {t('hero.signIn')}
                 </Button>
               </Link>
             </div>
@@ -53,9 +64,9 @@ export default function Home() {
       <section className="container px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Everything you need to manage your inventory</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{t('features.title')}</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Powerful features designed for businesses of all sizes
+              {t('features.subtitle')}
             </p>
           </div>
 
@@ -63,9 +74,9 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Package className="h-10 w-10 text-primary" />
-                <CardTitle>Product Management</CardTitle>
+                <CardTitle>{t('features.products.title')}</CardTitle>
                 <CardDescription>
-                  Organize and track your entire product catalog with ease
+                  {t('features.products.description')}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -73,9 +84,9 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <ShoppingCart className="h-10 w-10 text-primary" />
-                <CardTitle>Point of Sale</CardTitle>
+                <CardTitle>{t('features.pos.title')}</CardTitle>
                 <CardDescription>
-                  Fast and intuitive POS system for seamless transactions
+                  {t('features.pos.description')}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -83,9 +94,9 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <BarChart3 className="h-10 w-10 text-primary" />
-                <CardTitle>Analytics & Reports</CardTitle>
+                <CardTitle>{t('features.reports.title')}</CardTitle>
                 <CardDescription>
-                  Gain insights with comprehensive sales and inventory reports
+                  {t('features.reports.description')}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -93,9 +104,9 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <Users className="h-10 w-10 text-primary" />
-                <CardTitle>Multi-User Access</CardTitle>
+                <CardTitle>{t('features.multiUser.title')}</CardTitle>
                 <CardDescription>
-                  Role-based access control for your entire team
+                  {t('features.multiUser.description')}
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -107,13 +118,13 @@ export default function Home() {
       <section className="border-t bg-muted/50">
         <div className="container px-4 py-16">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Ready to get started?</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{t('cta.title')}</h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Join businesses already using Next Stock to manage their inventory efficiently
+              {t('cta.subtitle')}
             </p>
             <div className="mt-8">
-              <Link href="/signup">
-                <Button size="lg">Create your account</Button>
+              <Link href={`/${locale}/signup`}>
+                <Button size="lg">{t('cta.button')}</Button>
               </Link>
             </div>
           </div>
@@ -129,7 +140,7 @@ export default function Home() {
               <span className="font-semibold">Next Stock</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 Next Stock. All rights reserved.
+              {t('footer.copyright')}
             </p>
           </div>
         </div>

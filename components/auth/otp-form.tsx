@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/src/i18n/navigation'
 import Image from 'next/image'
-import { verifyOtp } from '@/app/(auth)/actions'
+import { verifyOtp } from '@/app/[locale]/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -22,6 +23,8 @@ import {
 } from '@/components/ui/input-otp'
 
 export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const t = useTranslations('Auth.otp')
+  const tLogin = useTranslations('Auth.login')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [otp, setOtp] = useState('')
@@ -54,9 +57,9 @@ export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
           >
             <FieldGroup>
               <Field className="items-center text-center">
-                <h1 className="text-2xl font-bold">Enter verification code</h1>
+                <h1 className="text-2xl font-bold">{t('title')}</h1>
                 <p className="text-muted-foreground text-sm text-balance">
-                  We sent a 6-digit code to your email
+                  {t('subtitle')}
                 </p>
               </Field>
 
@@ -67,23 +70,20 @@ export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
               )}
 
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">{tLogin('email')}</FieldLabel>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder={tLogin('emailPlaceholder')}
                   required
                   disabled={isPending}
                 />
-                <FieldDescription>
-                  Enter the email address you used to sign up
-                </FieldDescription>
               </Field>
 
               <Field>
                 <FieldLabel htmlFor="otp" className="sr-only">
-                  Verification code
+                  {t('title')}
                 </FieldLabel>
                 <InputOTP
                   maxLength={6}
@@ -105,21 +105,12 @@ export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
                     <InputOTPSlot index={5} />
                   </InputOTPGroup>
                 </InputOTP>
-                <FieldDescription className="text-center">
-                  Enter the 6-digit code sent to your email.
-                </FieldDescription>
               </Field>
 
               <Field>
                 <Button type="submit" disabled={isPending || otp.length !== 6}>
-                  {isPending ? 'Verifying...' : 'Verify'}
+                  {isPending ? t('submitting') : t('submit')}
                 </Button>
-                <FieldDescription className="text-center">
-                  Didn&apos;t receive the code?{' '}
-                  <Link href="/signup" className="underline underline-offset-2">
-                    Resend
-                  </Link>
-                </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
@@ -134,13 +125,13 @@ export function OTPForm({ className, ...props }: React.ComponentProps<'div'>) {
         </CardContent>
       </Card>
       <FieldDescription className="text-center">
-        By clicking continue, you agree to our{' '}
+        {tLogin('termsNotice')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Terms of Service
+          {tLogin('termsOfService')}
         </Link>{' '}
-        and{' '}
+        {tLogin('and')}{' '}
         <Link href="#" className="underline underline-offset-2">
-          Privacy Policy
+          {tLogin('privacyPolicy')}
         </Link>
         .
       </FieldDescription>

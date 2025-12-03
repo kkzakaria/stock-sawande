@@ -6,11 +6,15 @@
  */
 
 import { useEffect, useState, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { useOfflineStore } from '@/lib/store/offline-store'
 import { Wifi, WifiOff, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function NetworkBanner() {
+  const t = useTranslations('POS.offline.banner')
+  const tCommon = useTranslations('Common')
+
   const isOnline = useOfflineStore((state) => state.isOnline)
   const pendingCount = useOfflineStore((state) => state.pendingTransactionsCount)
 
@@ -92,10 +96,10 @@ export function NetworkBanner() {
           <>
             <WifiOff className="h-5 w-5 animate-pulse" />
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium">Connexion perdue</span>
+              <span className="font-medium">{t('disconnected')}</span>
               <span className="text-sm opacity-90">
-                Mode hors ligne activé - Les ventes seront synchronisées automatiquement
-                {pendingCount > 0 && ` (${pendingCount} en attente)`}
+                {t('disconnectedHint')}
+                {pendingCount > 0 && ` (${t('pending', { count: pendingCount })})`}
               </span>
             </div>
           </>
@@ -103,11 +107,11 @@ export function NetworkBanner() {
           <>
             <Wifi className="h-5 w-5" />
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="font-medium">Connexion rétablie</span>
+              <span className="font-medium">{t('reconnected')}</span>
               <span className="text-sm opacity-90">
                 {pendingCount > 0
-                  ? `Synchronisation de ${pendingCount} vente(s) en cours...`
-                  : 'Toutes les données sont synchronisées'
+                  ? t('syncing', { count: pendingCount })
+                  : t('synced')
                 }
               </span>
             </div>
@@ -117,7 +121,7 @@ export function NetworkBanner() {
         <button
           onClick={handleDismiss}
           className="ml-auto p-1 hover:bg-white/20 rounded-full transition-colors"
-          aria-label="Fermer"
+          aria-label={tCommon('close')}
         >
           <X className="h-4 w-4" />
         </button>
