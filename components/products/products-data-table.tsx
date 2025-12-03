@@ -165,21 +165,13 @@ export function ProductsDataTable({
     setDeleteDialogOpen(true);
   };
 
-  const getStockBadge = (quantity: number, minLevel: number | null) => {
+  const getStockColor = (quantity: number, minLevel: number | null) => {
     if (quantity === 0) {
-      return <Badge variant="destructive">{t("status.outOfStock")}</Badge>;
-    } else if (minLevel !== null && quantity <= minLevel) {
-      return (
-        <Badge variant="outline" className="border-orange-500 text-orange-500">
-          {t("status.lowStock")}
-        </Badge>
-      );
+      return "text-red-500 font-semibold";
+    } else if (minLevel !== null && quantity < minLevel) {
+      return "text-orange-500 font-semibold";
     }
-    return (
-      <Badge variant="outline" className="border-green-500 text-green-500">
-        {t("status.inStock")}
-      </Badge>
-    );
+    return "text-green-600 font-semibold";
   };
 
   const columns: ColumnDef<Product>[] = [
@@ -280,10 +272,7 @@ export function ProductsDataTable({
         const quantity = row.getValue("quantity") as number;
         const minLevel = row.original.min_stock_level;
         return (
-          <div className="flex items-center gap-2">
-            <span>{quantity}</span>
-            {getStockBadge(quantity, minLevel)}
-          </div>
+          <span className={getStockColor(quantity, minLevel)}>{quantity}</span>
         );
       },
     },
@@ -295,7 +284,7 @@ export function ProductsDataTable({
       cell: ({ row }) => {
         const isActive = row.getValue("is_active");
         return isActive ? (
-          <Badge variant="default">{t("status.active")}</Badge>
+          <Badge variant="outline" className="border-green-500 text-green-500">{t("status.active")}</Badge>
         ) : (
           <Badge variant="secondary">{t("status.inactive")}</Badge>
         );
