@@ -119,6 +119,29 @@
       "totalRevenue": "Chiffre d'affaires total",
       "activeUsers": "Utilisateurs actifs",
       "teamMembers": "Membres de l'équipe"
+    },
+    "metrics": {
+      "todayRevenue": "Revenu du jour",
+      "weekRevenue": "Revenu de la semaine",
+      "transactions": "Transactions aujourd'hui",
+      "lowStock": "Alertes stock"
+    },
+    "charts": {
+      "revenueTitle": "Évolution du chiffre d'affaires",
+      "revenueDescription": "Tendance des ventes sur la période sélectionnée",
+      "revenue": "Revenu"
+    },
+    "topProducts": {
+      "title": "Top Produits",
+      "description": "Produits les plus vendus sur la période",
+      "noData": "Aucune vente sur cette période",
+      "units": "unités"
+    },
+    "lowStock": {
+      "title": "Alertes Stock Bas",
+      "description": "Produits nécessitant un réapprovisionnement",
+      "noAlerts": "Tous les produits sont en stock",
+      "viewAll": "Voir tout"
     }
   },
 
@@ -437,6 +460,84 @@
       "day": "Jour",
       "week": "Semaine",
       "month": "Mois"
+    },
+    "errors": {
+      "title": "Erreur",
+      "fetchFailed": "Échec du chargement du rapport"
+    },
+    "sales": {
+      "totalRevenue": "Chiffre d'affaires",
+      "totalTransactions": "Transactions",
+      "avgTransaction": "Panier moyen",
+      "refundRate": "Taux de remboursement",
+      "revenue": "Revenu",
+      "transactions": "Transactions",
+      "daily": "journalier",
+      "weekly": "hebdomadaire",
+      "monthly": "mensuel",
+      "salesTrend": "Tendance des ventes",
+      "salesTrendDescription": "Évolution du chiffre d'affaires ({period})",
+      "paymentBreakdown": "Répartition des paiements",
+      "paymentBreakdownDescription": "Distribution par mode de paiement",
+      "total": "Total",
+      "paymentMethods": {
+        "cash": "Espèces",
+        "card": "Carte",
+        "mobile": "Mobile"
+      },
+      "topProducts": "Produits les plus vendus",
+      "topProductsDescription": "Top 10 des produits par chiffre d'affaires",
+      "product": "Produit",
+      "category": "Catégorie",
+      "unitsSold": "Unités vendues",
+      "avgPrice": "Prix moyen",
+      "noProducts": "Aucun produit vendu sur cette période"
+    },
+    "inventory": {
+      "totalProducts": "Total produits",
+      "totalStockValue": "Valeur du stock",
+      "lowStockCount": "Stock faible",
+      "outOfStockCount": "Rupture de stock",
+      "productCount": "Nombre de produits",
+      "totalQuantity": "Quantité totale",
+      "stockLevels": "Niveaux de stock",
+      "stockLevelsDescription": "Détail des stocks par produit et magasin",
+      "product": "Produit",
+      "category": "Catégorie",
+      "store": "Magasin",
+      "quantity": "Quantité",
+      "minLevel": "Seuil min.",
+      "stockValue": "Valeur",
+      "status": {
+        "label": "Statut",
+        "inStock": "En stock",
+        "lowStock": "Stock faible",
+        "outOfStock": "Rupture"
+      },
+      "categoryBreakdown": "Répartition par catégorie",
+      "categoryBreakdownDescription": "Quantités par catégorie de produits",
+      "stockStatus": "État des stocks",
+      "stockStatusDescription": "Répartition des produits par statut",
+      "products": "produits",
+      "noData": "Aucune donnée d'inventaire"
+    },
+    "performance": {
+      "totalRevenue": "Chiffre d'affaires total",
+      "totalTransactions": "Total transactions",
+      "avgTransaction": "Panier moyen",
+      "activeCashiers": "Caissiers actifs",
+      "storeComparison": "Comparaison des magasins",
+      "storeComparisonDescription": "Performance par magasin sur la période",
+      "revenue": "Revenu",
+      "transactions": "Transactions",
+      "noStoreData": "Données de comparaison disponibles uniquement pour les administrateurs",
+      "cashierPerformance": "Performance des caissiers",
+      "cashierPerformanceDescription": "Classement par chiffre d'affaires",
+      "cashier": "Caissier",
+      "store": "Magasin",
+      "totalSales": "Ventes totales",
+      "refunds": "Remboursements",
+      "noData": "Aucune donnée de performance"
     }
   },
 

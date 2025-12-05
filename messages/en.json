@@ -119,6 +119,29 @@
       "totalRevenue": "Total revenue",
       "activeUsers": "Active Users",
       "teamMembers": "Team members"
+    },
+    "metrics": {
+      "todayRevenue": "Today's Revenue",
+      "weekRevenue": "Weekly Revenue",
+      "transactions": "Today's Transactions",
+      "lowStock": "Stock Alerts"
+    },
+    "charts": {
+      "revenueTitle": "Revenue Trend",
+      "revenueDescription": "Sales trend over selected period",
+      "revenue": "Revenue"
+    },
+    "topProducts": {
+      "title": "Top Products",
+      "description": "Best-selling products in the period",
+      "noData": "No sales in this period",
+      "units": "units"
+    },
+    "lowStock": {
+      "title": "Low Stock Alerts",
+      "description": "Products requiring restocking",
+      "noAlerts": "All products are in stock",
+      "viewAll": "View all"
     }
   },
 
@@ -437,6 +460,84 @@
       "day": "Day",
       "week": "Week",
       "month": "Month"
+    },
+    "errors": {
+      "title": "Error",
+      "fetchFailed": "Failed to load report"
+    },
+    "sales": {
+      "totalRevenue": "Total Revenue",
+      "totalTransactions": "Transactions",
+      "avgTransaction": "Avg. Transaction",
+      "refundRate": "Refund Rate",
+      "revenue": "Revenue",
+      "transactions": "Transactions",
+      "daily": "daily",
+      "weekly": "weekly",
+      "monthly": "monthly",
+      "salesTrend": "Sales Trend",
+      "salesTrendDescription": "Revenue evolution ({period})",
+      "paymentBreakdown": "Payment Breakdown",
+      "paymentBreakdownDescription": "Distribution by payment method",
+      "total": "Total",
+      "paymentMethods": {
+        "cash": "Cash",
+        "card": "Card",
+        "mobile": "Mobile"
+      },
+      "topProducts": "Top Products",
+      "topProductsDescription": "Top 10 products by revenue",
+      "product": "Product",
+      "category": "Category",
+      "unitsSold": "Units Sold",
+      "avgPrice": "Avg. Price",
+      "noProducts": "No products sold in this period"
+    },
+    "inventory": {
+      "totalProducts": "Total Products",
+      "totalStockValue": "Stock Value",
+      "lowStockCount": "Low Stock",
+      "outOfStockCount": "Out of Stock",
+      "productCount": "Product Count",
+      "totalQuantity": "Total Quantity",
+      "stockLevels": "Stock Levels",
+      "stockLevelsDescription": "Stock detail by product and store",
+      "product": "Product",
+      "category": "Category",
+      "store": "Store",
+      "quantity": "Quantity",
+      "minLevel": "Min Level",
+      "stockValue": "Value",
+      "status": {
+        "label": "Status",
+        "inStock": "In Stock",
+        "lowStock": "Low Stock",
+        "outOfStock": "Out of Stock"
+      },
+      "categoryBreakdown": "Category Breakdown",
+      "categoryBreakdownDescription": "Quantities by product category",
+      "stockStatus": "Stock Status",
+      "stockStatusDescription": "Product distribution by status",
+      "products": "products",
+      "noData": "No inventory data"
+    },
+    "performance": {
+      "totalRevenue": "Total Revenue",
+      "totalTransactions": "Total Transactions",
+      "avgTransaction": "Avg. Transaction",
+      "activeCashiers": "Active Cashiers",
+      "storeComparison": "Store Comparison",
+      "storeComparisonDescription": "Performance by store over the period",
+      "revenue": "Revenue",
+      "transactions": "Transactions",
+      "noStoreData": "Comparison data available to administrators only",
+      "cashierPerformance": "Cashier Performance",
+      "cashierPerformanceDescription": "Ranking by revenue",
+      "cashier": "Cashier",
+      "store": "Store",
+      "totalSales": "Total Sales",
+      "refunds": "Refunds",
+      "noData": "No performance data"
     }
   },
 
