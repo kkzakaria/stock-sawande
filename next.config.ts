@@ -124,7 +124,7 @@ const nextConfig: NextConfig = {
 
   // Security headers for routes not covered by proxy
   async headers() {
-    return [
+    const headerRules = [
       {
         // Apply to all API routes
         source: '/api/:path*',
@@ -149,19 +149,22 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Apply HSTS in production (handled conditionally in deployment)
-        source: '/:path*',
-        headers: process.env.NODE_ENV === 'production'
-          ? [
-              {
-                key: 'Strict-Transport-Security',
-                value: 'max-age=31536000; includeSubDomains',
-              },
-            ]
-          : [],
-      },
     ];
+
+    // Add HSTS only in production
+    if (process.env.NODE_ENV === 'production') {
+      headerRules.push({
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+        ],
+      });
+    }
+
+    return headerRules;
   },
 };
 

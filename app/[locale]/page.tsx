@@ -37,7 +37,7 @@ export default async function Home({ params }: Props) {
       </header>
 
       {/* Hero Section */}
-      <section className="flex flex-1 items-center justify-center bg-gradient-to-b from-muted/50 to-background">
+      <section className="flex items-center justify-center bg-gradient-to-b from-muted/50 to-background">
         <div className="container px-4 py-16 md:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
