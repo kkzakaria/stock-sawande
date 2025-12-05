@@ -77,6 +77,33 @@ const withPWA = withPWAInit({
   ],
 });
 
+/**
+ * Security headers for routes not handled by proxy
+ * Applied to API routes, static files, and service worker
+ */
+const securityHeaders = [
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on',
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  },
+];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -90,8 +117,52 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+    // Security for SVG images
+    dangerouslyAllowSVG: false,
   },
   turbopack: {},
+
+  // Security headers for routes not covered by proxy
+  async headers() {
+    return [
+      {
+        // Apply to all API routes
+        source: '/api/:path*',
+        headers: securityHeaders,
+      },
+      {
+        // Apply to service worker
+        source: '/sw.js',
+        headers: [
+          ...securityHeaders,
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
+      {
+        // Apply HSTS in production (handled conditionally in deployment)
+        source: '/:path*',
+        headers: process.env.NODE_ENV === 'production'
+          ? [
+              {
+                key: 'Strict-Transport-Security',
+                value: 'max-age=31536000; includeSubDomains',
+              },
+            ]
+          : [],
+      },
+    ];
+  },
 };
 
 // Compose plugins: withNextIntl wraps withPWA wraps nextConfig

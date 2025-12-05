@@ -6,21 +6,121 @@ import { createServerClient } from '@supabase/ssr';
 const intlMiddleware = createIntlMiddleware(routing);
 
 /**
+ * Generate Content Security Policy header with nonce
+ * Follows Next.js 16 security recommendations
+ */
+function generateCSPHeader(nonce: string): string {
+  const isDev = process.env.NODE_ENV === 'development';
+
+  // Supabase domains that need to be allowed
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).hostname : '';
+
+  const directives = [
+    // Default fallback for all resource types
+    "default-src 'self'",
+
+    // Scripts: allow self, nonce-based scripts, and strict-dynamic for trusted scripts
+    // In development, allow unsafe-eval for hot reloading
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ''}`,
+
+    // Styles: allow self and inline styles (needed for many UI libraries)
+    // In production, prefer nonce-based styles
+    `style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}' 'unsafe-inline'`}`,
+
+    // Images: allow self, data URIs, blob URIs, and Supabase storage
+    `img-src 'self' blob: data: https://*.supabase.co https://images.unsplash.com`,
+
+    // Fonts: allow self and Google Fonts
+    "font-src 'self' https://fonts.gstatic.com",
+
+    // Connect: allow self and Supabase APIs
+    `connect-src 'self' ${supabaseDomain ? `https://${supabaseDomain}` : ''} https://*.supabase.co wss://*.supabase.co`,
+
+    // Media: allow self
+    "media-src 'self'",
+
+    // Object: disallow plugins (Flash, etc.)
+    "object-src 'none'",
+
+    // Base URI: restrict to self
+    "base-uri 'self'",
+
+    // Form submissions: restrict to self
+    "form-action 'self'",
+
+    // Frame ancestors: prevent clickjacking
+    "frame-ancestors 'none'",
+
+    // Upgrade insecure requests in production
+    ...(isDev ? [] : ['upgrade-insecure-requests']),
+  ];
+
+  return directives.join('; ');
+}
+
+/**
+ * Set security headers on the response
+ * Following OWASP and Next.js 16 security best practices
+ */
+function setSecurityHeaders(response: NextResponse, nonce: string): void {
+  // Content Security Policy
+  const cspHeader = generateCSPHeader(nonce);
+  response.headers.set('Content-Security-Policy', cspHeader.replace(/\s{2,}/g, ' ').trim());
+
+  // Expose nonce for use in Server Components
+  response.headers.set('x-nonce', nonce);
+
+  // Prevent MIME type sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+
+  // Prevent clickjacking (legacy, CSP frame-ancestors is preferred)
+  response.headers.set('X-Frame-Options', 'DENY');
+
+  // Control referrer information
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // DNS prefetch control
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+
+  // Permissions Policy (formerly Feature-Policy)
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+  );
+
+  // Strict Transport Security (only in production)
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
+    );
+  }
+}
+
+/**
  * Proxy function for Next.js 16
  * Handles:
- * 1. Internationalization routing (locale detection and URL prefixing)
- * 2. Custom headers with URL information for server components
- * 3. Supabase session refresh
+ * 1. Security headers (CSP, X-Frame-Options, etc.)
+ * 2. Internationalization routing (locale detection and URL prefixing)
+ * 3. Custom headers with URL information for server components
+ * 4. Supabase session refresh
  */
 export async function proxy(request: NextRequest) {
-  // First, handle i18n routing
+  // Generate nonce for CSP
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+
+  // Handle i18n routing
   const response = intlMiddleware(request);
+
+  // Apply security headers
+  setSecurityHeaders(response, nonce);
 
   // Add pathname and search params as custom headers
   response.headers.set('x-pathname', request.nextUrl.pathname);
   response.headers.set('x-search-params', request.nextUrl.searchParams.toString());
 
-  // Then, refresh Supabase session
+  // Refresh Supabase session
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -46,18 +146,30 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// Apply proxy to all routes except static files and API routes
+/**
+ * Proxy matcher configuration
+ * Following Next.js 16 recommendations for optimal performance
+ */
 export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - api, trpc routes
+     * - api, trpc routes (API endpoints)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - _vercel (Vercel internals)
-     * - favicon.ico, sitemap.xml, robots.txt
+     * - favicon.ico, sitemap.xml, robots.txt (static files)
+     * - sw.js (service worker)
      * - Static files with extensions
+     *
+     * Also exclude prefetch requests to optimize performance
      */
-    '/((?!api|trpc|_next|_vercel|.*\\..*).*)'
+    {
+      source: '/((?!api|trpc|_next/static|_next/image|_vercel|favicon.ico|sitemap.xml|robots.txt|sw.js|.*\\..*).*)',
+      missing: [
+        { type: 'header', key: 'next-router-prefetch' },
+        { type: 'header', key: 'purpose', value: 'prefetch' },
+      ],
+    },
   ],
 };
