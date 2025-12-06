@@ -401,6 +401,12 @@
     "search": {
       "placeholder": "Rechercher un produit...",
       "noResults": "Aucun produit trouvé"
+    },
+    "errors": {
+      "noStoreAssigned": "Aucun magasin assigné",
+      "noStoreDescription": "Vous devez être assigné à un magasin pour utiliser le système de caisse.",
+      "contactAdmin": "Contactez votre administrateur.",
+      "loadingError": "Erreur de chargement des produits"
     }
   },
 
@@ -443,6 +449,7 @@
 
   "Reports": {
     "title": "Rapports",
+    "description": "Analyses et informations commerciales",
     "types": {
       "sales": "Ventes",
       "inventory": "Inventaire",
@@ -543,6 +550,7 @@
 
   "Stores": {
     "title": "Magasins",
+    "description": "Gérer les emplacements et les paramètres des magasins",
     "addStore": "Ajouter un magasin",
     "searchPlaceholder": "Rechercher des magasins...",
     "columns": {

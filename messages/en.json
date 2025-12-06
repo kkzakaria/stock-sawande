@@ -401,6 +401,12 @@
     "search": {
       "placeholder": "Search product...",
       "noResults": "No products found"
+    },
+    "errors": {
+      "noStoreAssigned": "No Store Assigned",
+      "noStoreDescription": "You need to be assigned to a store to use the POS system.",
+      "contactAdmin": "Contact your administrator.",
+      "loadingError": "Error Loading Products"
     }
   },
 
@@ -443,6 +449,7 @@
 
   "Reports": {
     "title": "Reports",
+    "description": "Analytics and business intelligence",
     "types": {
       "sales": "Sales",
       "inventory": "Inventory",
@@ -543,6 +550,7 @@
 
   "Stores": {
     "title": "Stores",
+    "description": "Manage locations and store settings",
     "addStore": "Add Store",
     "searchPlaceholder": "Search stores...",
     "columns": {

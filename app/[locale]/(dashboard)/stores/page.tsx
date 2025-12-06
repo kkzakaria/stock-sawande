@@ -3,15 +3,20 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { StoresClient } from '@/components/stores/stores-client'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
 interface StoresPageProps {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function StoresPage({ searchParams }: StoresPageProps) {
+export default async function StoresPage({ params, searchParams }: StoresPageProps) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('Stores')
   const supabase = await createClient()
   const {
     data: { user },
@@ -42,14 +47,14 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Stores</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground">
-            Manage locations and store settings
+            {t('description')}
           </p>
         </div>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Store
+          {t('addStore')}
         </Button>
       </div>
 

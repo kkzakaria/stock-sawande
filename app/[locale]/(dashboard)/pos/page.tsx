@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { POSClient } from '@/components/pos/pos-client'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -16,7 +17,15 @@ export const metadata = {
   description: 'Point of sale checkout system',
 }
 
-export default async function POSPage() {
+interface POSPageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function POSPage({ params }: POSPageProps) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('POS')
+
   const supabase = await createClient()
 
   // Get current user
@@ -39,11 +48,11 @@ export default async function POSPage() {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">No Store Assigned</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('errors.noStoreAssigned')}</h2>
           <p className="mt-2 text-gray-600">
-            You need to be assigned to a store to use the POS system.
+            {t('errors.noStoreDescription')}
           </p>
-          <p className="mt-1 text-sm text-gray-500">Contact your administrator.</p>
+          <p className="mt-1 text-sm text-gray-500">{t('errors.contactAdmin')}</p>
         </div>
       </div>
     )
@@ -77,7 +86,7 @@ export default async function POSPage() {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600">Error Loading Products</h2>
+          <h2 className="text-2xl font-bold text-red-600">{t('errors.loadingError')}</h2>
           <p className="mt-2 text-gray-600">{productsError.message}</p>
         </div>
       </div>

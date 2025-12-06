@@ -2,15 +2,20 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getStores } from '@/lib/actions/products'
 import { ReportsClient } from '@/components/reports/reports-client'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
 interface ReportsPageProps {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function ReportsPage({ searchParams }: ReportsPageProps) {
+export default async function ReportsPage({ params, searchParams }: ReportsPageProps) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('Reports')
   const supabase = await createClient()
   const {
     data: { user },
@@ -37,9 +42,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Reports</h2>
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
         <p className="text-muted-foreground">
-          Analytics and business intelligence
+          {t('description')}
         </p>
       </div>
 
