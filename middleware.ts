@@ -3,6 +3,9 @@ import { routing } from './src/i18n/routing';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
+// Force Edge Runtime for Cloudflare Workers compatibility
+export const runtime = 'experimental-edge';
+
 const intlMiddleware = createIntlMiddleware(routing);
 
 /**
@@ -99,14 +102,15 @@ function setSecurityHeaders(response: NextResponse, nonce: string): void {
 }
 
 /**
- * Proxy function for Next.js 16
+ * Middleware function for Next.js
+ * Runs on Edge Runtime for Cloudflare Workers compatibility
  * Handles:
  * 1. Security headers (CSP, X-Frame-Options, etc.)
  * 2. Internationalization routing (locale detection and URL prefixing)
  * 3. Custom headers with URL information for server components
  * 4. Supabase session refresh
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // Generate nonce for CSP
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
@@ -147,8 +151,8 @@ export async function proxy(request: NextRequest) {
 }
 
 /**
- * Proxy matcher configuration
- * Following Next.js 16 recommendations for optimal performance
+ * Middleware matcher configuration
+ * Following Next.js recommendations for optimal performance
  */
 export const config = {
   matcher: [

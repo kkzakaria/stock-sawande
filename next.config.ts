@@ -105,6 +105,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Output mode for Cloudflare deployment (required by OpenNext)
+  output: process.env.CLOUDFLARE_BUILD === 'true' ? 'standalone' : undefined,
+
   images: {
     remotePatterns: [
       {

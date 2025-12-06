@@ -81,14 +81,17 @@ console.log(`\n✅ Detection result: ${isCloudflarePages ? 'Cloudflare Pages' : 
 
 if (isCloudflarePages) {
   console.log('🟠 Cloudflare Pages detected');
-  console.log('📦 Running OpenNext Cloudflare build...\n');
+  console.log('📦 Running Next.js build first...\n');
 
   try {
-    // Set Cloudflare build flag
-    process.env.CLOUDFLARE_BUILD = 'true';
+    // Step 1: Build Next.js app
+    execSync('next build', { stdio: 'inherit' });
 
-    // Run OpenNext Cloudflare build
-    execSync('opennextjs-cloudflare build', {
+    console.log('\n✅ Next.js build completed!');
+    console.log('📦 Running OpenNext Cloudflare adapter...\n');
+
+    // Step 2: Run OpenNext Cloudflare adapter (skip Next.js build to avoid recursion)
+    execSync('npx opennextjs-cloudflare build --skipNextBuild', {
       stdio: 'inherit',
       env: {
         ...process.env,
