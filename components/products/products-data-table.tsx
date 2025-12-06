@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useCallback, useEffect, useRef } from "react";
+import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import Image from "next/image";
 import Link from "next/link";
 import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
@@ -257,10 +258,11 @@ export function ProductsDataTable({
       ),
       cell: ({ row }) => {
         const price = parseFloat(row.getValue("price"));
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
+        const formatted = new Intl.NumberFormat("fr-FR", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
         }).format(price);
+        return `${formatted} ${CURRENCY_CONFIG.symbol}`;
       },
     },
     {

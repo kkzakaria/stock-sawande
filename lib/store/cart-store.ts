@@ -6,6 +6,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { formatCurrency } from '@/lib/config/currency'
 
 // Cart item interface
 export interface CartItem {
@@ -226,10 +227,5 @@ export async function validateCart(
   }
 }
 
-// Helper to format currency
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount)
-}
+// Re-export formatCurrency from centralized config for backward compatibility
+export { formatCurrency }

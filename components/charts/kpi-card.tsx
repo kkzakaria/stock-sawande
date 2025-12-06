@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import {
   ArrowDown,
   ArrowUp,
@@ -46,8 +47,8 @@ export function KpiCard({
   previousValue,
   currentValue,
   format = 'number',
-  locale = 'fr-FR',
-  currency = 'MAD',
+  locale = CURRENCY_CONFIG.locale,
+  currency = CURRENCY_CONFIG.code,
   icon,
   trend: trendProp,
   className,
@@ -73,12 +74,12 @@ export function KpiCard({
 
     switch (format) {
       case 'currency':
-        return new Intl.NumberFormat(locale, {
-          style: 'currency',
-          currency,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
+        // Format number then add currency symbol (correct CFA format: "amount CFA")
+        const formattedNumber = new Intl.NumberFormat(locale, {
+          minimumFractionDigits: CURRENCY_CONFIG.minimumFractionDigits,
+          maximumFractionDigits: CURRENCY_CONFIG.maximumFractionDigits,
         }).format(val)
+        return `${formattedNumber} ${CURRENCY_CONFIG.symbol}`
       case 'percentage':
         return new Intl.NumberFormat(locale, {
           style: 'percent',

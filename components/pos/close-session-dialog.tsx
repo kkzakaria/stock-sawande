@@ -57,10 +57,11 @@ export function CloseSessionDialog({
   if (!session) return null
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'USD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
+    return `${formatted} CFA`
   }
 
   // Calculate expected closing amount

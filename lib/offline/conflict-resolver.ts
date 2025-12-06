@@ -187,10 +187,11 @@ function generateConflictMessage(type: ConflictType, items: ConflictItem[]): str
  * Format currency for display
  */
 export function formatRefundAmount(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  const formatted = new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(amount)
+  return `${formatted} CFA`
 }
 
 /**

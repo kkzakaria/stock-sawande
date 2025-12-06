@@ -22,10 +22,11 @@ export function CashierPerformanceTable({ data }: CashierPerformanceTableProps) 
   const t = useTranslations('Reports.performance')
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'MAD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value)
+    return `${formatted} CFA`
   }
 
   const getInitials = (name: string) => {

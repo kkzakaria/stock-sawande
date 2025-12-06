@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { formatCurrency } from '@/lib/config/currency'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import {
   AlertDialog,
@@ -68,12 +69,6 @@ export function RefundDialog({
     }
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
 
   if (!sale) return null
 
