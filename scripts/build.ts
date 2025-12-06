@@ -9,27 +9,75 @@
  */
 
 import { execSync } from 'child_process';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
-// Detect deployment platform
-// Cloudflare Pages sets CF_PAGES=1, but also check for CF_PAGES_BRANCH and CF_PAGES_URL as fallbacks
-const isCloudflarePages = !!(
-  process.env.CF_PAGES === '1' ||
-  process.env.CF_PAGES ||
-  process.env.CF_PAGES_BRANCH ||
-  process.env.CF_PAGES_URL
-);
+// Enhanced Cloudflare Pages detection with multiple fallbacks
+const detectCloudflarePages = (): boolean => {
+  // Method 1: Primary Cloudflare Pages environment variables
+  if (process.env.CF_PAGES === '1' || process.env.CF_PAGES) {
+    return true;
+  }
+
+  // Method 2: Check for Cloudflare Pages-specific variables
+  if (process.env.CF_PAGES_BRANCH || process.env.CF_PAGES_URL) {
+    return true;
+  }
+
+  // Method 3: Check for Cloudflare Pages commit SHA (set during build)
+  if (process.env.CF_PAGES_COMMIT_SHA) {
+    return true;
+  }
+
+  // Method 4: Manual override via FORCE_CLOUDFLARE environment variable
+  if (process.env.FORCE_CLOUDFLARE === '1' || process.env.FORCE_CLOUDFLARE === 'true') {
+    return true;
+  }
+
+  // Method 5: Check if wrangler config exists (indicates Cloudflare Workers/Pages project)
+  // This is a heuristic - if wrangler config exists and we're in CI, assume Cloudflare
+  const hasWranglerConfig =
+    existsSync(join(process.cwd(), 'wrangler.toml')) ||
+    existsSync(join(process.cwd(), 'wrangler.jsonc')) ||
+    existsSync(join(process.cwd(), 'wrangler.json'));
+
+  if (process.env.CI && hasWranglerConfig) {
+    return true;
+  }
+
+  // Method 6: Check for Cloudflare-specific CI environment variables
+  if (process.env.CI && (
+    process.env.CF_PAGES_COMMIT_SHA ||
+    process.env.CF_PAGES_PROJECT_NAME
+  )) {
+    return true;
+  }
+
+  return false;
+};
+
+const isCloudflarePages = detectCloudflarePages();
 const isVercel = process.env.VERCEL === '1';
 
 console.log('🔍 Detecting deployment platform...\n');
 
-// Debug logging to help troubleshoot detection issues
-if (process.env.NODE_ENV !== 'production') {
-  console.log('📋 Environment variables:');
-  console.log(`  CF_PAGES: ${process.env.CF_PAGES || 'not set'}`);
-  console.log(`  CF_PAGES_BRANCH: ${process.env.CF_PAGES_BRANCH || 'not set'}`);
-  console.log(`  CF_PAGES_URL: ${process.env.CF_PAGES_URL || 'not set'}`);
-  console.log(`  VERCEL: ${process.env.VERCEL || 'not set'}\n`);
-}
+// Enhanced debug logging - always show in Cloudflare builds to help troubleshooting
+// Check for wrangler config files
+const hasWranglerToml = existsSync(join(process.cwd(), 'wrangler.toml'));
+const hasWranglerJsonc = existsSync(join(process.cwd(), 'wrangler.jsonc'));
+const hasWranglerJson = existsSync(join(process.cwd(), 'wrangler.json'));
+const wranglerConfigFile = hasWranglerToml ? 'wrangler.toml' : hasWranglerJsonc ? 'wrangler.jsonc' : hasWranglerJson ? 'wrangler.json' : 'none';
+
+console.log('📋 Environment detection:');
+console.log(`  CF_PAGES: ${process.env.CF_PAGES || 'not set'}`);
+console.log(`  CF_PAGES_BRANCH: ${process.env.CF_PAGES_BRANCH || 'not set'}`);
+console.log(`  CF_PAGES_URL: ${process.env.CF_PAGES_URL || 'not set'}`);
+console.log(`  CF_PAGES_COMMIT_SHA: ${process.env.CF_PAGES_COMMIT_SHA || 'not set'}`);
+console.log(`  FORCE_CLOUDFLARE: ${process.env.FORCE_CLOUDFLARE || 'not set'}`);
+console.log(`  VERCEL: ${process.env.VERCEL || 'not set'}`);
+console.log(`  CI: ${process.env.CI || 'not set'}`);
+console.log(`  Wrangler config: ${wranglerConfigFile}`);
+console.log(`\n✅ Detection result: ${isCloudflarePages ? 'Cloudflare Pages' : isVercel ? 'Vercel' : 'Local/Other'}\n`);
 
 if (isCloudflarePages) {
   console.log('🟠 Cloudflare Pages detected');
