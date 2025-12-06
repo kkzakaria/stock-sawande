@@ -1,6 +1,3 @@
--- Enable UUID extension if not already enabled
-create extension if not exists "uuid-ossp";
-
 -- Create enum for user roles
 create type user_role as enum ('admin', 'manager', 'cashier');
 
@@ -9,7 +6,7 @@ create type user_role as enum ('admin', 'manager', 'cashier');
 -- ============================================================================
 -- Stores/locations for multi-location inventory management
 create table public.stores (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   address text,
   phone text,
