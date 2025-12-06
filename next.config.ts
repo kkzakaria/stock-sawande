@@ -173,6 +173,9 @@ const config = withNextIntl(withPWA(nextConfig));
 export default config;
 
 // Initialize OpenNext Cloudflare for local development
-// This allows you to test Cloudflare bindings locally
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+// Only when building for Cloudflare (not Vercel)
+if (process.env.CLOUDFLARE_BUILD === 'true') {
+  import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
+    initOpenNextCloudflareForDev();
+  });
+}

@@ -29,6 +29,7 @@
 
   // Environment variables
   "vars": {
+    "NEXT_PUBLIC_DEPLOYMENT_PLATFORM": "cloudflare"
     // Add your Supabase environment variables here
     // "NEXT_PUBLIC_SUPABASE_URL": "your-supabase-url",
     // "NEXT_PUBLIC_SUPABASE_ANON_KEY": "your-anon-key"
