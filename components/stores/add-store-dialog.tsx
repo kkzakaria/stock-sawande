@@ -34,7 +34,6 @@ export function AddStoreDialog() {
       address: '',
       phone: '',
       email: '',
-      is_active: true,
     },
     onSubmit: async ({ value }) => {
       setError(null)

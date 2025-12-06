@@ -10,7 +10,6 @@ const storeSchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
-  is_active: z.boolean().default(true),
 })
 
 type StoreInput = z.infer<typeof storeSchema>
