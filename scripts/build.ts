@@ -11,10 +11,25 @@
 import { execSync } from 'child_process';
 
 // Detect deployment platform
-const isCloudflarePages = process.env.CF_PAGES === '1';
+// Cloudflare Pages sets CF_PAGES=1, but also check for CF_PAGES_BRANCH and CF_PAGES_URL as fallbacks
+const isCloudflarePages = !!(
+  process.env.CF_PAGES === '1' ||
+  process.env.CF_PAGES ||
+  process.env.CF_PAGES_BRANCH ||
+  process.env.CF_PAGES_URL
+);
 const isVercel = process.env.VERCEL === '1';
 
 console.log('🔍 Detecting deployment platform...\n');
+
+// Debug logging to help troubleshoot detection issues
+if (process.env.NODE_ENV !== 'production') {
+  console.log('📋 Environment variables:');
+  console.log(`  CF_PAGES: ${process.env.CF_PAGES || 'not set'}`);
+  console.log(`  CF_PAGES_BRANCH: ${process.env.CF_PAGES_BRANCH || 'not set'}`);
+  console.log(`  CF_PAGES_URL: ${process.env.CF_PAGES_URL || 'not set'}`);
+  console.log(`  VERCEL: ${process.env.VERCEL || 'not set'}\n`);
+}
 
 if (isCloudflarePages) {
   console.log('🟠 Cloudflare Pages detected');

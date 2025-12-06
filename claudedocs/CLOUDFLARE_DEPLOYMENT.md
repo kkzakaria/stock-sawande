@@ -256,7 +256,13 @@ npx wrangler domains add votre-domaine.com
 **Détails techniques** :
 Le fichier `scripts/build.ts` détecte l'environnement et choisit le bon build :
 ```typescript
-const isCloudflarePages = process.env.CF_PAGES === '1';
+// Détection robuste avec plusieurs fallbacks
+const isCloudflarePages = !!(
+  process.env.CF_PAGES === '1' ||
+  process.env.CF_PAGES ||
+  process.env.CF_PAGES_BRANCH ||
+  process.env.CF_PAGES_URL
+);
 const isVercel = process.env.VERCEL === '1';
 
 if (isCloudflarePages) {
@@ -267,6 +273,13 @@ if (isCloudflarePages) {
   execSync('next build');
 }
 ```
+
+La détection utilise plusieurs variables d'environnement Cloudflare Pages :
+- `CF_PAGES=1` (variable officielle)
+- `CF_PAGES_BRANCH` (branche de déploiement)
+- `CF_PAGES_URL` (URL de déploiement)
+
+Si aucune n'est détectée, le build standard Next.js est utilisé.
 
 ### Erreur : "Missing entry-point to Worker script" (build manuel)
 
