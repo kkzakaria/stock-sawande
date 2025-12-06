@@ -93,16 +93,23 @@ pnpm run cf:preview
 npx opennextjs-cloudflare deploy
 ```
 
-### Option 3 : Via le Dashboard Cloudflare Pages
+### Option 3 : Via le Dashboard Cloudflare Pages (Auto-detect)
+
+⚡ **Nouveau** : Le projet détecte automatiquement Cloudflare Pages !
 
 1. Créez un nouveau projet Pages dans le dashboard Cloudflare
 2. Connectez votre repository Git
 3. Configurez le build :
-   - **Build command** : `pnpm run cf:build`
+   - **Build command** : `pnpm run build` (détection automatique ✅)
    - **Build output directory** : `.open-next`
    - **Root directory** : `/`
 4. Ajoutez les variables d'environnement
 5. Déployez
+
+**Comment ça marche ?** Le script `build` détecte automatiquement l'environnement :
+- Variable `CF_PAGES=1` détectée → Build OpenNext Cloudflare
+- Variable `VERCEL=1` détectée → Build Next.js standard
+- Sinon → Build Next.js standard
 
 ## Optimisations avancées
 
@@ -225,9 +232,45 @@ npx wrangler domains add votre-domaine.com
 
 ## Dépannage
 
-### Erreur : "Missing entry-point to Worker script"
+### ❌ Erreur : "The entry-point file at '.open-next/worker.js' was not found"
 
-**Solution** : Assurez-vous d'avoir build avant de déployer :
+**Symptôme** : Le déploiement via Cloudflare Pages échoue avec :
+```
+✘ [ERROR] The entry-point file at ".open-next/worker.js" was not found.
+```
+
+**Cause** : Le build standard Next.js a été exécuté au lieu du build OpenNext Cloudflare.
+
+**✅ Solution** : Depuis la v2.0, le projet détecte automatiquement Cloudflare Pages !
+
+**Aucune action requise** - Le script `pnpm run build` détecte maintenant automatiquement :
+- `CF_PAGES=1` (Cloudflare) → Exécute `opennextjs-cloudflare build`
+- `VERCEL=1` (Vercel) → Exécute `next build`
+- Autre → Exécute `next build`
+
+**Si vous avez déjà configuré le dashboard** :
+1. Allez dans **Workers & Pages** > Votre projet > **Settings** > **Build & deployments**
+2. Vérifiez que **Build command** est : `pnpm run build` (pas `pnpm run cf:build`)
+3. Re-déployez : le build fonctionnera automatiquement ✅
+
+**Détails techniques** :
+Le fichier `scripts/build.ts` détecte l'environnement et choisit le bon build :
+```typescript
+const isCloudflarePages = process.env.CF_PAGES === '1';
+const isVercel = process.env.VERCEL === '1';
+
+if (isCloudflarePages) {
+  // Run OpenNext Cloudflare build
+  execSync('opennextjs-cloudflare build');
+} else {
+  // Run standard Next.js build
+  execSync('next build');
+}
+```
+
+### Erreur : "Missing entry-point to Worker script" (build manuel)
+
+**Si vous utilisez la CLI locale** :
 
 ```bash
 pnpm run cf:build
