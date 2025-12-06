@@ -62,12 +62,10 @@ export function DashboardClient({ storeId, storeName }: DashboardClientProps) {
     fetchData()
   }, [fetchData])
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('fr-MA', {
-      style: 'currency',
-      currency: 'MAD',
-      minimumFractionDigits: 2,
-    }).format(value)
+  const formatCurrency = (value: number) => {
+    const formatted = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
+    return `${formatted} CFA`
+  }
 
   return (
     <div className="space-y-6">

@@ -23,10 +23,11 @@ export function CashSessionStatus({
   const tStatus = useTranslations('POS.status')
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'USD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
+    return `${formatted} CFA`
   }
 
   const formatTime = (dateString: string) => {

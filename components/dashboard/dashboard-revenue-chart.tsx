@@ -35,13 +35,14 @@ export function DashboardRevenueChart({ data, loading, period }: DashboardRevenu
       ]}
       height={350}
       loading={loading}
-      valueFormatter={(value) =>
-        new Intl.NumberFormat('fr-MA', {
-          style: 'currency',
-          currency: 'MAD',
+      valueFormatter={(value) => {
+        const formatted = new Intl.NumberFormat('fr-FR', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
           notation: 'compact',
         }).format(value)
-      }
+        return `${formatted} CFA`
+      }}
       showLegend={false}
     />
   )

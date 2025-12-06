@@ -21,10 +21,11 @@ export function TopProductsTable({ data }: TopProductsTableProps) {
   const t = useTranslations('Reports.sales')
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'MAD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value)
+    return `${formatted} CFA`
   }
 
   return (

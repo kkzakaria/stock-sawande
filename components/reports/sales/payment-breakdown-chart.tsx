@@ -37,12 +37,13 @@ export function PaymentBreakdownChart({ data }: PaymentBreakdownChartProps) {
       height={300}
       innerRadius={60}
       centerLabel={t('total')}
-      centerValue={new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'MAD',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(totalAmount)}
+      centerValue={(() => {
+        const formatted = new Intl.NumberFormat('fr-FR', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(totalAmount)
+        return `${formatted} CFA`
+      })()}
     />
   )
 }

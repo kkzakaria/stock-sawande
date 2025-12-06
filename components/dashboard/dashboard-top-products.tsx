@@ -14,11 +14,10 @@ interface DashboardTopProductsProps {
 export function DashboardTopProducts({ products, loading }: DashboardTopProductsProps) {
   const t = useTranslations('Dashboard')
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('fr-MA', {
-      style: 'currency',
-      currency: 'MAD',
-    }).format(value)
+  const formatCurrency = (value: number) => {
+    const formatted = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
+    return `${formatted} CFA`
+  }
 
   if (loading) {
     return <TableSkeleton rows={5} columns={3} />

@@ -21,10 +21,11 @@ export function StockLevelsTable({ data }: StockLevelsTableProps) {
   const t = useTranslations('Reports.inventory')
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'MAD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value)
+    return `${formatted} CFA`
   }
 
   const getStatusBadge = (status: 'in_stock' | 'low_stock' | 'out_of_stock') => {

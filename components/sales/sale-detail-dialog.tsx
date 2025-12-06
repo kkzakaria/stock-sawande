@@ -70,10 +70,11 @@ export function SaleDetailDialog({
   if (!sale) return null
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount)
+    return `${formatted} CFA`
   }
 
   const getStatusBadge = (status: string) => {
