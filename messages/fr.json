@@ -606,6 +606,12 @@
     "description": "Gérer les emplacements et les paramètres des magasins",
     "addStore": "Ajouter un magasin",
     "searchPlaceholder": "Rechercher des magasins...",
+    "showing": "Affichage de {filtered} sur {total} magasins",
+    "noResults": "Aucun magasin trouvé correspondant à vos filtres.",
+    "filters": {
+      "allStatus": "Tous les statuts",
+      "reset": "Réinitialiser"
+    },
     "columns": {
       "name": "Nom",
       "address": "Adresse",
@@ -614,6 +620,7 @@
       "status": "Statut"
     },
     "status": {
+      "all": "Tous",
       "active": "Actif",
       "inactive": "Inactif"
     },

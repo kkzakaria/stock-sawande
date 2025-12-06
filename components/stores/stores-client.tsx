@@ -4,6 +4,7 @@ import { Store } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StoresFilters } from './stores-filters';
 import { useStoreFilters } from '@/lib/hooks/use-store-filters';
+import { useTranslations } from 'next-intl';
 
 interface StoreData {
   id: string;
@@ -20,6 +21,7 @@ interface StoresClientProps {
 
 export function StoresClient({ stores }: StoresClientProps) {
   const { filters } = useStoreFilters();
+  const t = useTranslations('Stores');
 
   // Apply client-side filtering
   const filteredStores = stores.filter((store) => {
@@ -47,7 +49,7 @@ export function StoresClient({ stores }: StoresClientProps) {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredStores.length} of {stores.length} stores
+        {t('showing', { filtered: filteredStores.length, total: stores.length })}
       </div>
 
       {/* Stores Grid */}
@@ -79,7 +81,7 @@ export function StoresClient({ stores }: StoresClientProps) {
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground text-center">
-              No stores found matching your filters.
+              {t('noResults')}
             </p>
           </CardContent>
         </Card>

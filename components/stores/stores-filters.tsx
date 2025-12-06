@@ -13,9 +13,12 @@ import {
 import { useStoreFilters } from '@/lib/hooks/use-store-filters';
 import { STATUS_OPTIONS } from '@/lib/types/filters';
 import { useDebouncedCallback } from 'use-debounce';
+import { useTranslations } from 'next-intl';
 
 export function StoresFilters() {
   const { filters, setFilters, resetFilters } = useStoreFilters();
+  const t = useTranslations('Stores');
+  const tStatus = useTranslations('Stores.status');
 
   // Debounce search input
   const debouncedSearchChange = useDebouncedCallback((value: string) => {
@@ -29,7 +32,7 @@ export function StoresFilters() {
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search stores..."
+          placeholder={t('searchPlaceholder')}
           defaultValue={filters.search}
           onChange={(e) => debouncedSearchChange(e.target.value)}
           className="pl-9"
@@ -41,13 +44,13 @@ export function StoresFilters() {
         onValueChange={(value) => setFilters({ status: value === 'all' ? null : (value as 'active' | 'inactive') })}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="All Status" />
+          <SelectValue placeholder={t('filters.allStatus')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Status</SelectItem>
+          <SelectItem value="all">{tStatus('all')}</SelectItem>
           {STATUS_OPTIONS.filter(opt => opt.value !== null).map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              {option.label}
+              {tStatus(option.value as 'active' | 'inactive')}
             </SelectItem>
           ))}
         </SelectContent>
@@ -56,7 +59,7 @@ export function StoresFilters() {
       {hasActiveFilters && (
         <Button variant="outline" onClick={resetFilters} size="sm">
           <X className="mr-2 h-4 w-4" />
-          Reset
+          {t('filters.reset')}
         </Button>
       )}
     </div>

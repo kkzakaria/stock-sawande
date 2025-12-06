@@ -606,6 +606,12 @@
     "description": "Manage locations and store settings",
     "addStore": "Add Store",
     "searchPlaceholder": "Search stores...",
+    "showing": "Showing {filtered} of {total} stores",
+    "noResults": "No stores found matching your filters.",
+    "filters": {
+      "allStatus": "All Status",
+      "reset": "Reset"
+    },
     "columns": {
       "name": "Name",
       "address": "Address",
@@ -614,6 +620,7 @@
       "status": "Status"
     },
     "status": {
+      "all": "All",
       "active": "Active",
       "inactive": "Inactive"
     },
