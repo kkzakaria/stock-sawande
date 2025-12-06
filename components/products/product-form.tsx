@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createProduct, updateProduct } from '@/lib/actions/products'
 import { AlertCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ProductData {
   id?: string
@@ -59,6 +60,8 @@ export function ProductForm({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations('Products.form')
+  const tCategories = useTranslations('Products.categories')
 
   const isEditing = !!initialData
 
@@ -113,7 +116,7 @@ export function ProductForm({
           router.push('/products')
           router.refresh()
         } else {
-          setError(result.error || 'An error occurred')
+          setError(result.error || t('errors.generic'))
         }
       })
     },
@@ -137,7 +140,7 @@ export function ProductForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle>{t('sections.basicInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -146,7 +149,7 @@ export function ProductForm({
               validators={{
                 onChange: ({ value }) => {
                   if (!value || value.length === 0) {
-                    return 'SKU is required'
+                    return t('errors.skuRequired')
                   }
                   return undefined
                 },
@@ -155,7 +158,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    SKU *
+                    {t('fields.sku')} *
                   </label>
                   <Input
                     id={field.name}
@@ -163,9 +166,9 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="PROD-001"
+                    placeholder={t('fields.skuPlaceholder')}
                   />
-                  <p className="text-sm text-muted-foreground">Unique product identifier</p>
+                  <p className="text-sm text-muted-foreground">{t('descriptions.sku')}</p>
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
                   )}
@@ -178,7 +181,7 @@ export function ProductForm({
               validators={{
                 onChange: ({ value }) => {
                   if (!value || value.length === 0) {
-                    return 'Name is required'
+                    return t('errors.nameRequired')
                   }
                   return undefined
                 },
@@ -187,7 +190,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Product Name *
+                    {t('fields.name')} *
                   </label>
                   <Input
                     id={field.name}
@@ -195,7 +198,7 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Product name"
+                    placeholder={t('fields.namePlaceholder')}
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
@@ -209,7 +212,7 @@ export function ProductForm({
             {(field) => (
               <div className="space-y-2">
                 <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Description
+                  {t('fields.description')}
                 </label>
                 <Textarea
                   id={field.name}
@@ -217,7 +220,7 @@ export function ProductForm({
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Product description"
+                  placeholder={t('fields.descriptionPlaceholder')}
                   className="resize-none"
                 />
               </div>
@@ -229,17 +232,17 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Category
+                    {t('fields.category')}
                   </label>
                   <Select
                     value={field.state.value || ''}
                     onValueChange={(value) => field.handleChange(value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder={t('fields.categoryPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                      <SelectItem value="uncategorized">{tCategories('uncategorized')}</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -255,7 +258,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Barcode
+                    {t('fields.barcode')}
                   </label>
                   <Input
                     id={field.name}
@@ -263,7 +266,7 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="123456789"
+                    placeholder={t('fields.barcodePlaceholder')}
                   />
                 </div>
               )}
@@ -274,7 +277,7 @@ export function ProductForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Pricing & Inventory</CardTitle>
+          <CardTitle>{t('sections.pricingInventory')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -284,7 +287,7 @@ export function ProductForm({
                 onChange: ({ value }) => {
                   const num = parseFloat(value)
                   if (isNaN(num) || num < 0) {
-                    return 'Price must be a positive number'
+                    return t('errors.pricePositive')
                   }
                   return undefined
                 },
@@ -293,7 +296,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Sale Price *
+                    {t('fields.price')} *
                   </label>
                   <Input
                     id={field.name}
@@ -303,9 +306,9 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={t('fields.pricePlaceholder')}
                   />
-                  <p className="text-sm text-muted-foreground">Customer-facing price</p>
+                  <p className="text-sm text-muted-foreground">{t('descriptions.price')}</p>
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
                   )}
@@ -317,7 +320,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Cost
+                    {t('fields.cost')}
                   </label>
                   <Input
                     id={field.name}
@@ -327,9 +330,9 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={t('fields.costPlaceholder')}
                   />
-                  <p className="text-sm text-muted-foreground">Internal cost</p>
+                  <p className="text-sm text-muted-foreground">{t('descriptions.cost')}</p>
                 </div>
               )}
             </form.Field>
@@ -342,7 +345,7 @@ export function ProductForm({
                 onChange: ({ value }) => {
                   const num = parseInt(value, 10)
                   if (isNaN(num) || num < 0) {
-                    return 'Quantity must be a non-negative number'
+                    return t('errors.quantityNonNegative')
                   }
                   return undefined
                 },
@@ -351,7 +354,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Quantity *
+                    {t('fields.quantity')} *
                   </label>
                   <Input
                     id={field.name}
@@ -360,9 +363,9 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="0"
+                    placeholder={t('fields.quantityPlaceholder')}
                   />
-                  <p className="text-sm text-muted-foreground">Current stock level</p>
+                  <p className="text-sm text-muted-foreground">{t('descriptions.quantity')}</p>
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
                   )}
@@ -376,7 +379,7 @@ export function ProductForm({
                 onChange: ({ value }) => {
                   const num = parseInt(value, 10)
                   if (isNaN(num) || num < 0) {
-                    return 'Min stock level must be a non-negative number'
+                    return t('errors.minStockNonNegative')
                   }
                   return undefined
                 },
@@ -385,7 +388,7 @@ export function ProductForm({
               {(field) => (
                 <div className="space-y-2">
                   <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Min Stock Level *
+                    {t('fields.minStockLevel')} *
                   </label>
                   <Input
                     id={field.name}
@@ -394,9 +397,9 @@ export function ProductForm({
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="10"
+                    placeholder={t('fields.minStockPlaceholder')}
                   />
-                  <p className="text-sm text-muted-foreground">Low stock alert threshold</p>
+                  <p className="text-sm text-muted-foreground">{t('descriptions.minStock')}</p>
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
                   )}
@@ -409,7 +412,7 @@ export function ProductForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Store & Status</CardTitle>
+          <CardTitle>{t('sections.storeStatus')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <form.Field
@@ -417,7 +420,7 @@ export function ProductForm({
             validators={{
               onChange: ({ value }) => {
                 if (!value || value.length === 0) {
-                  return 'Store is required'
+                  return t('errors.storeRequired')
                 }
                 return undefined
               },
@@ -426,7 +429,7 @@ export function ProductForm({
             {(field) => (
               <div className="space-y-2">
                 <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Store *
+                  {t('fields.store')} *
                 </label>
                 <Select
                   value={field.state.value}
@@ -434,7 +437,7 @@ export function ProductForm({
                   disabled={userRole !== 'admin'}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select store" />
+                    <SelectValue placeholder={t('fields.storePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {stores.map((store) => (
@@ -446,7 +449,7 @@ export function ProductForm({
                 </Select>
                 {userRole !== 'admin' && (
                   <p className="text-sm text-muted-foreground">
-                    Managers can only create products for their assigned store
+                    {t('descriptions.managerStore')}
                   </p>
                 )}
                 {field.state.meta.errors.length > 0 && (
@@ -464,7 +467,7 @@ export function ProductForm({
                   try {
                     new URL(value)
                   } catch {
-                    return 'Invalid URL format'
+                    return t('errors.invalidUrl')
                   }
                 }
                 return undefined
@@ -474,7 +477,7 @@ export function ProductForm({
             {(field) => (
               <div className="space-y-2">
                 <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Image URL
+                  {t('fields.imageUrl')}
                 </label>
                 <Input
                   id={field.name}
@@ -483,7 +486,7 @@ export function ProductForm({
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  placeholder={t('fields.imageUrlPlaceholder')}
                 />
                 {field.state.meta.errors.length > 0 && (
                   <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
@@ -501,10 +504,10 @@ export function ProductForm({
           onClick={() => router.back()}
           disabled={isPending}
         >
-          Cancel
+          {t('buttons.cancel')}
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Saving...' : isEditing ? 'Update Product' : 'Create Product'}
+          {isPending ? t('buttons.saving') : isEditing ? t('buttons.update') : t('buttons.create')}
         </Button>
       </div>
     </form>

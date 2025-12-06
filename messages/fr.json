@@ -212,9 +212,62 @@
     },
     "empty": "Aucun produit trouvé. Ajoutez votre premier produit pour commencer.",
     "form": {
-      "basicInfo": "Informations de base",
-      "pricing": "Prix",
-      "inventory": "Inventaire"
+      "title": "Nouveau produit",
+      "editTitle": "Modifier le produit",
+      "subtitle": "Ajouter un nouveau produit à votre inventaire",
+      "sections": {
+        "basicInfo": "Informations de base",
+        "pricingInventory": "Prix et inventaire",
+        "storeStatus": "Magasin et statut"
+      },
+      "fields": {
+        "sku": "SKU",
+        "skuPlaceholder": "PROD-001",
+        "name": "Nom du produit",
+        "namePlaceholder": "Nom du produit",
+        "description": "Description",
+        "descriptionPlaceholder": "Description du produit",
+        "category": "Catégorie",
+        "categoryPlaceholder": "Sélectionner une catégorie",
+        "barcode": "Code-barres",
+        "barcodePlaceholder": "123456789",
+        "price": "Prix de vente",
+        "pricePlaceholder": "0.00",
+        "cost": "Coût",
+        "costPlaceholder": "0.00",
+        "quantity": "Quantité",
+        "quantityPlaceholder": "0",
+        "minStockLevel": "Seuil de stock minimum",
+        "minStockPlaceholder": "10",
+        "store": "Magasin",
+        "storePlaceholder": "Sélectionner un magasin",
+        "imageUrl": "URL de l'image",
+        "imageUrlPlaceholder": "https://exemple.com/image.jpg"
+      },
+      "descriptions": {
+        "sku": "Identifiant unique du produit",
+        "price": "Prix client",
+        "cost": "Coût interne",
+        "quantity": "Niveau de stock actuel",
+        "minStock": "Seuil d'alerte stock faible",
+        "managerStore": "Les managers ne peuvent créer des produits que pour leur magasin assigné"
+      },
+      "errors": {
+        "skuRequired": "Le SKU est requis",
+        "nameRequired": "Le nom est requis",
+        "pricePositive": "Le prix doit être un nombre positif",
+        "quantityNonNegative": "La quantité doit être un nombre positif ou nul",
+        "minStockNonNegative": "Le seuil de stock minimum doit être un nombre positif ou nul",
+        "storeRequired": "Le magasin est requis",
+        "invalidUrl": "Format d'URL invalide",
+        "generic": "Une erreur est survenue"
+      },
+      "buttons": {
+        "cancel": "Annuler",
+        "saving": "Enregistrement...",
+        "create": "Créer le produit",
+        "update": "Mettre à jour le produit"
+      }
     }
   },
 

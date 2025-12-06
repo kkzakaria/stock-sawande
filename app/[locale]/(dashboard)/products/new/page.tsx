@@ -4,10 +4,18 @@ import { ProductForm } from '@/components/products/product-form'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewProductPage() {
+interface NewProductPageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function NewProductPage({ params }: NewProductPageProps) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('Products.form')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -44,8 +52,8 @@ export default async function NewProductPage() {
           </Link>
         </Button>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">New Product</h2>
-          <p className="text-muted-foreground">Add a new product to your inventory</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
       </div>
 

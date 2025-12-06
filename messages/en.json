@@ -212,9 +212,62 @@
     },
     "empty": "No products found. Add your first product to get started.",
     "form": {
-      "basicInfo": "Basic Information",
-      "pricing": "Pricing",
-      "inventory": "Inventory"
+      "title": "New Product",
+      "editTitle": "Edit Product",
+      "subtitle": "Add a new product to your inventory",
+      "sections": {
+        "basicInfo": "Basic Information",
+        "pricingInventory": "Pricing & Inventory",
+        "storeStatus": "Store & Status"
+      },
+      "fields": {
+        "sku": "SKU",
+        "skuPlaceholder": "PROD-001",
+        "name": "Product Name",
+        "namePlaceholder": "Product name",
+        "description": "Description",
+        "descriptionPlaceholder": "Product description",
+        "category": "Category",
+        "categoryPlaceholder": "Select category",
+        "barcode": "Barcode",
+        "barcodePlaceholder": "123456789",
+        "price": "Sale Price",
+        "pricePlaceholder": "0.00",
+        "cost": "Cost",
+        "costPlaceholder": "0.00",
+        "quantity": "Quantity",
+        "quantityPlaceholder": "0",
+        "minStockLevel": "Min Stock Level",
+        "minStockPlaceholder": "10",
+        "store": "Store",
+        "storePlaceholder": "Select store",
+        "imageUrl": "Image URL",
+        "imageUrlPlaceholder": "https://example.com/image.jpg"
+      },
+      "descriptions": {
+        "sku": "Unique product identifier",
+        "price": "Customer-facing price",
+        "cost": "Internal cost",
+        "quantity": "Current stock level",
+        "minStock": "Low stock alert threshold",
+        "managerStore": "Managers can only create products for their assigned store"
+      },
+      "errors": {
+        "skuRequired": "SKU is required",
+        "nameRequired": "Name is required",
+        "pricePositive": "Price must be a positive number",
+        "quantityNonNegative": "Quantity must be a non-negative number",
+        "minStockNonNegative": "Min stock level must be a non-negative number",
+        "storeRequired": "Store is required",
+        "invalidUrl": "Invalid URL format",
+        "generic": "An error occurred"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "create": "Create Product",
+        "update": "Update Product"
+      }
     }
   },
 
