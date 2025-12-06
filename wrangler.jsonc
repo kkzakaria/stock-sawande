@@ -1,0 +1,54 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "next-stock",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-12-06",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
+
+  // Static assets binding (required)
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // Image optimization binding (optional)
+  "images": {
+    "binding": "IMAGES"
+  },
+
+  // Service bindings for worker self-reference
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "next-stock"
+    }
+  ],
+
+  // Environment variables
+  "vars": {
+    // Add your Supabase environment variables here
+    // "NEXT_PUBLIC_SUPABASE_URL": "your-supabase-url",
+    // "NEXT_PUBLIC_SUPABASE_ANON_KEY": "your-anon-key"
+  }
+
+  // Optional: R2 bucket for incremental cache
+  // Uncomment and configure if you need caching with R2
+  // "r2_buckets": [
+  //   {
+  //     "binding": "NEXT_INC_CACHE_R2_BUCKET",
+  //     "bucket_name": "next-stock-cache"
+  //   }
+  // ],
+
+  // Optional: KV namespaces for caching
+  // Uncomment and configure if you need caching with KV
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "NEXT_INC_CACHE_KV",
+  //     "id": "your_kv_id"
+  //   }
+  // ]
+}

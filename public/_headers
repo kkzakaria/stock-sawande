@@ -1,0 +1,14 @@
+# Cache static assets for 1 year (immutable)
+/_next/static/*
+  Cache-Control: public,max-age=31536000,immutable
+
+# Cache public images for 1 week
+/images/*
+  Cache-Control: public,max-age=604800
+
+# Cache manifest and service worker with no cache
+/manifest.json
+  Cache-Control: public,max-age=0,must-revalidate
+
+/sw.js
+  Cache-Control: public,max-age=0,must-revalidate

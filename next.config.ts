@@ -169,4 +169,10 @@ const nextConfig: NextConfig = {
 };
 
 // Compose plugins: withNextIntl wraps withPWA wraps nextConfig
-export default withNextIntl(withPWA(nextConfig));
+const config = withNextIntl(withPWA(nextConfig));
+export default config;
+
+// Initialize OpenNext Cloudflare for local development
+// This allows you to test Cloudflare bindings locally
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();
