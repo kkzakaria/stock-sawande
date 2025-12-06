@@ -23,9 +23,11 @@ import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
 import { NetworkBanner } from './network-banner'
 import { SyncConflictDialog } from './sync-conflict-dialog'
+import { StoreSelectorDialog } from './store-selector-dialog'
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, Loader2 } from 'lucide-react'
+import { ShoppingCart, Loader2, Store } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { Tables } from '@/types/supabase'
 
 type CashSession = Tables<'cash_sessions'>
@@ -52,6 +54,8 @@ interface POSClientProps {
     address: string | null
     phone: string | null
   }
+  canSelectStore: boolean
+  userRole: 'admin' | 'manager' | 'cashier'
 }
 
 export function POSClient({
@@ -60,8 +64,11 @@ export function POSClient({
   cashierId,
   cashierName,
   storeInfo,
+  canSelectStore,
+  userRole,
 }: POSClientProps) {
   const router = useRouter()
+  const t = useTranslations('POS')
   const [searchQuery, setSearchQuery] = useState('')
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
@@ -73,6 +80,7 @@ export function POSClient({
   const [openSessionDialogOpen, setOpenSessionDialogOpen] = useState(false)
   const [closeSessionDialogOpen, setCloseSessionDialogOpen] = useState(false)
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
+  const [storeSelectorOpen, setStoreSelectorOpen] = useState(false)
 
   // Offline mode hooks - use both polling and SSE for fast detection
   const { isOnline } = useNetworkStatus()
@@ -150,6 +158,15 @@ export function POSClient({
   const handleCheckoutComplete = () => {
     fetchActiveSession() // Refresh session to update transaction count
     router.refresh()
+  }
+
+  // Handle store change request
+  const handleChangeStore = () => {
+    if (activeSession) {
+      toast.error(t('storeSelector.sessionOpenError'))
+      return
+    }
+    setStoreSelectorOpen(true)
   }
 
   // Realtime subscription for multi-cashier synchronization
@@ -288,6 +305,17 @@ export function POSClient({
               onCloseSession={() => setCloseSessionDialogOpen(true)}
             />
           </div>
+          {canSelectStore && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleChangeStore}
+              className="flex items-center gap-2"
+            >
+              <Store className="h-4 w-4" />
+              {t('storeSelector.changeStore')}
+            </Button>
+          )}
           <NetworkStatusIndicator storeId={storeId} onSyncComplete={handleCheckoutComplete} />
           {unacknowledgedConflicts > 0 && (
             <Button
@@ -355,6 +383,18 @@ export function POSClient({
         open={conflictDialogOpen}
         onOpenChange={setConflictDialogOpen}
         userId={cashierId}
+      />
+
+      {/* Store Selector Dialog */}
+      <StoreSelectorDialog
+        open={storeSelectorOpen}
+        onOpenChange={setStoreSelectorOpen}
+        currentStoreId={storeId}
+        userRole={userRole}
+        onStoreSelected={() => {
+          // Cart will be cleared automatically when page refreshes with new store
+          toast.info(t('storeSelector.cartCleared'))
+        }}
       />
     </div>
   )

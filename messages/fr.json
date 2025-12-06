@@ -32,7 +32,10 @@
     "select": "Sélectionner",
     "selected": "sélectionné(s)",
     "refresh": "Actualiser",
-    "refreshing": "Actualisation..."
+    "refreshing": "Actualisation...",
+    "errors": {
+      "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer."
+    }
   },
 
   "Navigation": {
@@ -459,7 +462,22 @@
       "noStoreAssigned": "Aucun magasin assigné",
       "noStoreDescription": "Vous devez être assigné à un magasin pour utiliser le système de caisse.",
       "contactAdmin": "Contactez votre administrateur.",
-      "loadingError": "Erreur de chargement des produits"
+      "loadingError": "Erreur de chargement des produits",
+      "profileError": "Erreur de profil"
+    },
+    "storeSelector": {
+      "title": "Sélectionner un magasin",
+      "selectButton": "Sélectionner",
+      "changeStore": "Changer de magasin",
+      "currentStore": "Magasin actuel",
+      "noStoreSelected": "Aucun magasin sélectionné",
+      "selectRequired": "Veuillez sélectionner un magasin pour accéder à la caisse",
+      "selectDifferentStore": "Sélectionnez un autre magasin pour basculer",
+      "sessionOpenError": "Impossible de changer de magasin avec une session de caisse ouverte. Veuillez d'abord fermer votre session.",
+      "storeUpdated": "Magasin mis à jour avec succès",
+      "noStoresAvailable": "Aucun magasin disponible",
+      "contactAdminToCreateStore": "Veuillez contacter un administrateur pour créer un magasin.",
+      "cartCleared": "Magasin changé. Le panier a été vidé."
     }
   },
 

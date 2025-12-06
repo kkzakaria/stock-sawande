@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { POSClient } from '@/components/pos/pos-client'
+import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 // Force dynamic rendering to always get fresh inventory data
@@ -44,7 +45,30 @@ export default async function POSPage({ params }: POSPageProps) {
     .eq('id', user.id)
     .single()
 
-  if (profileError || !profile || !profile.store_id) {
+  if (profileError || !profile) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">{t('errors.profileError')}</h2>
+          <p className="mt-2 text-gray-600">
+            {t('errors.contactAdmin')}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Check if user can select store (admin or manager)
+  const canSelectStore = profile.role === 'admin' || profile.role === 'manager'
+
+  // If user has no store assigned
+  if (!profile.store_id) {
+    // Admins and managers can select a store
+    if (canSelectStore) {
+      return <StoreSelectorRequired userId={user.id} userRole={profile.role} />
+    }
+
+    // Cashiers without store must contact admin
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center">
@@ -128,6 +152,8 @@ export default async function POSPage({ params }: POSPageProps) {
           address: profile.store?.address || null,
           phone: profile.store?.phone || null,
         }}
+        canSelectStore={canSelectStore}
+        userRole={profile.role}
       />
     </div>
   )

@@ -32,7 +32,10 @@
     "select": "Select",
     "selected": "selected",
     "refresh": "Refresh",
-    "refreshing": "Refreshing..."
+    "refreshing": "Refreshing...",
+    "errors": {
+      "somethingWentWrong": "Something went wrong. Please try again."
+    }
   },
 
   "Navigation": {
@@ -459,7 +462,22 @@
       "noStoreAssigned": "No Store Assigned",
       "noStoreDescription": "You need to be assigned to a store to use the POS system.",
       "contactAdmin": "Contact your administrator.",
-      "loadingError": "Error Loading Products"
+      "loadingError": "Error Loading Products",
+      "profileError": "Profile Error"
+    },
+    "storeSelector": {
+      "title": "Select a Store",
+      "selectButton": "Select Store",
+      "changeStore": "Change Store",
+      "currentStore": "Current Store",
+      "noStoreSelected": "No Store Selected",
+      "selectRequired": "Please select a store to access the POS",
+      "selectDifferentStore": "Select a different store to switch to",
+      "sessionOpenError": "Cannot change store with an open cash session. Please close your session first.",
+      "storeUpdated": "Store updated successfully",
+      "noStoresAvailable": "No stores available",
+      "contactAdminToCreateStore": "Please contact an administrator to create a store.",
+      "cartCleared": "Store changed. Cart has been cleared."
     }
   },
 

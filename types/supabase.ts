@@ -733,6 +733,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_stores: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          store_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          store_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          store_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_stores_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_stores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       cashier_performance_summary: {
@@ -1076,6 +1118,17 @@ export type Database = {
           sku: string
           total_revenue: number
           units_sold: number
+        }[]
+      }
+      get_user_assigned_stores: {
+        Args: { p_user_id: string }
+        Returns: {
+          address: string
+          email: string
+          is_default: boolean
+          phone: string
+          store_id: string
+          store_name: string
         }[]
       }
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
