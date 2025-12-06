@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { StoresClient } from '@/components/stores/stores-client'
+import { AddStoreDialog } from '@/components/stores/add-store-dialog'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 // Disable caching for role checks
@@ -52,10 +51,7 @@ export default async function StoresPage({ params, searchParams }: StoresPagePro
             {t('description')}
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addStore')}
-        </Button>
+        <AddStoreDialog />
       </div>
 
       <StoresClient stores={stores || []} />

@@ -624,7 +624,31 @@
       "active": "Actif",
       "inactive": "Inactif"
     },
-    "empty": "Aucun magasin trouvé."
+    "empty": "Aucun magasin trouvé.",
+    "form": {
+      "title": "Nouveau magasin",
+      "description": "Ajouter un nouveau magasin à votre organisation",
+      "fields": {
+        "name": "Nom du magasin",
+        "namePlaceholder": "Ex: Magasin Centre-Ville",
+        "address": "Adresse",
+        "addressPlaceholder": "123 Rue Principale, Ville, Code Postal",
+        "phone": "Téléphone",
+        "phonePlaceholder": "+1 234 567 890",
+        "email": "Email",
+        "emailPlaceholder": "magasin@exemple.com"
+      },
+      "errors": {
+        "nameRequired": "Le nom du magasin est requis",
+        "invalidEmail": "Format d'email invalide",
+        "generic": "Une erreur est survenue lors de la création du magasin"
+      },
+      "buttons": {
+        "cancel": "Annuler",
+        "create": "Créer le magasin",
+        "creating": "Création en cours..."
+      }
+    }
   },
 
   "DataTable": {

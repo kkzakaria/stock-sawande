@@ -624,7 +624,31 @@
       "active": "Active",
       "inactive": "Inactive"
     },
-    "empty": "No stores found."
+    "empty": "No stores found.",
+    "form": {
+      "title": "New Store",
+      "description": "Add a new store to your organization",
+      "fields": {
+        "name": "Store Name",
+        "namePlaceholder": "e.g. Downtown Store",
+        "address": "Address",
+        "addressPlaceholder": "123 Main Street, City, Postal Code",
+        "phone": "Phone",
+        "phonePlaceholder": "+1 234 567 890",
+        "email": "Email",
+        "emailPlaceholder": "store@example.com"
+      },
+      "errors": {
+        "nameRequired": "Store name is required",
+        "invalidEmail": "Invalid email format",
+        "generic": "An error occurred while creating the store"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create Store",
+        "creating": "Creating..."
+      }
+    }
   },
 
   "DataTable": {
