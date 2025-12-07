@@ -85,7 +85,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
             width={32}
             height={32}
           />
-          <span className="text-sm text-[#0f0fea]">QGK</span>
+          <span className="text-sm font-bold text-[#0f0fea]">Quincaillerie Générale Katana</span>
         </Link>
       </div>
 
