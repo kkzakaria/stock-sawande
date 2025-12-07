@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from '@/components/ui/field'
@@ -108,13 +107,6 @@ export function LoginForm({
                   {isPending ? t('submitting') : t('submit')}
                 </Button>
               </Field>
-
-              <FieldDescription className="text-center">
-                {t('noAccount')}{' '}
-                <Link href="/signup" className="underline underline-offset-2">
-                  {t('signUp')}
-                </Link>
-              </FieldDescription>
             </FieldGroup>
           </form>
         </CardContent>
