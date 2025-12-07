@@ -77,15 +77,19 @@ export function DashboardNav({ profile }: DashboardNavProps) {
 
   return (
     <aside className="w-64 border-r bg-card flex flex-col h-screen">
-      <div className="flex h-16 items-center border-b px-4 flex-shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+      <div className="flex items-center border-b px-4 py-3 flex-shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-3">
           <Image
             src="/qgk-logo.png"
             alt="QGK Logo"
-            width={32}
-            height={32}
+            width={40}
+            height={40}
           />
-          <span className="text-sm font-bold text-[#0f0fea]">Quincaillerie Générale Katana</span>
+          <div className="flex flex-col text-sm font-bold text-[#0f0fea] leading-tight">
+            <span>Quincaillerie</span>
+            <span>Générale</span>
+            <span>Katana</span>
+          </div>
         </Link>
       </div>
 
