@@ -63,14 +63,14 @@ export function StoreSelectorRequired({ userId, userRole }: StoreSelectorRequire
             )
           `)
           .order('is_default', { ascending: false })
-          .order('stores(name)')
 
         if (error) throw error
 
-        // Extract stores from the nested structure
+        // Extract stores from the nested structure and sort by name
         const assignedStores = (data || [])
           .map((item) => item.stores)
           .filter((store): store is StoreType => store !== null)
+          .sort((a, b) => a.name.localeCompare(b.name))
 
         setStores(assignedStores)
       }

@@ -15,9 +15,8 @@ const intlMiddleware = createIntlMiddleware(routing);
 function generateCSPHeader(nonce: string): string {
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Supabase domains that need to be allowed
+  // Supabase URL that needs to be allowed
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).hostname : '';
 
   const directives = [
     // Default fallback for all resource types
@@ -38,7 +37,8 @@ function generateCSPHeader(nonce: string): string {
     "font-src 'self' https://fonts.gstatic.com",
 
     // Connect: allow self and Supabase APIs
-    `connect-src 'self' ${supabaseDomain ? `https://${supabaseDomain}` : ''} https://*.supabase.co wss://*.supabase.co`,
+    // In development, allow the full Supabase URL (http for local)
+    `connect-src 'self' ${supabaseUrl || ''} https://*.supabase.co wss://*.supabase.co ${isDev ? 'http://localhost:* http://127.0.0.1:*' : ''}`,
 
     // Media: allow self
     "media-src 'self'",
