@@ -4,9 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
+// UUID regex that accepts any valid UUID format (not just v4)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 // Validation schema for store update
 const updateStoreSchema = z.object({
-  storeId: z.string().uuid('Invalid store ID'),
+  storeId: z.string().regex(uuidRegex, 'Invalid store ID'),
 })
 
 type UpdateStoreInput = z.infer<typeof updateStoreSchema>
