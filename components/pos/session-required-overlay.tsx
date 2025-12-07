@@ -2,16 +2,21 @@
 
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
-import { Wallet, AlertCircle } from 'lucide-react'
+import { Wallet, AlertCircle, Store } from 'lucide-react'
 
 interface SessionRequiredOverlayProps {
   onOpenSession: () => void
+  canSelectStore?: boolean
+  onChangeStore?: () => void
 }
 
 export function SessionRequiredOverlay({
   onOpenSession,
+  canSelectStore = false,
+  onChangeStore,
 }: SessionRequiredOverlayProps) {
   const t = useTranslations('POS.session')
+  const tStore = useTranslations('POS.storeSelector')
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
@@ -39,10 +44,24 @@ export function SessionRequiredOverlay({
           </div>
         </div>
 
-        <Button size="lg" onClick={onOpenSession} className="gap-2">
-          <Wallet className="h-5 w-5" />
-          {t('openMyRegister')}
-        </Button>
+        <div className="flex flex-col gap-3">
+          <Button size="lg" onClick={onOpenSession} className="gap-2">
+            <Wallet className="h-5 w-5" />
+            {t('openMyRegister')}
+          </Button>
+
+          {canSelectStore && onChangeStore && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={onChangeStore}
+              className="gap-2"
+            >
+              <Store className="h-5 w-5" />
+              {tStore('changeStore')}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -291,6 +291,8 @@ export function POSClient({
       {!activeSession && (
         <SessionRequiredOverlay
           onOpenSession={() => setOpenSessionDialogOpen(true)}
+          canSelectStore={canSelectStore}
+          onChangeStore={() => setStoreSelectorOpen(true)}
         />
       )}
 

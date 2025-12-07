@@ -37,8 +37,8 @@ function generateCSPHeader(nonce: string): string {
     "font-src 'self' https://fonts.gstatic.com",
 
     // Connect: allow self and Supabase APIs
-    // In development, allow the full Supabase URL (http for local)
-    `connect-src 'self' ${supabaseUrl || ''} https://*.supabase.co wss://*.supabase.co ${isDev ? 'http://localhost:* http://127.0.0.1:*' : ''}`,
+    // In development, allow the full Supabase URL (http/ws for local)
+    `connect-src 'self' ${supabaseUrl || ''} https://*.supabase.co wss://*.supabase.co ${isDev ? 'http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*' : ''}`,
 
     // Media: allow self
     "media-src 'self'",
