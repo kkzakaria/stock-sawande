@@ -52,7 +52,7 @@ export function LoginForm({
                   height={80}
                   priority
                 />
-                <h1 className="text-xl font-bold text-[#1e3a8a]">
+                <h1 className="text-xl font-bold text-[#0f0fea]">
                   Quincaillerie Générale Katana
                 </h1>
                 <p className="text-muted-foreground text-balance">
