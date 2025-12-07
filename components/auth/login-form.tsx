@@ -118,17 +118,6 @@ export function LoginForm({
           </div>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
-        {t('termsNotice')}{' '}
-        <Link href="#" className="underline underline-offset-2">
-          {t('termsOfService')}
-        </Link>{' '}
-        {t('and')}{' '}
-        <Link href="#" className="underline underline-offset-2">
-          {t('privacyPolicy')}
-        </Link>
-        .
-      </FieldDescription>
     </div>
   )
 }
