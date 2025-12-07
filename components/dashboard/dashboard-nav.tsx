@@ -76,7 +76,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
   )
 
   return (
-    <aside className="w-64 border-r bg-card flex flex-col h-screen">
+    <aside className="w-[200px] border-r bg-card flex flex-col h-screen">
       <div className="flex h-16 items-center justify-center border-b flex-shrink-0">
         <Link href="/dashboard">
           <Image
