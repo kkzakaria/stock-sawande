@@ -162,10 +162,8 @@ export function StoreSelectorDialog({
                 const isUpdating = updatingStoreId === store.id
 
                 return (
-                  <button
+                  <div
                     key={store.id}
-                    onClick={() => handleSelectStore(store.id)}
-                    disabled={isUpdating || (isCurrentStore && !!currentStoreId)}
                     className={`
                       relative w-full text-left p-4 rounded-lg border-2 transition-all
                       ${
@@ -173,8 +171,7 @@ export function StoreSelectorDialog({
                           ? 'border-primary bg-primary/5'
                           : 'border-border hover:border-primary/50 hover:bg-accent'
                       }
-                      ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                      disabled:cursor-not-allowed
+                      ${isUpdating ? 'opacity-50' : ''}
                     `}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -209,10 +206,7 @@ export function StoreSelectorDialog({
                         ) : !isCurrentStore ? (
                           <Button
                             size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleSelectStore(store.id)
-                            }}
+                            onClick={() => handleSelectStore(store.id)}
                             disabled={isUpdating}
                           >
                             {t('selectButton')}
@@ -220,7 +214,7 @@ export function StoreSelectorDialog({
                         ) : null}
                       </div>
                     </div>
-                  </button>
+                  </div>
                 )
               })}
             </div>
