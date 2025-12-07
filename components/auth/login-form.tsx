@@ -45,7 +45,7 @@ export function LoginForm({
         <CardContent className="p-0">
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
-              <div className="flex flex-col items-center gap-4 text-center">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <Image
                   src="/qgk-logo.png"
                   alt="QGK Logo"
@@ -53,6 +53,9 @@ export function LoginForm({
                   height={80}
                   priority
                 />
+                <h1 className="text-xl font-bold text-[#1e3a8a]">
+                  Quincaillerie Générale Katana
+                </h1>
                 <p className="text-muted-foreground text-balance">
                   Connectez-vous à votre compte
                 </p>
