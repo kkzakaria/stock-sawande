@@ -467,7 +467,10 @@
     },
     "storeSelector": {
       "title": "Sélectionner un magasin",
+      "selectStore": "Sélectionner un magasin",
+      "adminSelectDescription": "Choisissez le magasin sur lequel vous souhaitez travailler",
       "selectButton": "Sélectionner",
+      "continueWithStore": "Continuer",
       "changeStore": "Changer de magasin",
       "currentStore": "Magasin actuel",
       "noStoreSelected": "Aucun magasin sélectionné",

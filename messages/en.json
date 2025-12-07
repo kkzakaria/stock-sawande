@@ -467,7 +467,10 @@
     },
     "storeSelector": {
       "title": "Select a Store",
+      "selectStore": "Select a Store",
+      "adminSelectDescription": "Choose the store you want to work on",
       "selectButton": "Select Store",
+      "continueWithStore": "Continue",
       "changeStore": "Change Store",
       "currentStore": "Current Store",
       "noStoreSelected": "No Store Selected",

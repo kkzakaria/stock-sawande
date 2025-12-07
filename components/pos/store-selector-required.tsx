@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
-import { Loader2, Store, MapPin } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Loader2, Store, MapPin, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserStore } from '@/lib/actions/profile-actions'
 import { toast } from 'sonner'
@@ -15,9 +16,11 @@ type StoreType = Tables<'stores'>
 interface StoreSelectorRequiredProps {
   userId: string
   userRole: 'admin' | 'manager' | 'cashier'
+  currentStoreId?: string | null
 }
 
-export function StoreSelectorRequired({ userId, userRole }: StoreSelectorRequiredProps) {
+export function StoreSelectorRequired({ userId: _userId, userRole, currentStoreId }: StoreSelectorRequiredProps) {
+  const isAdmin = userRole === 'admin'
   const t = useTranslations('POS.storeSelector')
   const tCommon = useTranslations('Common')
   const router = useRouter()
@@ -138,25 +141,38 @@ export function StoreSelectorRequired({ userId, userRole }: StoreSelectorRequire
         <div className="text-center mb-8">
           <Store className="h-16 w-16 text-primary mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {t('noStoreSelected')}
+            {isAdmin ? t('selectStore') : t('noStoreSelected')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {t('selectRequired')}
+            {isAdmin ? t('adminSelectDescription') : t('selectRequired')}
           </p>
         </div>
 
         <div className="grid gap-4">
           {stores.map((store) => {
             const isUpdating = updatingStoreId === store.id
+            const isCurrent = currentStoreId === store.id
 
             return (
               <div
                 key={store.id}
-                className="p-6 rounded-lg border-2 border-border hover:border-primary/50 transition-all bg-card"
+                className={`p-6 rounded-lg border-2 transition-all bg-card ${
+                  isCurrent
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-semibold mb-2">{store.name}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-xl font-semibold">{store.name}</h3>
+                      {isCurrent && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Check className="h-3 w-3" />
+                          {t('currentStore')}
+                        </Badge>
+                      )}
+                    </div>
                     {store.address && (
                       <p className="text-sm text-muted-foreground flex items-start gap-2 mb-1">
                         <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -177,6 +193,7 @@ export function StoreSelectorRequired({ userId, userRole }: StoreSelectorRequire
 
                   <Button
                     size="lg"
+                    variant={isCurrent ? 'default' : 'outline'}
                     onClick={() => handleSelectStore(store.id)}
                     disabled={isUpdating}
                   >
@@ -185,6 +202,8 @@ export function StoreSelectorRequired({ userId, userRole }: StoreSelectorRequire
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         {tCommon('loading')}
                       </>
+                    ) : isCurrent ? (
+                      t('continueWithStore')
                     ) : (
                       t('selectButton')
                     )}

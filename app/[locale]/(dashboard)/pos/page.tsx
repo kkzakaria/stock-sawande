@@ -60,12 +60,20 @@ export default async function POSPage({ params }: POSPageProps) {
 
   // Check if user can select store (admin or manager)
   const canSelectStore = profile.role === 'admin' || profile.role === 'manager'
+  const isAdmin = profile.role === 'admin'
 
-  // If user has no store assigned
-  if (!profile.store_id) {
+  // Admins always see store selector (free choice every time)
+  // Managers and cashiers use their assigned store
+  if (!profile.store_id || isAdmin) {
     // Admins and managers can select a store
     if (canSelectStore) {
-      return <StoreSelectorRequired userId={user.id} userRole={profile.role} />
+      return (
+        <StoreSelectorRequired
+          userId={user.id}
+          userRole={profile.role}
+          currentStoreId={isAdmin ? profile.store_id : undefined}
+        />
+      )
     }
 
     // Cashiers without store must contact admin
