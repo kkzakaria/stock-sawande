@@ -45,10 +45,16 @@ export function LoginForm({
         <CardContent className="grid p-0 md:grid-cols-2">
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">{t('title')}</h1>
+              <div className="flex flex-col items-center gap-4 text-center">
+                <Image
+                  src="/qgk-logo.png"
+                  alt="QGK Logo"
+                  width={80}
+                  height={80}
+                  priority
+                />
                 <p className="text-muted-foreground text-balance">
-                  {t('subtitle')}
+                  Connectez-vous à votre compte
                 </p>
               </div>
 
