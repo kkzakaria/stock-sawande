@@ -20,10 +20,12 @@ export const metadata = {
 
 interface POSPageProps {
   params: Promise<{ locale: string }>
+  searchParams: Promise<{ store?: string }>
 }
 
-export default async function POSPage({ params }: POSPageProps) {
+export default async function POSPage({ params, searchParams }: POSPageProps) {
   const { locale } = await params
+  const { store: storeFromUrl } = await searchParams
   setRequestLocale(locale)
   const t = await getTranslations('POS')
 
@@ -62,16 +64,20 @@ export default async function POSPage({ params }: POSPageProps) {
   const canSelectStore = profile.role === 'admin' || profile.role === 'manager'
   const isAdmin = profile.role === 'admin'
 
-  // Admins always see store selector (free choice every time)
-  // Managers and cashiers use their assigned store
-  if (!profile.store_id || isAdmin) {
+  // For admins: use store from URL param (session-based, not persisted)
+  // For managers/cashiers: use their assigned store from profile
+  const activeStoreId = isAdmin ? storeFromUrl : profile.store_id
+
+  // Show store selector if:
+  // - Admin without URL store param (free choice each session)
+  // - Non-admin without assigned store
+  if (!activeStoreId) {
     // Admins and managers can select a store
     if (canSelectStore) {
       return (
         <StoreSelectorRequired
           userId={user.id}
           userRole={profile.role}
-          currentStoreId={isAdmin ? profile.store_id : undefined}
         />
       )
     }
@@ -88,6 +94,20 @@ export default async function POSPage({ params }: POSPageProps) {
         </div>
       </div>
     )
+  }
+
+  // Fetch the store info for admins (since they use URL param, not profile.store)
+  let storeInfo = profile.store
+  if (isAdmin && storeFromUrl) {
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('id, name, address, phone')
+      .eq('id', storeFromUrl)
+      .single()
+
+    if (storeData) {
+      storeInfo = storeData
+    }
   }
 
   // Fetch products with inventory for current store
@@ -110,7 +130,7 @@ export default async function POSPage({ params }: POSPageProps) {
     `
     )
     .eq('is_active', true)
-    .eq('inventory.store_id', profile.store_id)
+    .eq('inventory.store_id', activeStoreId)
     .order('name')
 
   if (productsError) {
@@ -129,7 +149,7 @@ export default async function POSPage({ params }: POSPageProps) {
   const productsWithInventory = products
     ?.map((product) => {
       const storeInventory = product.inventory.find(
-        (inv: { store_id: string }) => inv.store_id === profile.store_id
+        (inv: { store_id: string }) => inv.store_id === activeStoreId
       )
 
       if (!storeInventory) return null
@@ -152,13 +172,13 @@ export default async function POSPage({ params }: POSPageProps) {
     <div className="h-full overflow-hidden">
       <POSClient
         products={productsWithInventory}
-        storeId={profile.store_id}
+        storeId={activeStoreId}
         cashierId={user.id}
         cashierName={profile.full_name || 'User'}
         storeInfo={{
-          name: profile.store?.name || 'Store',
-          address: profile.store?.address || null,
-          phone: profile.store?.phone || null,
+          name: storeInfo?.name || 'Store',
+          address: storeInfo?.address || null,
+          phone: storeInfo?.phone || null,
         }}
         canSelectStore={canSelectStore}
         userRole={profile.role}
