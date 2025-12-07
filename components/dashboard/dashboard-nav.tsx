@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/src/i18n/navigation'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 import {
   LayoutDashboard,
   Package,
@@ -76,10 +77,15 @@ export function DashboardNav({ profile }: DashboardNavProps) {
 
   return (
     <aside className="w-64 border-r bg-card flex flex-col h-screen">
-      <div className="flex h-16 items-center border-b px-6 flex-shrink-0">
+      <div className="flex h-16 items-center border-b px-4 flex-shrink-0">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold">
-          <Package className="h-6 w-6" />
-          <span className="text-lg">Next Stock</span>
+          <Image
+            src="/qgk-logo.png"
+            alt="QGK Logo"
+            width={32}
+            height={32}
+          />
+          <span className="text-sm text-[#0f0fea]">QGK</span>
         </Link>
       </div>
 
