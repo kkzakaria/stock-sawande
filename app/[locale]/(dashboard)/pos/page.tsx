@@ -60,9 +60,28 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
-  // Check if user can select store (admin or manager)
-  const canSelectStore = profile.role === 'admin' || profile.role === 'manager'
+  // Check if user can select store (admin or manager with multiple stores)
   const isAdmin = profile.role === 'admin'
+  const isManagerOrAdmin = profile.role === 'admin' || profile.role === 'manager'
+
+  // Count available stores to determine if store switching makes sense
+  let availableStoresCount = 0
+  if (isAdmin) {
+    // Admins can access all stores
+    const { count } = await supabase
+      .from('stores')
+      .select('*', { count: 'exact', head: true })
+    availableStoresCount = count || 0
+  } else if (profile.role === 'manager') {
+    // Managers can only access assigned stores
+    const { count } = await supabase
+      .from('user_stores')
+      .select('*', { count: 'exact', head: true })
+    availableStoresCount = count || 0
+  }
+
+  // Only show store selector if user has role permission AND multiple stores available
+  const canSelectStore = isManagerOrAdmin && availableStoresCount > 1
 
   // For admins: use store from URL param (session-based, not persisted)
   // For managers/cashiers: use their assigned store from profile
