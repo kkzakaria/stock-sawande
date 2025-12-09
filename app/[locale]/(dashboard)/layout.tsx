@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
@@ -9,11 +10,17 @@ import { buildLoginUrl } from '@/lib/auth/redirect'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+interface DashboardLayoutProps {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}
+
 export default async function DashboardLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+  params,
+}: DashboardLayoutProps) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const supabase = await createClient()
   const {
     data: { user },
@@ -38,10 +45,22 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single()
 
+  // Get navigation translations for client component
+  const t = await getTranslations('Navigation')
+  const navTranslations = {
+    dashboard: t('dashboard'),
+    products: t('products'),
+    sales: t('sales'),
+    pos: t('pos'),
+    reports: t('reports'),
+    stores: t('stores'),
+    settings: t('settings'),
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <DashboardNav profile={profile} />
+      <DashboardNav profile={profile} translations={navTranslations} />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
