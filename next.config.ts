@@ -105,9 +105,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Output mode for Cloudflare deployment (required by OpenNext)
-  output: process.env.CLOUDFLARE_BUILD === 'true' ? 'standalone' : undefined,
-
   images: {
     remotePatterns: [
       {
@@ -174,11 +171,3 @@ const nextConfig: NextConfig = {
 // Compose plugins: withNextIntl wraps withPWA wraps nextConfig
 const config = withNextIntl(withPWA(nextConfig));
 export default config;
-
-// Initialize OpenNext Cloudflare for local development
-// Only when building for Cloudflare (not Vercel)
-if (process.env.CLOUDFLARE_BUILD === 'true') {
-  import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
-    initOpenNextCloudflareForDev();
-  });
-}
