@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Cloudflare build output:
-    ".open-next/**",
   ]),
   // Allow unused variables prefixed with _
   {
