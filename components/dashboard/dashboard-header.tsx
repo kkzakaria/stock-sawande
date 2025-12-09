@@ -12,12 +12,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { LogOut, Settings, User as UserIcon, RefreshCw } from 'lucide-react'
+import { LogOut, User as UserIcon, RefreshCw } from 'lucide-react'
 import { logout } from '@/app/[locale]/(auth)/actions'
 import { refreshUserSession } from '@/lib/actions/session'
 import { useTransition } from 'react'
 import { LocaleSwitcher } from '@/components/locale-switcher'
-import { Link } from '@/src/i18n/navigation'
 
 interface Profile {
   id: string
@@ -36,7 +35,6 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   const t = useTranslations('Auth')
-  const tNav = useTranslations('Navigation')
   const tCommon = useTranslations('Common')
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefresh] = useTransition()
@@ -125,12 +123,6 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
             <DropdownMenuItem disabled>
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>{tNav('settings')}</span>
-              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
