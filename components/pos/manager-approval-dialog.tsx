@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Dialog,
@@ -74,19 +74,7 @@ export function ManagerApprovalDialog({
     return `${formatted} CFA`
   }
 
-  // Fetch validators when dialog opens
-  useEffect(() => {
-    if (open) {
-      fetchValidators()
-    } else {
-      // Reset state when dialog closes
-      setSelectedManager('')
-      setPin('')
-      setError(null)
-    }
-  }, [open])
-
-  const fetchValidators = async () => {
+  const fetchValidators = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -106,7 +94,19 @@ export function ManagerApprovalDialog({
     } finally {
       setLoading(false)
     }
-  }
+  }, [t])
+
+  // Fetch validators when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchValidators()
+    } else {
+      // Reset state when dialog closes
+      setSelectedManager('')
+      setPin('')
+      setError(null)
+    }
+  }, [open, fetchValidators])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

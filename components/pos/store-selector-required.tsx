@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
@@ -27,11 +27,7 @@ export function StoreSelectorRequired({ userId: _userId, userRole }: StoreSelect
   const [loading, setLoading] = useState(true)
   const [updatingStoreId, setUpdatingStoreId] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchStores()
-  }, [])
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
       setLoading(true)
       const supabase = createClient()
@@ -81,7 +77,11 @@ export function StoreSelectorRequired({ userId: _userId, userRole }: StoreSelect
     } finally {
       setLoading(false)
     }
-  }
+  }, [userRole, tCommon])
+
+  useEffect(() => {
+    fetchStores()
+  }, [fetchStores])
 
   const handleSelectStore = async (storeId: string) => {
     try {

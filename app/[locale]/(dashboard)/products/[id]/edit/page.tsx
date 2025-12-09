@@ -17,7 +17,7 @@ interface EditProductPageProps {
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
-  const { id, locale } = await params
+  const { id, locale: _locale } = await params
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

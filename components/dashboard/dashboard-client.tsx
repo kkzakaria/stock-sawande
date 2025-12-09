@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { DollarSign, Package, ShoppingCart, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react'
+import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { KpiCard, KpiSkeleton } from '@/components/charts'
 import { getDashboardMetrics, getRevenueTrend, getTopProducts, getLowStockAlerts } from '@/lib/actions/dashboard'

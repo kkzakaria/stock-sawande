@@ -30,7 +30,7 @@ export function PeriodSelector({
   value,
   onChange,
   className,
-  variant = 'outline',
+  variant: _variant = 'outline',
   size = 'sm',
 }: PeriodSelectorProps) {
   return (

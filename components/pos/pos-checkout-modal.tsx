@@ -54,7 +54,7 @@ export function POSCheckoutModal({
 }: POSCheckoutModalProps) {
   const t = useTranslations('POS.checkout')
   const tOffline = useTranslations('POS.offline')
-  const tCommon = useTranslations('Common')
+  const _tCommon = useTranslations('Common')
 
   const items = useCartStore((state) => state.items)
   const customerId = useCartStore((state) => state.customerId)

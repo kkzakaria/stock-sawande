@@ -34,7 +34,7 @@ export function LocaleSwitcher({ className, showLabel = true }: LocaleSwitcherPr
   const router = useRouter()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
-  const t = useTranslations('Settings.language')
+  const _t = useTranslations('Settings.language')
 
   const handleLocaleChange = (newLocale: string) => {
     startTransition(() => {

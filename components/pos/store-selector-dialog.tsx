@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
@@ -42,13 +42,7 @@ export function StoreSelectorDialog({
   const [loading, setLoading] = useState(true)
   const [updatingStoreId, setUpdatingStoreId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (open) {
-      fetchStores()
-    }
-  }, [open])
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     try {
       setLoading(true)
       const supabase = createClient()
@@ -98,7 +92,13 @@ export function StoreSelectorDialog({
     } finally {
       setLoading(false)
     }
-  }
+  }, [userRole, tCommon])
+
+  useEffect(() => {
+    if (open) {
+      fetchStores()
+    }
+  }, [open, fetchStores])
 
   const handleSelectStore = async (storeId: string) => {
     if (storeId === currentStoreId) {
