@@ -486,6 +486,154 @@
 
   "Settings": {
     "title": "Paramètres",
+    "description": "Gérez vos préférences et paramètres de compte",
+    "tabs": {
+      "profile": "Profil",
+      "users": "Utilisateurs",
+      "categories": "Catégories",
+      "business": "Business"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Modifiez vos informations personnelles",
+      "fullName": "Nom complet",
+      "fullNamePlaceholder": "Entrez votre nom complet",
+      "email": "Email",
+      "avatar": "Photo de profil",
+      "avatarDescription": "Téléchargez une photo de profil",
+      "uploadAvatar": "Télécharger",
+      "removeAvatar": "Supprimer",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "success": "Profil mis à jour avec succès",
+      "error": "Échec de la mise à jour du profil"
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "description": "Gérez les utilisateurs et leurs permissions",
+      "add": "Ajouter un utilisateur",
+      "search": "Rechercher des utilisateurs...",
+      "columns": {
+        "name": "Nom",
+        "email": "Email",
+        "role": "Rôle",
+        "stores": "Magasins assignés",
+        "createdAt": "Créé le"
+      },
+      "form": {
+        "title": "Ajouter un utilisateur",
+        "editTitle": "Modifier l'utilisateur",
+        "email": "Email",
+        "emailPlaceholder": "utilisateur@exemple.com",
+        "fullName": "Nom complet",
+        "fullNamePlaceholder": "Jean Dupont",
+        "role": "Rôle",
+        "stores": "Magasins assignés",
+        "defaultStore": "Magasin par défaut",
+        "create": "Créer l'utilisateur",
+        "update": "Mettre à jour",
+        "creating": "Création...",
+        "updating": "Mise à jour..."
+      },
+      "delete": {
+        "title": "Supprimer l'utilisateur",
+        "description": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.",
+        "confirm": "Supprimer",
+        "deleting": "Suppression..."
+      },
+      "messages": {
+        "created": "Utilisateur créé avec succès",
+        "updated": "Utilisateur mis à jour avec succès",
+        "deleted": "Utilisateur supprimé avec succès"
+      },
+      "errors": {
+        "emailRequired": "L'email est requis",
+        "nameRequired": "Le nom est requis",
+        "roleRequired": "Le rôle est requis",
+        "createFailed": "Échec de la création de l'utilisateur",
+        "updateFailed": "Échec de la mise à jour de l'utilisateur",
+        "deleteFailed": "Échec de la suppression de l'utilisateur"
+      }
+    },
+    "categories": {
+      "title": "Catégories de produits",
+      "description": "Gérez les catégories de produits",
+      "add": "Ajouter une catégorie",
+      "search": "Rechercher des catégories...",
+      "columns": {
+        "name": "Nom",
+        "description": "Description",
+        "productCount": "Produits",
+        "createdAt": "Créé le"
+      },
+      "form": {
+        "title": "Ajouter une catégorie",
+        "editTitle": "Modifier la catégorie",
+        "name": "Nom de la catégorie",
+        "namePlaceholder": "Ex: Électronique",
+        "description": "Description",
+        "descriptionPlaceholder": "Description optionnelle",
+        "create": "Créer la catégorie",
+        "update": "Mettre à jour",
+        "creating": "Création...",
+        "updating": "Mise à jour..."
+      },
+      "delete": {
+        "title": "Supprimer la catégorie",
+        "description": "Êtes-vous sûr de vouloir supprimer cette catégorie ? Les produits de cette catégorie deviendront non catégorisés.",
+        "confirm": "Supprimer",
+        "deleting": "Suppression..."
+      },
+      "messages": {
+        "created": "Catégorie créée avec succès",
+        "updated": "Catégorie mise à jour avec succès",
+        "deleted": "Catégorie supprimée avec succès"
+      },
+      "errors": {
+        "nameRequired": "Le nom de la catégorie est requis",
+        "createFailed": "Échec de la création de la catégorie",
+        "updateFailed": "Échec de la mise à jour de la catégorie",
+        "deleteFailed": "Échec de la suppression de la catégorie"
+      }
+    },
+    "business": {
+      "title": "Paramètres Business",
+      "description": "Configurez les paramètres généraux de l'application",
+      "tax": {
+        "title": "Configuration de la taxe",
+        "description": "Définissez le taux de taxe par défaut pour les ventes",
+        "rate": "Taux de taxe (%)",
+        "ratePlaceholder": "8.75",
+        "enabled": "Activer le calcul de la taxe",
+        "save": "Enregistrer",
+        "success": "Paramètres de taxe mis à jour",
+        "error": "Échec de la mise à jour des paramètres de taxe"
+      },
+      "currency": {
+        "title": "Paramètres de devise",
+        "description": "Configurez le format d'affichage de la devise",
+        "code": "Code devise",
+        "codePlaceholder": "XOF",
+        "symbol": "Symbole",
+        "symbolPlaceholder": "CFA",
+        "locale": "Format de nombre",
+        "localePlaceholder": "fr-FR",
+        "save": "Enregistrer",
+        "success": "Paramètres de devise mis à jour",
+        "error": "Échec de la mise à jour des paramètres de devise"
+      },
+      "stockAlerts": {
+        "title": "Alertes de stock",
+        "description": "Configurez les seuils d'alerte de stock par défaut",
+        "threshold": "Seuil de stock bas par défaut",
+        "thresholdPlaceholder": "10",
+        "thresholdDescription": "Les produits avec un stock en dessous de ce niveau déclencheront des alertes",
+        "enabled": "Activer les alertes de stock",
+        "save": "Enregistrer",
+        "success": "Paramètres d'alertes mis à jour",
+        "error": "Échec de la mise à jour des paramètres d'alertes"
+      }
+    },
     "pin": {
       "title": "Code PIN de validation",
       "description": "Ce code PIN à 6 chiffres est utilisé pour approuver les fermetures de caisse avec écart. Vous devrez le saisir lorsqu'un caissier demande votre validation.",

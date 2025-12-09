@@ -486,6 +486,154 @@
 
   "Settings": {
     "title": "Settings",
+    "description": "Manage your account preferences and system settings",
+    "tabs": {
+      "profile": "Profile",
+      "users": "Users",
+      "categories": "Categories",
+      "business": "Business"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Update your personal information",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter your full name",
+      "email": "Email",
+      "avatar": "Profile Picture",
+      "avatarDescription": "Upload a profile picture",
+      "uploadAvatar": "Upload",
+      "removeAvatar": "Remove",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "success": "Profile updated successfully",
+      "error": "Failed to update profile"
+    },
+    "users": {
+      "title": "User Management",
+      "description": "Manage users and their permissions",
+      "add": "Add User",
+      "search": "Search users...",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "stores": "Assigned Stores",
+        "createdAt": "Created"
+      },
+      "form": {
+        "title": "Add User",
+        "editTitle": "Edit User",
+        "email": "Email",
+        "emailPlaceholder": "user@example.com",
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "John Doe",
+        "role": "Role",
+        "stores": "Assigned Stores",
+        "defaultStore": "Default Store",
+        "create": "Create User",
+        "update": "Update User",
+        "creating": "Creating...",
+        "updating": "Updating..."
+      },
+      "delete": {
+        "title": "Delete User",
+        "description": "Are you sure you want to delete this user? This action cannot be undone.",
+        "confirm": "Delete",
+        "deleting": "Deleting..."
+      },
+      "messages": {
+        "created": "User created successfully",
+        "updated": "User updated successfully",
+        "deleted": "User deleted successfully"
+      },
+      "errors": {
+        "emailRequired": "Email is required",
+        "nameRequired": "Name is required",
+        "roleRequired": "Role is required",
+        "createFailed": "Failed to create user",
+        "updateFailed": "Failed to update user",
+        "deleteFailed": "Failed to delete user"
+      }
+    },
+    "categories": {
+      "title": "Product Categories",
+      "description": "Manage product categories",
+      "add": "Add Category",
+      "search": "Search categories...",
+      "columns": {
+        "name": "Name",
+        "description": "Description",
+        "productCount": "Products",
+        "createdAt": "Created"
+      },
+      "form": {
+        "title": "Add Category",
+        "editTitle": "Edit Category",
+        "name": "Category Name",
+        "namePlaceholder": "e.g. Electronics",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional description",
+        "create": "Create Category",
+        "update": "Update Category",
+        "creating": "Creating...",
+        "updating": "Updating..."
+      },
+      "delete": {
+        "title": "Delete Category",
+        "description": "Are you sure you want to delete this category? Products in this category will become uncategorized.",
+        "confirm": "Delete",
+        "deleting": "Deleting..."
+      },
+      "messages": {
+        "created": "Category created successfully",
+        "updated": "Category updated successfully",
+        "deleted": "Category deleted successfully"
+      },
+      "errors": {
+        "nameRequired": "Category name is required",
+        "createFailed": "Failed to create category",
+        "updateFailed": "Failed to update category",
+        "deleteFailed": "Failed to delete category"
+      }
+    },
+    "business": {
+      "title": "Business Settings",
+      "description": "Configure application-wide settings",
+      "tax": {
+        "title": "Tax Configuration",
+        "description": "Set the default tax rate for sales",
+        "rate": "Tax Rate (%)",
+        "ratePlaceholder": "8.75",
+        "enabled": "Enable tax calculation",
+        "save": "Save",
+        "success": "Tax settings updated",
+        "error": "Failed to update tax settings"
+      },
+      "currency": {
+        "title": "Currency Settings",
+        "description": "Configure currency display format",
+        "code": "Currency Code",
+        "codePlaceholder": "XOF",
+        "symbol": "Currency Symbol",
+        "symbolPlaceholder": "CFA",
+        "locale": "Number Format Locale",
+        "localePlaceholder": "fr-FR",
+        "save": "Save",
+        "success": "Currency settings updated",
+        "error": "Failed to update currency settings"
+      },
+      "stockAlerts": {
+        "title": "Stock Alert Settings",
+        "description": "Configure default stock alert thresholds",
+        "threshold": "Default Low Stock Threshold",
+        "thresholdPlaceholder": "10",
+        "thresholdDescription": "Products with stock below this level will trigger alerts",
+        "enabled": "Enable stock alerts",
+        "save": "Save",
+        "success": "Stock alert settings updated",
+        "error": "Failed to update stock alert settings"
+      }
+    },
     "pin": {
       "title": "Validation PIN Code",
       "description": "This 6-digit PIN code is used to approve cash register closings with discrepancies. You will need to enter it when a cashier requests your validation.",

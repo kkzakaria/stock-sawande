@@ -11,6 +11,7 @@ import {
   CreditCard,
   BarChart3,
   Store,
+  Settings,
 } from 'lucide-react'
 
 interface Profile {
@@ -62,6 +63,12 @@ const navItems = [
     href: '/stores',
     icon: Store,
     roles: ['admin'],
+  },
+  {
+    titleKey: 'settings',
+    href: '/settings',
+    icon: Settings,
+    roles: ['admin', 'manager'],
   },
 ]
 
