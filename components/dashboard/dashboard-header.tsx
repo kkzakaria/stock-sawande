@@ -68,11 +68,6 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
     return 'U'
   }
 
-  const getRoleBadge = (role: string) => {
-    const roleKey = role as 'admin' | 'manager' | 'cashier'
-    return t(`roles.${roleKey}`)
-  }
-
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card px-6 flex-shrink-0">
       <div>
@@ -84,14 +79,6 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
       <div className="flex items-center gap-4">
         {/* Language Switcher */}
         <LocaleSwitcher className="hidden md:flex" />
-
-        {/* User role badge */}
-        <div className="hidden md:flex flex-col items-end">
-          <p className="text-sm font-medium">{profile?.full_name || user.email}</p>
-          <p className="text-xs text-muted-foreground">
-            {getRoleBadge(profile?.role || '')}
-          </p>
-        </div>
 
         {/* User menu */}
         <DropdownMenu>

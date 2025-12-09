@@ -1,6 +1,6 @@
 'use client'
 
-import { useLocale, useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 import { useRouter, usePathname } from '@/src/i18n/navigation'
 import { useTransition } from 'react'
 import {
@@ -10,31 +10,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Globe } from 'lucide-react'
 import { routing, type Locale } from '@/src/i18n/routing'
 import { cn } from '@/lib/utils'
 
-const localeLabels: Record<Locale, string> = {
-  fr: 'Francais',
-  en: 'English'
+const localeCodes: Record<Locale, string> = {
+  fr: 'FR',
+  en: 'EN'
 }
 
-const localeFlags: Record<Locale, string> = {
-  fr: '🇫🇷',
-  en: '🇬🇧'
+const localeNames: Record<Locale, string> = {
+  fr: 'Français',
+  en: 'English'
 }
 
 interface LocaleSwitcherProps {
   className?: string
-  showLabel?: boolean
 }
 
-export function LocaleSwitcher({ className, showLabel = true }: LocaleSwitcherProps) {
+export function LocaleSwitcher({ className }: LocaleSwitcherProps) {
   const locale = useLocale() as Locale
   const router = useRouter()
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
-  const _t = useTranslations('Settings.language')
 
   const handleLocaleChange = (newLocale: string) => {
     startTransition(() => {
@@ -51,26 +48,13 @@ export function LocaleSwitcher({ className, showLabel = true }: LocaleSwitcherPr
       onValueChange={handleLocaleChange}
       disabled={isPending}
     >
-      <SelectTrigger className={cn('w-[140px]', className)}>
-        <Globe className="h-4 w-4 mr-2" />
-        <SelectValue>
-          {showLabel ? (
-            <span className="flex items-center gap-2">
-              <span>{localeFlags[locale]}</span>
-              <span>{localeLabels[locale]}</span>
-            </span>
-          ) : (
-            <span>{localeFlags[locale]}</span>
-          )}
-        </SelectValue>
+      <SelectTrigger className={cn('w-[70px]', className)}>
+        <SelectValue>{localeCodes[locale]}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {routing.locales.map((loc) => (
           <SelectItem key={loc} value={loc}>
-            <span className="flex items-center gap-2">
-              <span>{localeFlags[loc]}</span>
-              <span>{localeLabels[loc]}</span>
-            </span>
+            {localeNames[loc]}
           </SelectItem>
         ))}
       </SelectContent>
