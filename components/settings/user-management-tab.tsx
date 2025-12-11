@@ -37,10 +37,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { MoreHorizontal, Pencil, Trash2, UserCog, Search, Loader2, Plus } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, UserCog, Search, Loader2, Plus, RotateCcw, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { UserFormDialog } from './user-form-dialog'
-import { deleteUser } from '@/lib/actions/users'
+import { deleteUser, restoreUser } from '@/lib/actions/users'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -72,10 +74,12 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
   const [users, setUsers] = useState(initialUsers)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [showDeleted, setShowDeleted] = useState(false)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [dialogKey, setDialogKey] = useState(0)
   const [editingUser, setEditingUser] = useState<UserWithStores | null>(null)
   const [deletingUser, setDeletingUser] = useState<UserWithStores | null>(null)
+  const [restoringUser, setRestoringUser] = useState<UserWithStores | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const filteredUsers = users.filter((user) => {
@@ -85,7 +89,10 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
 
     const matchesRole = roleFilter === 'all' || user.role === roleFilter
 
-    return matchesSearch && matchesRole
+    // Filter deleted users unless showDeleted is enabled
+    const matchesDeletedFilter = showDeleted || !user.deleted_at
+
+    return matchesSearch && matchesRole && matchesDeletedFilter
   })
 
   const handleDelete = async () => {
@@ -95,13 +102,40 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
       const result = await deleteUser(deletingUser.id)
 
       if (result.success) {
-        setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id))
+        // Update user's deleted_at instead of removing from list
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === deletingUser.id ? { ...u, deleted_at: new Date().toISOString() } : u
+          )
+        )
         toast.success(t('messages.deleted'))
       } else {
         toast.error(result.error || t('errors.deleteFailed'))
       }
 
       setDeletingUser(null)
+    })
+  }
+
+  const handleRestore = async () => {
+    if (!restoringUser) return
+
+    startTransition(async () => {
+      const result = await restoreUser(restoringUser.id)
+
+      if (result.success) {
+        // Update user's deleted_at to null
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === restoringUser.id ? { ...u, deleted_at: null } : u
+          )
+        )
+        toast.success(t('messages.restored'))
+      } else {
+        toast.error(result.error || t('errors.restoreFailed'))
+      }
+
+      setRestoringUser(null)
     })
   }
 
@@ -172,6 +206,16 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
                 <SelectItem value="cashier">{tAuth('cashier')}</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show-deleted"
+                checked={showDeleted}
+                onCheckedChange={(checked) => setShowDeleted(checked === true)}
+              />
+              <Label htmlFor="show-deleted" className="text-sm text-muted-foreground cursor-pointer">
+                {t('showDeleted')}
+              </Label>
+            </div>
           </div>
 
           {/* Table */}
@@ -198,57 +242,86 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {user.full_name || 'Unnamed'}
+                  filteredUsers.map((user) => {
+                    const isDeleted = !!user.deleted_at
+                    return (
+                      <TableRow key={user.id} className={isDeleted ? 'opacity-60 bg-muted/30' : ''}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {isDeleted && (
+                              <UserX className="h-4 w-4 text-red-500 shrink-0" />
+                            )}
+                            <div>
+                              <div className={`font-medium ${isDeleted ? 'line-through' : ''}`}>
+                                {user.full_name || 'Unnamed'}
+                              </div>
+                              <div className="text-sm text-muted-foreground sm:hidden">
+                                {user.email}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-sm text-muted-foreground sm:hidden">
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <span className={isDeleted ? 'line-through' : ''}>
                             {user.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {user.email}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className={roleColors[user.role]}
-                        >
-                          {tAuth(user.role as 'admin' | 'manager' | 'cashier')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {getAssignedStores(user)}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditingUser(user)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              {t('form.editTitle')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setDeletingUser(user)}
-                              className="text-red-600"
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="secondary"
+                              className={roleColors[user.role]}
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              {t('delete.confirm')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                              {tAuth(user.role as 'admin' | 'manager' | 'cashier')}
+                            </Badge>
+                            {isDeleted && (
+                              <Badge variant="destructive" className="text-xs">
+                                {t('status.deleted')}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-muted-foreground">
+                          {getAssignedStores(user)}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {isDeleted ? (
+                                <DropdownMenuItem
+                                  onClick={() => setRestoringUser(user)}
+                                  className="text-green-600"
+                                >
+                                  <RotateCcw className="h-4 w-4 mr-2" />
+                                  {t('restore.action')}
+                                </DropdownMenuItem>
+                              ) : (
+                                <>
+                                  <DropdownMenuItem onClick={() => setEditingUser(user)}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    {t('form.editTitle')}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setDeletingUser(user)}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {t('delete.confirm')}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
                 )}
               </TableBody>
             </Table>
@@ -290,6 +363,29 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
             >
               {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isPending ? t('delete.deleting') : t('delete.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Restore Confirmation Dialog */}
+      <AlertDialog open={!!restoringUser} onOpenChange={(open) => !open && setRestoringUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('restore.title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('restore.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRestore}
+              disabled={isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isPending ? t('restore.restoring') : t('restore.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

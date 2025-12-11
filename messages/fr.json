@@ -542,14 +542,26 @@
       },
       "delete": {
         "title": "Supprimer l'utilisateur",
-        "description": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.",
+        "description": "Êtes-vous sûr de vouloir supprimer cet utilisateur ? L'utilisateur sera désactivé mais son historique de ventes sera conservé.",
         "confirm": "Supprimer",
         "deleting": "Suppression..."
       },
+      "restore": {
+        "title": "Restaurer l'utilisateur",
+        "description": "Êtes-vous sûr de vouloir restaurer cet utilisateur ? Il retrouvera l'accès au système.",
+        "action": "Restaurer",
+        "confirm": "Restaurer",
+        "restoring": "Restauration..."
+      },
+      "status": {
+        "deleted": "Supprimé"
+      },
+      "showDeleted": "Afficher supprimés",
       "messages": {
         "created": "Utilisateur créé avec succès",
         "updated": "Utilisateur mis à jour avec succès",
-        "deleted": "Utilisateur supprimé avec succès"
+        "deleted": "Utilisateur supprimé avec succès",
+        "restored": "Utilisateur restauré avec succès"
       },
       "errors": {
         "emailRequired": "L'email est requis",
@@ -561,7 +573,8 @@
         "roleRequired": "Le rôle est requis",
         "createFailed": "Échec de la création de l'utilisateur",
         "updateFailed": "Échec de la mise à jour de l'utilisateur",
-        "deleteFailed": "Échec de la suppression de l'utilisateur"
+        "deleteFailed": "Échec de la suppression de l'utilisateur",
+        "restoreFailed": "Échec de la restauration de l'utilisateur"
       }
     },
     "categories": {

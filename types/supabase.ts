@@ -67,6 +67,13 @@ export type Database = {
             foreignKeyName: "business_settings_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -150,7 +157,21 @@ export type Database = {
             foreignKeyName: "cash_sessions_approved_by_fkey"
             columns: ["approved_by"]
             isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -255,6 +276,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "manager_pins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "manager_pins_user_id_fkey"
             columns: ["user_id"]
@@ -442,6 +470,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          deleted_at: string | null
           email: string
           full_name: string | null
           id: string
@@ -453,6 +482,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email: string
           full_name?: string | null
           id: string
@@ -464,6 +494,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
@@ -628,6 +659,13 @@ export type Database = {
             columns: ["cash_session_id"]
             isOneToOne: false
             referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -808,6 +846,13 @@ export type Database = {
             foreignKeyName: "user_stores_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_stores_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -815,6 +860,47 @@ export type Database = {
       }
     }
     Views: {
+      active_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          store_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          store_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
+          store_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cashier_performance_summary: {
         Row: {
           avg_transaction: number | null
@@ -829,6 +915,13 @@ export type Database = {
           transaction_count: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_cashier_id_fkey"
             columns: ["cashier_id"]
@@ -1169,6 +1262,9 @@ export type Database = {
           store_name: string
         }[]
       }
+      is_user_active: { Args: { check_user_id: string }; Returns: boolean }
+      restore_deleted_user: { Args: { target_user_id: string }; Returns: Json }
+      soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
     }
     Enums: {
