@@ -542,14 +542,26 @@
       },
       "delete": {
         "title": "Delete User",
-        "description": "Are you sure you want to delete this user? This action cannot be undone.",
+        "description": "Are you sure you want to delete this user? The user will be deactivated but their sales history will be preserved.",
         "confirm": "Delete",
         "deleting": "Deleting..."
       },
+      "restore": {
+        "title": "Restore User",
+        "description": "Are you sure you want to restore this user? They will regain access to the system.",
+        "action": "Restore",
+        "confirm": "Restore",
+        "restoring": "Restoring..."
+      },
+      "status": {
+        "deleted": "Deleted"
+      },
+      "showDeleted": "Show deleted",
       "messages": {
         "created": "User created successfully",
         "updated": "User updated successfully",
-        "deleted": "User deleted successfully"
+        "deleted": "User deleted successfully",
+        "restored": "User restored successfully"
       },
       "errors": {
         "emailRequired": "Email is required",
@@ -561,7 +573,8 @@
         "roleRequired": "Role is required",
         "createFailed": "Failed to create user",
         "updateFailed": "Failed to update user",
-        "deleteFailed": "Failed to delete user"
+        "deleteFailed": "Failed to delete user",
+        "restoreFailed": "Failed to restore user"
       }
     },
     "categories": {

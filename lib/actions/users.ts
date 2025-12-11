@@ -34,6 +34,7 @@ interface ActionResult<T = unknown> {
 export async function getUsers(filters?: {
   search?: string
   role?: string
+  includeDeleted?: boolean
 }): Promise<ActionResult> {
   try {
     const supabase = await createClient()
@@ -70,6 +71,11 @@ export async function getUsers(filters?: {
         )
       `)
       .order('created_at', { ascending: false })
+
+    // Filter deleted users by default (only show active users)
+    if (!filters?.includeDeleted) {
+      query = query.is('deleted_at', null)
+    }
 
     // Apply filters
     if (filters?.search) {
@@ -299,9 +305,8 @@ export async function updateUserStores(userId: string, data: StoreAssignmentInpu
 }
 
 /**
- * Delete a user (admin only)
- * Note: This only removes the profile, not the auth user.
- * In production, you may want to use Supabase Admin API to delete the auth user as well.
+ * Soft delete a user (admin only)
+ * Uses soft_delete_user() database function to preserve sales/session history
  */
 export async function deleteUser(userId: string): Promise<ActionResult> {
   try {
@@ -313,69 +318,76 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
       return { success: false, error: 'Not authenticated' }
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return { success: false, error: 'Only admins can delete users' }
-    }
-
-    // Prevent admin from deleting themselves
-    if (userId === user.id) {
-      return { success: false, error: 'You cannot delete your own account' }
-    }
-
-    // Check if user has open cash sessions
+    // Check if user has open cash sessions before soft delete
     const { count: sessionCount } = await supabase
       .from('cash_sessions')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
+      .eq('cashier_id', userId)
       .is('closed_at', null)
 
     if (sessionCount && sessionCount > 0) {
       return { success: false, error: 'Cannot delete user with open cash sessions' }
     }
 
-    // Delete user's store assignments first
-    const { error: storeError } = await supabase
-      .from('user_stores')
-      .delete()
-      .eq('user_id', userId)
-
-    if (storeError) {
-      console.error('Error deleting store assignments:', storeError)
-      // Continue anyway
-    }
-
-    // Delete user's PIN if exists
-    const { error: pinError } = await supabase
-      .from('manager_pins')
-      .delete()
-      .eq('user_id', userId)
-
-    if (pinError) {
-      console.error('Error deleting PIN:', pinError)
-      // Continue anyway
-    }
-
-    // Delete the profile
-    const { error } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId)
+    // Call the soft_delete_user database function
+    const { data, error } = await supabase.rpc('soft_delete_user', {
+      target_user_id: userId,
+    })
 
     if (error) {
-      console.error('Error deleting user:', error)
+      console.error('Error soft deleting user:', error)
       return { success: false, error: 'Failed to delete user' }
     }
 
+    // The function returns a JSONB object with success/error
+    const result = data as { success: boolean; error?: string; message?: string; preserved_records?: { sales: number; cash_sessions: number } }
+
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to delete user' }
+    }
+
     revalidatePath('/settings')
-    return { success: true }
+    return { success: true, data: result }
   } catch (error) {
     console.error('Error deleting user:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Restore a soft-deleted user (admin only)
+ */
+export async function restoreUser(userId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+
+    // Verify user is admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    // Call the restore_deleted_user database function
+    const { data, error } = await supabase.rpc('restore_deleted_user', {
+      target_user_id: userId,
+    })
+
+    if (error) {
+      console.error('Error restoring user:', error)
+      return { success: false, error: 'Failed to restore user' }
+    }
+
+    // The function returns a JSONB object with success/error
+    const result = data as { success: boolean; error?: string; message?: string }
+
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to restore user' }
+    }
+
+    revalidatePath('/settings')
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('Error restoring user:', error)
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
