@@ -10,7 +10,7 @@ const userUpdateSchema = z.object({
   role: z.enum(['admin', 'manager', 'cashier']).optional(),
 })
 
-// Validation schema for store assignments
+// Validation schema for store assignments (simple version - normalization done before validation)
 const storeAssignmentSchema = z.object({
   store_ids: z.array(z.string().uuid()),
   default_store_id: z.string().uuid().optional(),
@@ -221,8 +221,29 @@ export async function updateUserStores(userId: string, data: StoreAssignmentInpu
       return { success: false, error: 'Only admins can update store assignments' }
     }
 
-    // Validate input
-    const validated = storeAssignmentSchema.parse(data)
+    // Normalize the input data to ensure arrays are properly formed
+    const normalizedStoreIds = Array.isArray(data.store_ids)
+      ? data.store_ids.filter((id): id is string => typeof id === 'string' && id.trim() !== '')
+      : []
+    const normalizedDefaultStoreId = typeof data.default_store_id === 'string' && data.default_store_id.trim() !== ''
+      ? data.default_store_id
+      : undefined
+
+    // UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    for (const storeId of normalizedStoreIds) {
+      if (!uuidRegex.test(storeId)) {
+        return { success: false, error: 'Invalid store ID format' }
+      }
+    }
+    if (normalizedDefaultStoreId && !uuidRegex.test(normalizedDefaultStoreId)) {
+      return { success: false, error: 'Invalid default store ID format' }
+    }
+
+    const validated = {
+      store_ids: normalizedStoreIds,
+      default_store_id: normalizedDefaultStoreId,
+    }
 
     // Delete existing store assignments
     const { error: deleteError } = await supabase
@@ -269,9 +290,6 @@ export async function updateUserStores(userId: string, data: StoreAssignmentInpu
     revalidatePath('/settings')
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0].message }
-    }
     console.error('Error updating store assignments:', error)
     return { success: false, error: 'An unexpected error occurred' }
   }
