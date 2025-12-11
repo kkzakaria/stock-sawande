@@ -10,10 +10,13 @@ const userUpdateSchema = z.object({
   role: z.enum(['admin', 'manager', 'cashier']).optional(),
 })
 
+// UUID regex that accepts any UUID format (not just RFC 4122 compliant)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 // Validation schema for store assignments (simple version - normalization done before validation)
 const storeAssignmentSchema = z.object({
-  store_ids: z.array(z.string().uuid()),
-  default_store_id: z.string().uuid().optional(),
+  store_ids: z.array(z.string().regex(uuidRegex, 'Invalid UUID')),
+  default_store_id: z.string().regex(uuidRegex, 'Invalid UUID').optional(),
 })
 
 type UserUpdateInput = z.infer<typeof userUpdateSchema>

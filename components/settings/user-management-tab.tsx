@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { MoreHorizontal, Pencil, Trash2, UserCog, Search, Loader2 } from 'lucide-react'
+import { MoreHorizontal, Pencil, Trash2, UserCog, Search, Loader2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { UserFormDialog } from './user-form-dialog'
 import { deleteUser } from '@/lib/actions/users'
@@ -72,6 +72,8 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
   const [users, setUsers] = useState(initialUsers)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [dialogKey, setDialogKey] = useState(0)
   const [editingUser, setEditingUser] = useState<UserWithStores | null>(null)
   const [deletingUser, setDeletingUser] = useState<UserWithStores | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -110,6 +112,11 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
     setEditingUser(null)
   }
 
+  const handleUserCreated = (newUser: UserWithStores) => {
+    setUsers((prev) => [newUser, ...prev])
+    setIsAddDialogOpen(false)
+  }
+
   const getAssignedStores = (user: UserWithStores) => {
     if (!user.user_stores || user.user_stores.length === 0) {
       return '-'
@@ -125,7 +132,7 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
     <>
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <UserCog className="h-5 w-5" />
@@ -133,6 +140,13 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
               </CardTitle>
               <CardDescription>{t('description')}</CardDescription>
             </div>
+            <Button onClick={() => {
+              setDialogKey((k) => k + 1)
+              setIsAddDialogOpen(true)
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t('add')}
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -240,22 +254,23 @@ export function UserManagementTab({ initialUsers, stores }: UserManagementTabPro
             </Table>
           </div>
 
-          <p className="text-sm text-muted-foreground mt-4">
-            Note: New users are created when they sign up. You can modify their role and store assignments here.
-          </p>
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
-      {editingUser && (
-        <UserFormDialog
-          open={!!editingUser}
-          onOpenChange={(open) => !open && setEditingUser(null)}
-          user={editingUser}
-          stores={stores}
-          onSuccess={handleUserUpdated}
-        />
-      )}
+      {/* Add/Edit Dialog */}
+      <UserFormDialog
+        key={editingUser?.id || `new-${dialogKey}`}
+        open={isAddDialogOpen || !!editingUser}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsAddDialogOpen(false)
+            setEditingUser(null)
+          }
+        }}
+        user={editingUser}
+        stores={stores}
+        onSuccess={editingUser ? handleUserUpdated : handleUserCreated}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
