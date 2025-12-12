@@ -32,6 +32,12 @@ import { Tables } from '@/types/supabase'
 
 type CashSession = Tables<'cash_sessions'>
 
+interface OtherStoreInventory {
+  storeId: string
+  storeName: string
+  quantity: number
+}
+
 interface Product {
   id: string
   sku: string
@@ -42,6 +48,9 @@ interface Product {
   category: { id: string; name: string } | null
   inventoryId: string
   quantity: number
+  // Multi-store info
+  totalQuantity?: number
+  otherStoresInventory?: OtherStoreInventory[]
 }
 
 interface POSClientProps {
@@ -252,17 +261,24 @@ export function POSClient({
   // - Via reserveStock() during offline sales
   // - Via syncProducts() after transaction sync (with clearReservations=true)
   const displayProducts: Product[] = (cacheIsInitialized && cachedProducts.length > 0)
-    ? cachedProducts.map((cp) => ({
-        id: cp.id,
-        sku: cp.sku,
-        name: cp.name,
-        price: cp.price,
-        barcode: cp.barcode,
-        imageUrl: cp.imageUrl,
-        category: cp.category,
-        inventoryId: cp.inventoryId,
-        quantity: cp.localStock, // Use local stock (server stock - reserved)
-      }))
+    ? cachedProducts.map((cp) => {
+        // Find the original product to get multi-store info
+        const originalProduct = products.find(p => p.id === cp.id)
+        return {
+          id: cp.id,
+          sku: cp.sku,
+          name: cp.name,
+          price: cp.price,
+          barcode: cp.barcode,
+          imageUrl: cp.imageUrl,
+          category: cp.category,
+          inventoryId: cp.inventoryId,
+          quantity: cp.localStock, // Use local stock (server stock - reserved)
+          // Preserve multi-store info from server props
+          totalQuantity: originalProduct?.totalQuantity,
+          otherStoresInventory: originalProduct?.otherStoresInventory,
+        }
+      })
     : products
 
   // Filter products based on search query
