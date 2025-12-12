@@ -94,6 +94,45 @@ export interface StoreFilters {
 }
 
 /**
+ * Proformas page filters
+ */
+export interface ProformaFilters {
+  search?: string | null;
+  status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'converted' | 'expired' | null;
+  store?: string | null;
+  customerId?: string | null;
+  dateFrom?: Date | null;
+  dateTo?: Date | null;
+  sortBy?: 'created_at' | 'total_amount' | 'proforma_number' | 'valid_until' | null;
+  sortOrder?: SortOrder;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * Proforma sort by options
+ */
+export const PROFORMA_SORT_OPTIONS = [
+  { label: 'Date', value: 'created_at' },
+  { label: 'Amount', value: 'total_amount' },
+  { label: 'Number', value: 'proforma_number' },
+  { label: 'Valid Until', value: 'valid_until' },
+] as const;
+
+/**
+ * Proforma status options
+ */
+export const PROFORMA_STATUS_OPTIONS = [
+  { label: 'All', value: null },
+  { label: 'Draft', value: 'draft' },
+  { label: 'Sent', value: 'sent' },
+  { label: 'Accepted', value: 'accepted' },
+  { label: 'Rejected', value: 'rejected' },
+  { label: 'Converted', value: 'converted' },
+  { label: 'Expired', value: 'expired' },
+] as const;
+
+/**
  * Common pagination defaults
  */
 export const PAGINATION_DEFAULTS = {

@@ -42,6 +42,7 @@
     "dashboard": "Dashboard",
     "products": "Products",
     "sales": "Sales",
+    "proformas": "Proformas",
     "pos": "POS",
     "reports": "Reports",
     "stores": "Stores",
@@ -331,6 +332,205 @@
       "dateTo": "To date",
       "status": "Status",
       "paymentMethod": "Payment method"
+    }
+  },
+
+  "Proformas": {
+    "title": "Proformas",
+    "createNew": "New Proforma",
+    "searchPlaceholder": "Search proformas...",
+    "empty": "No proformas found.",
+    "columns": {
+      "number": "Number",
+      "date": "Date",
+      "customer": "Customer",
+      "total": "Total",
+      "validUntil": "Valid Until",
+      "status": "Status"
+    },
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "converted": "Converted",
+      "expired": "Expired"
+    },
+    "customer": {
+      "notSpecified": "Not specified"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "send": "Mark as Sent",
+      "accept": "Mark as Accepted",
+      "reject": "Mark as Rejected",
+      "convertToSale": "Convert to Sale",
+      "print": "Print",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "detail": {
+      "title": "Proforma Details",
+      "number": "Proforma Number",
+      "createdAt": "Created",
+      "store": "Store",
+      "createdBy": "Created By",
+      "validUntil": "Valid Until",
+      "noExpiry": "No expiry date",
+      "customer": "Customer",
+      "statusHistory": "Status History",
+      "items": "Items",
+      "noItems": "No items",
+      "terms": "Terms & Conditions",
+      "notes": "Notes"
+    },
+    "statusHistory": {
+      "sent": "Sent",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "converted": "Converted to sale"
+    },
+    "itemColumns": {
+      "product": "Product",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "discount": "Discount",
+      "subtotal": "Subtotal"
+    },
+    "totals": {
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "discount": "Discount",
+      "total": "Total"
+    },
+    "rejection": {
+      "title": "Rejection Information",
+      "reason": "Reason"
+    },
+    "expiry": {
+      "title": "Proforma Expired",
+      "message": "This proforma has passed its validity date. You may still convert it to a sale if needed."
+    },
+    "convert": {
+      "title": "Convert to Sale",
+      "description": "Convert proforma {proformaNumber} to a completed sale",
+      "proforma": "Proforma",
+      "customer": "Customer",
+      "total": "Total",
+      "paymentMethod": "Payment Method",
+      "paymentReference": "Payment Reference",
+      "paymentReferencePlaceholder": "Transaction ID, check number, etc.",
+      "confirm": "Convert to Sale",
+      "converting": "Converting...",
+      "success": "Proforma converted successfully",
+      "saleCreated": "Sale {saleNumber} created",
+      "error": "Failed to convert proforma"
+    },
+    "paymentMethods": {
+      "cash": "Cash",
+      "card": "Card",
+      "mobile": "Mobile",
+      "other": "Other"
+    },
+    "statusUpdate": {
+      "processing": "Processing...",
+      "error": "Failed to update status",
+      "sent": {
+        "title": "Mark as Sent",
+        "description": "Mark proforma {proformaNumber} as sent to customer",
+        "note": "This indicates the proforma has been sent to the customer for review.",
+        "confirm": "Mark as Sent",
+        "success": "Proforma marked as sent"
+      },
+      "accepted": {
+        "title": "Mark as Accepted",
+        "description": "Mark proforma {proformaNumber} as accepted by customer",
+        "note": "This indicates the customer has accepted the proforma. You can then convert it to a sale.",
+        "confirm": "Mark as Accepted",
+        "success": "Proforma marked as accepted"
+      },
+      "rejected": {
+        "title": "Mark as Rejected",
+        "description": "Mark proforma {proformaNumber} as rejected by customer",
+        "reasonLabel": "Rejection Reason",
+        "reasonPlaceholder": "Enter the reason for rejection...",
+        "confirm": "Mark as Rejected",
+        "success": "Proforma marked as rejected"
+      }
+    },
+    "delete": {
+      "title": "Delete Proforma",
+      "description": "Are you sure you want to delete proforma {proformaNumber}? This action cannot be undone.",
+      "confirm": "Delete",
+      "deleting": "Deleting...",
+      "success": "Proforma deleted successfully",
+      "error": "Failed to delete proforma"
+    },
+    "new": {
+      "title": "New Proforma"
+    },
+    "edit": {
+      "title": "Edit Proforma"
+    },
+    "form": {
+      "sections": {
+        "general": "General Information",
+        "items": "Products",
+        "additional": "Additional Information",
+        "summary": "Summary"
+      },
+      "store": "Store",
+      "selectStore": "Select store",
+      "customer": "Customer",
+      "selectCustomer": "Select customer",
+      "searchCustomer": "Search customer...",
+      "noCustomerFound": "No customer found",
+      "noCustomer": "No customer (walk-in)",
+      "validUntil": "Valid Until",
+      "selectDate": "Select date",
+      "addProduct": "Add Product",
+      "searchProduct": "Search product...",
+      "noProductFound": "No product found",
+      "noItemsAdded": "No products added. Click 'Add Product' to get started.",
+      "quantity": "Quantity",
+      "unitPrice": "Unit Price",
+      "itemDiscount": "Discount",
+      "lineTotal": "Line Total",
+      "notes": "Notes",
+      "notesPlaceholder": "Internal notes about this proforma...",
+      "terms": "Terms & Conditions",
+      "termsPlaceholder": "Payment terms, delivery conditions, etc.",
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "globalDiscount": "Global Discount",
+      "total": "Total",
+      "saving": "Saving...",
+      "create": "Create Proforma",
+      "update": "Update Proforma",
+      "cancel": "Cancel",
+      "errors": {
+        "noItems": "Please add at least one product",
+        "generic": "An error occurred"
+      }
+    },
+    "print": {
+      "title": "Print Proforma",
+      "description": "Proforma {number} - Print or download",
+      "proformaInvoice": "PROFORMA INVOICE",
+      "billTo": "Bill To",
+      "noCustomer": "Walk-in customer",
+      "dateIssued": "Date Issued",
+      "validUntil": "Valid Until",
+      "termsConditions": "Terms & Conditions",
+      "notes": "Notes",
+      "generatedBy": "Generated by",
+      "createdBy": "Created by",
+      "scanToVerify": "Scan to verify",
+      "printButton": "Print",
+      "downloadButton": "Download"
     }
   },
 

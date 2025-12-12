@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   ShoppingCart,
+  FileText,
   CreditCard,
   BarChart3,
   Store,
@@ -27,6 +28,7 @@ interface NavTranslations {
   dashboard: string
   products: string
   sales: string
+  proformas: string
   pos: string
   reports: string
   stores: string
@@ -55,6 +57,12 @@ const navItems = [
     titleKey: 'sales',
     href: '/sales',
     icon: ShoppingCart,
+    roles: ['admin', 'manager', 'cashier'],
+  },
+  {
+    titleKey: 'proformas',
+    href: '/proformas',
+    icon: FileText,
     roles: ['admin', 'manager', 'cashier'],
   },
   {
