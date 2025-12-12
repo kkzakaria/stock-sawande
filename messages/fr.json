@@ -645,6 +645,10 @@
     "session": {
       "open": "Ouvrir la caisse",
       "close": "Fermer la caisse",
+      "closeConfirmTitle": "Fermer la caisse",
+      "closeConfirmDescription": "Vous allez procéder à la fermeture de la caisse. Vous devrez compter les espèces et valider le montant.",
+      "closeCancel": "Annuler",
+      "closeProceed": "Procéder à la fermeture",
       "opening": "Ouverture de la caisse",
       "closing": "Fermeture de la caisse",
       "openingAmount": "Montant d'ouverture",

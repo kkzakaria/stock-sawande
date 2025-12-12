@@ -3,7 +3,18 @@
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Wallet, Clock, LogOut } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Wallet, Clock, DoorOpen, Receipt } from 'lucide-react'
 import { Tables } from '@/types/supabase'
 
 type CashSession = Tables<'cash_sessions'>
@@ -67,15 +78,49 @@ export function CashSessionStatus({
         <span>{session.transaction_count} {tStatus('sales')}</span>
       </div>
 
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={onCloseSession}
-        className="gap-1"
-      >
-        <LogOut className="h-3 w-3" />
-        {t('close')}
-      </Button>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1 border-orange-300 text-orange-700 hover:bg-orange-50 hover:text-orange-800 hover:border-orange-400"
+          >
+            <DoorOpen className="h-4 w-4" />
+            {t('close')}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              {t('closeConfirmTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('closeConfirmDescription')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{tStatus('sales')}:</span>
+              <span className="font-medium">{session.transaction_count}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{tStatus('fund')}:</span>
+              <span className="font-medium">{formatCurrency(Number(session.opening_amount))}</span>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('closeCancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onCloseSession}
+              className="bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <DoorOpen className="mr-2 h-4 w-4" />
+              {t('closeProceed')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -645,6 +645,10 @@
     "session": {
       "open": "Open Register",
       "close": "Close Register",
+      "closeConfirmTitle": "Close Register",
+      "closeConfirmDescription": "You are about to close the register. You will need to count the cash and validate the amount.",
+      "closeCancel": "Cancel",
+      "closeProceed": "Proceed to Close",
       "opening": "Opening Register",
       "closing": "Closing Register",
       "openingAmount": "Opening Amount",
