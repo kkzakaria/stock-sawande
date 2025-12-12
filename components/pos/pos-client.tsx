@@ -196,9 +196,9 @@ export function POSClient({
       }, 500) // 500ms delay to batch multiple changes
     }
 
-    // Subscribe to inventory changes for this store
+    // Channel 1: Subscribe to inventory changes for THIS store (same store updates)
     // Using both broadcast (for local dev) and postgres_changes (for production)
-    const channel = supabase
+    const localChannel = supabase
       .channel(`inventory-${storeId}`)
       // Broadcast messages: client-to-client communication (works in local dev)
       .on(
@@ -227,7 +227,7 @@ export function POSClient({
           filter: `store_id=eq.${storeId}`,
         },
         (payload) => {
-          console.log('[Realtime] Postgres change detected:', payload)
+          console.log('[Realtime] Postgres change detected (local store):', payload)
 
           // Notify user of stock changes from other cashiers
           toast.info('Stock updated by another cashier', {
@@ -240,16 +240,43 @@ export function POSClient({
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Subscription status:', status)
+        console.log('[Realtime] Local store subscription status:', status)
       })
 
-    // Cleanup subscription on unmount
+    // Channel 2: Subscribe to inventory changes in ALL OTHER stores
+    // This updates the "Available elsewhere" indicator in real-time
+    const globalChannel = supabase
+      .channel('inventory-global')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE', // Only listen to updates (stock changes)
+          schema: 'public',
+          table: 'product_inventory',
+        },
+        (payload) => {
+          // Only process changes from OTHER stores
+          const changedStoreId = payload.new?.store_id || payload.old?.store_id
+          if (changedStoreId && changedStoreId !== storeId) {
+            console.log('[Realtime] Postgres change detected (other store):', payload)
+
+            // Silent refresh - no toast for other stores, just update the indicator
+            debouncedRefresh()
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[Realtime] Global inventory subscription status:', status)
+      })
+
+    // Cleanup subscriptions on unmount
     return () => {
-      console.log('[Realtime] Cleaning up subscription')
+      console.log('[Realtime] Cleaning up subscriptions')
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
       }
-      supabase.removeChannel(channel)
+      supabase.removeChannel(localChannel)
+      supabase.removeChannel(globalChannel)
     }
   }, [storeId, router])
 
