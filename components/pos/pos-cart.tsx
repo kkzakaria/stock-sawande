@@ -312,14 +312,24 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
         <h2 className="text-xl font-bold flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
           {t('title')}
+          {items.length > 0 && (
+            <span className="text-sm font-normal text-muted-foreground">
+              ({items.length})
+            </span>
+          )}
         </h2>
         {items.length > 0 && (
           <Button
-            variant="ghost"
+            variant="destructive"
             size="sm"
-            onClick={clearCart}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={() => {
+              if (window.confirm(t('clearConfirm'))) {
+                clearCart()
+              }
+            }}
+            className="gap-1"
           >
+            <Trash2 className="h-4 w-4" />
             {t('clear')}
           </Button>
         )}

@@ -578,6 +578,7 @@
     "cart": {
       "title": "Cart",
       "clear": "Clear",
+      "clearConfirm": "Are you sure you want to clear the cart?",
       "empty": "Cart is empty",
       "emptyHint": "Add products to get started",
       "subtotal": "Subtotal",

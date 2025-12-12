@@ -578,6 +578,7 @@
     "cart": {
       "title": "Panier",
       "clear": "Vider",
+      "clearConfirm": "Êtes-vous sûr de vouloir vider le panier ?",
       "empty": "Panier vide",
       "emptyHint": "Ajoutez des produits pour commencer",
       "subtotal": "Sous-total",
