@@ -697,6 +697,10 @@
       "placeholder": "Rechercher un produit...",
       "noResults": "Aucun produit trouvé"
     },
+    "stock": {
+      "availableElsewhere": "Disponible dans d'autres magasins",
+      "totalOther": "Total ailleurs"
+    },
     "errors": {
       "noStoreAssigned": "Aucun magasin assigné",
       "noStoreDescription": "Vous devez être assigné à un magasin pour utiliser le système de caisse.",

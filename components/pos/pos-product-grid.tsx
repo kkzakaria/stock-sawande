@@ -13,6 +13,13 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Search, Plus, Package } from 'lucide-react'
 import { formatCurrency } from '@/lib/store/cart-store'
+import { POSStockIndicator } from './pos-stock-indicator'
+
+interface OtherStoreInventory {
+  storeId: string
+  storeName: string
+  quantity: number
+}
 
 interface Product {
   id: string
@@ -24,6 +31,9 @@ interface Product {
   category: { id: string; name: string } | null
   inventoryId: string
   quantity: number
+  // Multi-store info
+  totalQuantity?: number
+  otherStoresInventory?: OtherStoreInventory[]
 }
 
 interface POSProductGridProps {
@@ -123,17 +133,10 @@ export function POSProductGrid({
                     <span className="text-lg font-bold text-blue-600">
                       {formatCurrency(product.price)}
                     </span>
-                    <span
-                      className={`text-sm font-semibold ${
-                        product.quantity > 10
-                          ? 'text-green-600'
-                          : product.quantity > 0
-                          ? 'text-orange-600'
-                          : 'text-red-600'
-                      }`}
-                    >
-                      {product.quantity}
-                    </span>
+                    <POSStockIndicator
+                      quantity={product.quantity}
+                      otherStoresInventory={product.otherStoresInventory ?? []}
+                    />
                   </div>
 
                   {/* Add Button */}

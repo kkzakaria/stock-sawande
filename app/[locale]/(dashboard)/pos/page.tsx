@@ -129,7 +129,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }
   }
 
-  // Fetch products with inventory for current store
+  // Fetch products with ALL inventory (not just current store) for multi-store visibility
   const { data: products, error: productsError } = await supabase
     .from('product_templates')
     .select(
@@ -144,12 +144,12 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
       inventory:product_inventory!product_inventory_product_id_fkey(
         id,
         quantity,
-        store_id
+        store_id,
+        stores:store_id(name)
       )
     `
     )
     .eq('is_active', true)
-    .eq('inventory.store_id', activeStoreId)
     .order('name')
 
   if (productsError) {
@@ -164,7 +164,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
-  // Transform products to include only current store's inventory
+  // Transform products to include current store's inventory + multi-store info
   const productsWithInventory = products
     ?.map((product) => {
       const storeInventory = product.inventory.find(
@@ -172,6 +172,23 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
       )
 
       if (!storeInventory) return null
+
+      // Calculate total quantity across all stores and other stores info
+      const allInventories = product.inventory as Array<{
+        id: string
+        quantity: number
+        store_id: string
+        stores: { name: string } | null
+      }>
+
+      const totalQuantity = allInventories.reduce((sum, inv) => sum + inv.quantity, 0)
+      const otherStoresInventory = allInventories
+        .filter(inv => inv.store_id !== activeStoreId && inv.quantity > 0)
+        .map(inv => ({
+          storeId: inv.store_id,
+          storeName: inv.stores?.name || 'Unknown',
+          quantity: inv.quantity,
+        }))
 
       return {
         id: product.id,
@@ -183,6 +200,9 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
         category: product.category,
         inventoryId: storeInventory.id,
         quantity: storeInventory.quantity,
+        // Multi-store info
+        totalQuantity,
+        otherStoresInventory,
       }
     })
     .filter((p): p is NonNullable<typeof p> => p !== null) || []

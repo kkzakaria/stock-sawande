@@ -697,6 +697,10 @@
       "placeholder": "Search product...",
       "noResults": "No products found"
     },
+    "stock": {
+      "availableElsewhere": "Available in other stores",
+      "totalOther": "Total elsewhere"
+    },
     "errors": {
       "noStoreAssigned": "No Store Assigned",
       "noStoreDescription": "You need to be assigned to a store to use the POS system.",
