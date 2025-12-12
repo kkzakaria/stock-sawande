@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CategoriesTab } from './categories-tab'
 import { UserManagementTab } from './user-management-tab'
 import { BusinessSettingsTab } from './business-settings-tab'
-import { UserCog, Tags, Settings2 } from 'lucide-react'
+import { IntegrationsTab } from './integrations-tab'
+import { UserCog, Tags, Settings2, Plug } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -39,12 +40,29 @@ interface BusinessSettings {
   }
 }
 
+interface IntegrationsSettings {
+  email: {
+    enabled: boolean
+    apiKey: string
+    fromEmail: string
+    fromName: string
+  }
+  whatsapp: {
+    enabled: boolean
+    phoneNumberId: string
+    accessToken: string
+    businessAccountId: string
+    webhookVerifyToken: string
+  }
+}
+
 interface SettingsTabsProps {
   userRole: 'admin' | 'manager' | 'cashier'
   users?: UserWithStores[]
   categories?: Category[]
   stores?: Store[]
   businessSettings?: BusinessSettings
+  integrationsSettings?: IntegrationsSettings
 }
 
 export function SettingsTabs({
@@ -53,6 +71,7 @@ export function SettingsTabs({
   categories,
   stores,
   businessSettings,
+  integrationsSettings,
 }: SettingsTabsProps) {
   const t = useTranslations('Settings')
 
@@ -86,6 +105,15 @@ export function SettingsTabs({
         value: 'business',
         label: t('tabs.business'),
         icon: Settings2,
+      })
+    }
+
+    // Integrations tab - admin only
+    if (isAdmin) {
+      availableTabs.push({
+        value: 'integrations',
+        label: t('tabs.integrations'),
+        icon: Plug,
       })
     }
 
@@ -130,6 +158,12 @@ export function SettingsTabs({
       {isAdmin && (
         <TabsContent value="business" className="space-y-6">
           <BusinessSettingsTab initialSettings={businessSettings} />
+        </TabsContent>
+      )}
+
+      {isAdmin && (
+        <TabsContent value="integrations" className="space-y-6">
+          <IntegrationsTab initialSettings={integrationsSettings} />
         </TabsContent>
       )}
     </Tabs>

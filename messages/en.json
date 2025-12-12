@@ -783,7 +783,8 @@
       "profile": "Profile",
       "users": "Users",
       "categories": "Categories",
-      "business": "Business"
+      "business": "Business",
+      "integrations": "Integrations"
     },
     "profile": {
       "title": "Profile",
@@ -981,6 +982,52 @@
       "french": "French",
       "english": "English",
       "updating": "Changing language..."
+    },
+    "integrations": {
+      "title": "Integrations",
+      "description": "Configure external services (email, WhatsApp)",
+      "email": {
+        "title": "Email (Resend)",
+        "description": "Configure email sending via Resend for notifications and invoices",
+        "enabled": "Enable email sending",
+        "apiKey": "Resend API Key",
+        "apiKeyHelp": "Get your API key at resend.com/api-keys",
+        "fromEmail": "From Email",
+        "fromName": "From Name",
+        "save": "Save",
+        "testConnection": "Test Connection",
+        "success": "Email settings updated",
+        "error": "Failed to update email settings",
+        "testSuccess": "Test email sent successfully",
+        "testError": "Failed to send test email",
+        "errors": {
+          "apiKeyRequired": "API key is required",
+          "fromEmailRequired": "From email is required"
+        }
+      },
+      "whatsapp": {
+        "title": "WhatsApp Business API",
+        "description": "Configure WhatsApp messaging via Meta Business API",
+        "enabled": "Enable WhatsApp",
+        "phoneNumberId": "Phone Number ID",
+        "phoneNumberIdHelp": "Find it in your Meta Business dashboard",
+        "accessToken": "Access Token",
+        "accessTokenHelp": "Permanent access token from WhatsApp Business API",
+        "businessAccountId": "Business Account ID",
+        "businessAccountIdHelp": "Your WhatsApp Business Account ID",
+        "webhookVerifyToken": "Webhook Verify Token",
+        "webhookVerifyTokenHelp": "Custom token to verify incoming webhooks",
+        "save": "Save",
+        "testConnection": "Test Connection",
+        "success": "WhatsApp settings updated",
+        "error": "Failed to update WhatsApp settings",
+        "testSuccess": "WhatsApp connection verified successfully",
+        "testError": "Failed to verify WhatsApp connection",
+        "errors": {
+          "phoneNumberIdRequired": "Phone Number ID is required",
+          "accessTokenRequired": "Access token is required"
+        }
+      }
     }
   },
 
