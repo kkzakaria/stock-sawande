@@ -1008,6 +1008,7 @@
       "name": "Nom",
       "address": "Adresse",
       "phone": "Téléphone",
+      "email": "Email",
       "manager": "Manager",
       "status": "Statut"
     },
@@ -1017,9 +1018,29 @@
       "inactive": "Inactif"
     },
     "empty": "Aucun magasin trouvé.",
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "messages": {
+      "created": "Magasin créé avec succès",
+      "updated": "Magasin mis à jour avec succès",
+      "deleted": "Magasin supprimé avec succès"
+    },
+    "errors": {
+      "deleteFailed": "Échec de la suppression du magasin"
+    },
+    "delete": {
+      "title": "Supprimer le magasin",
+      "description": "Êtes-vous sûr de vouloir supprimer ce magasin ? Cette action est irréversible. Note: Les magasins avec un inventaire existant ne peuvent pas être supprimés.",
+      "confirm": "Supprimer",
+      "deleting": "Suppression..."
+    },
     "form": {
       "title": "Nouveau magasin",
+      "editTitle": "Modifier le magasin",
       "description": "Ajouter un nouveau magasin à votre organisation",
+      "editDescription": "Mettre à jour les informations du magasin",
       "fields": {
         "name": "Nom du magasin",
         "namePlaceholder": "Ex: Magasin Centre-Ville",
@@ -1038,7 +1059,9 @@
       "buttons": {
         "cancel": "Annuler",
         "create": "Créer le magasin",
-        "creating": "Création en cours..."
+        "creating": "Création en cours...",
+        "update": "Mettre à jour",
+        "updating": "Mise à jour..."
       }
     }
   },
