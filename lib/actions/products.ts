@@ -330,7 +330,7 @@ export async function getProducts(filters: ProductFilters = {}) {
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
-      return { success: false, error: 'Not authenticated', data: [], totalCount: 0 }
+      return { success: false, error: 'Not authenticated', data: [], totalCount: 0, userRole: null }
     }
 
     const { data: profile } = await supabase
@@ -340,23 +340,120 @@ export async function getProducts(filters: ProductFilters = {}) {
       .single()
 
     if (!profile) {
-      return { success: false, error: 'Profile not found', data: [], totalCount: 0 }
+      return { success: false, error: 'Profile not found', data: [], totalCount: 0, userRole: null }
     }
 
     const isAdmin = profile.role === 'admin'
+    const userRole = profile.role
 
-    // Use aggregated view for admins (shows total stock), per-store view for managers
-    // Build query based on role
-    // Note: Using type assertion because products_aggregated view may not be in generated types yet
-    type ViewName = 'products_aggregated' | 'products_with_inventory'
-    const viewName: ViewName = isAdmin ? 'products_aggregated' : 'products_with_inventory'
-    // @ts-expect-error - View exists in database but may not be in generated types
-    let query = supabase.from(viewName).select('*', { count: 'exact' })
-
-    // Managers only see their store's products
+    // For non-admin users with a store, fetch products with both their store's quantity and totals
+    // RLS now allows reading all inventory, so we can see true totals
     if (!isAdmin && profile.store_id) {
-      query = query.eq('store_id', profile.store_id)
+      // Get aggregated totals from the view (now accessible thanks to updated RLS)
+      const { data: aggregatedProducts, error: aggError } = await (supabase.from as (table: string) => ReturnType<typeof supabase.from>)('products_aggregated')
+        .select('*')
+
+      if (aggError) {
+        console.error('Error fetching aggregated products:', aggError)
+        return { success: false, error: aggError.message, data: [], totalCount: 0, userRole }
+      }
+
+      // Get this store's inventory
+      const { data: storeInventory, error: invError } = await supabase
+        .from('product_inventory')
+        .select('product_id, quantity')
+        .eq('store_id', profile.store_id)
+
+      if (invError) {
+        console.error('Error fetching store inventory:', invError)
+        return { success: false, error: invError.message, data: [], totalCount: 0, userRole }
+      }
+
+      // Create a map of product_id -> my_quantity
+      const myInventoryMap = new Map<string, number>()
+      for (const inv of storeInventory || []) {
+        myInventoryMap.set(inv.product_id, inv.quantity)
+      }
+
+      // Merge the data: add my_quantity to each aggregated product
+      const rpcProducts = (aggregatedProducts || []).map((p: Record<string, unknown>) => ({
+        ...p,
+        my_quantity: myInventoryMap.get(p.template_id as string) ?? 0,
+      })).filter((p: Record<string, unknown>) =>
+        // Only show products that exist in this store OR have inventory somewhere
+        myInventoryMap.has(p.template_id as string) || (p.total_quantity as number) > 0
+      )
+
+      // Apply client-side filtering and pagination for RPC results
+      let filteredProducts = rpcProducts || []
+
+      // Apply search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase()
+        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) =>
+          (p.name as string)?.toLowerCase().includes(searchLower) ||
+          (p.sku as string)?.toLowerCase().includes(searchLower)
+        )
+      }
+
+      // Apply category filter
+      if (filters.category) {
+        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) =>
+          p.category_id === filters.category
+        )
+      }
+
+      // Apply status filter
+      if (filters.status === 'active') {
+        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) => p.is_active === true)
+      } else if (filters.status === 'inactive') {
+        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) => p.is_active === false)
+      }
+
+      // Get total count before pagination
+      const totalCount = filteredProducts.length
+
+      // Apply sorting
+      const sortBy = filters.sortBy || 'name'
+      const sortOrder = filters.sortOrder || 'asc'
+      filteredProducts.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+        const aVal = a[sortBy]
+        const bVal = b[sortBy]
+        if (aVal === null || aVal === undefined) return 1
+        if (bVal === null || bVal === undefined) return -1
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+        }
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+        }
+        return 0
+      })
+
+      // Apply pagination
+      const page = filters.page || 1
+      const limit = filters.limit || 10
+      const from = (page - 1) * limit
+      const to = from + limit
+      const paginatedProducts = filteredProducts.slice(from, to)
+
+      // Normalize: map my_quantity to quantity for backward compatibility
+      const normalizedProducts = paginatedProducts.map((p: Record<string, unknown>) => ({
+        ...p,
+        quantity: p.my_quantity,
+      }))
+
+      return {
+        success: true,
+        data: normalizedProducts,
+        totalCount,
+        userRole
+      }
     }
+
+    // Admin path: Use aggregated view (shows total stock)
+    // @ts-expect-error - View exists in database but may not be in generated types
+    let query = supabase.from('products_aggregated').select('*', { count: 'exact' })
 
     // Apply search filter (name or SKU)
     if (filters.search) {
@@ -377,8 +474,8 @@ export async function getProducts(filters: ProductFilters = {}) {
 
     // Apply sorting
     const sortBy = filters.sortBy || 'name'
-    // Map quantity to the correct column name based on view
-    const actualSortBy = sortBy === 'quantity' && isAdmin ? 'total_quantity' : sortBy
+    // Map quantity to the correct column name for aggregated view
+    const actualSortBy = sortBy === 'quantity' ? 'total_quantity' : sortBy
     const sortOrder = filters.sortOrder || 'asc'
     query = query.order(actualSortBy, { ascending: sortOrder === 'asc' })
 
@@ -393,28 +490,27 @@ export async function getProducts(filters: ProductFilters = {}) {
 
     if (error) {
       console.error('Error fetching products:', error)
-      return { success: false, error: error.message, data: [], totalCount: 0 }
+      return { success: false, error: error.message, data: [], totalCount: 0, userRole }
     }
 
-    // Normalize the response to have consistent field names
-    // For admins, map total_quantity to quantity for consistency with the UI
+    // Normalize the response: map total_quantity to quantity for consistency
     const normalizedProducts = (products || []).map((p) => {
       const product = p as Record<string, unknown>
       return {
         ...product,
-        // Map total_quantity to quantity for consistency
-        quantity: isAdmin ? product.total_quantity : product.quantity,
+        quantity: product.total_quantity,
       }
     })
 
     return {
       success: true,
       data: normalizedProducts as Record<string, unknown>[],
-      totalCount: count || 0
+      totalCount: count || 0,
+      userRole
     }
   } catch (error) {
     console.error('Get products error:', error)
-    return { success: false, error: 'Failed to fetch products', data: [], totalCount: 0 }
+    return { success: false, error: 'Failed to fetch products', data: [], totalCount: 0, userRole: null }
   }
 }
 

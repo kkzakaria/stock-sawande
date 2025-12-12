@@ -216,6 +216,9 @@
       "quantityNegative": "La quantité ne peut pas être négative"
     },
     "empty": "Aucun produit trouvé. Ajoutez votre premier produit pour commencer.",
+    "stockByStore": "Stock par magasin",
+    "noInventory": "Aucune donnée d'inventaire",
+    "total": "Total",
     "form": {
       "title": "Nouveau produit",
       "editTitle": "Modifier le produit",

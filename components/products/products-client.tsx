@@ -32,13 +32,16 @@ interface Product {
   // Aggregated view fields
   store_count?: number | null;
   total_quantity?: number | null;
+  // Manager/cashier specific: my store's quantity
+  my_quantity?: number | null;
 }
 
 interface ProductsClientProps {
   products: Product[];
+  userRole?: string | null;
 }
 
-export function ProductsClient({ products }: ProductsClientProps) {
+export function ProductsClient({ products, userRole }: ProductsClientProps) {
   const router = useRouter();
 
   // Read URL state for initial values only
@@ -59,6 +62,7 @@ export function ProductsClient({ products }: ProductsClientProps) {
     <ProductsDataTable
       products={products}
       onAddProduct={handleAddProduct}
+      userRole={userRole}
       // Pass URL state as initial values (uncontrolled mode)
       initialColumnFilters={urlState.filters as ColumnFiltersState ?? []}
       initialSorting={urlState.sorting as SortingState ?? []}

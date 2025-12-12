@@ -33,7 +33,10 @@ export default async function ProductsPage() {
     <div className="flex flex-col h-full">
       <div className="flex-1 min-h-0">
         {/* Type assertion needed because getProducts returns dynamic shape based on user role */}
-        <ProductsClient products={(productsResult.data || []) as Parameters<typeof ProductsClient>[0]['products']} />
+        <ProductsClient
+          products={(productsResult.data || []) as Parameters<typeof ProductsClient>[0]['products']}
+          userRole={productsResult.userRole}
+        />
       </div>
     </div>
   )

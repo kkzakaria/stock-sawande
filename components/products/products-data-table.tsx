@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
+import { StockQuantityPopover } from "./stock-quantity-popover";
 import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
@@ -62,6 +63,8 @@ interface Product {
   // Aggregated view fields
   store_count?: number | null;
   total_quantity?: number | null;
+  // Manager/cashier specific: my store's quantity
+  my_quantity?: number | null;
 }
 
 interface ProductsDataTableProps {
@@ -71,6 +74,8 @@ interface ProductsDataTableProps {
   currentPage?: number;
   pageSize?: number;
   onPaginationChange?: (pageIndex: number, pageSize: number) => void;
+  // User role to determine column visibility
+  userRole?: string | null;
   // Initial state from URL
   initialColumnFilters?: ColumnFiltersState;
   initialSorting?: SortingState;
@@ -83,11 +88,13 @@ export function ProductsDataTable({
   pageCount,
   pageSize,
   onPaginationChange,
+  userRole,
   // Initial state from URL
   initialColumnFilters = [],
   initialSorting = [],
   initialPagination = { pageIndex: 0, pageSize: 10 },
 }: ProductsDataTableProps) {
+  const isAdmin = userRole === 'admin';
   const t = useTranslations("Products");
   const tCommon = useTranslations("Common");
   const router = useRouter();
@@ -269,17 +276,60 @@ export function ProductsDataTable({
         return `${formatted} ${CURRENCY_CONFIG.symbol}`;
       },
     },
+    // Quantity column - displays differently for admin vs manager/cashier
+    // Admin: total(n) - e.g., "100(3)"
+    // Manager: my_stock/total(n) - e.g., "45/100(3)" with color on my_stock
     {
       accessorKey: "quantity",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title={t("columns.quantity")} />
       ),
       cell: ({ row }) => {
-        const quantity = row.getValue("quantity") as number;
+        const productId = row.original.template_id;
+        const storeCount = row.original.store_count;
         const minLevel = row.original.min_stock_level;
-        return (
-          <span className={getStockColor(quantity, minLevel)}>{quantity}</span>
-        );
+
+        if (isAdmin) {
+          // Admin view: just show total with popover
+          const quantity = row.getValue("quantity") as number;
+          return (
+            <StockQuantityPopover
+              productId={productId || ''}
+              quantity={quantity}
+              storeCount={storeCount}
+              className={getStockColor(quantity, minLevel)}
+            />
+          );
+        } else {
+          // Manager/Cashier view: show my_stock/total with popover on total
+          const myQuantity = row.original.my_quantity ?? 0;
+          const totalQuantity = row.original.total_quantity ?? row.getValue("quantity") as number ?? 0;
+
+          // If only one store or my stock equals total, show simple view
+          if (!storeCount || storeCount <= 1 || myQuantity === totalQuantity) {
+            return (
+              <span className={getStockColor(myQuantity, minLevel)}>
+                {myQuantity}
+              </span>
+            );
+          }
+
+          // Show: my_stock / total(n)
+          return (
+            <span className="flex items-center gap-0.5">
+              <span className={getStockColor(myQuantity, minLevel)}>
+                {myQuantity}
+              </span>
+              <span className="text-muted-foreground">/</span>
+              <StockQuantityPopover
+                productId={productId || ''}
+                quantity={totalQuantity}
+                storeCount={storeCount}
+                className="text-muted-foreground"
+              />
+            </span>
+          );
+        }
       },
     },
     {

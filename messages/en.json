@@ -156,6 +156,9 @@
     "newProduct": "New Product",
     "editProduct": "Edit Product",
     "searchPlaceholder": "Search products...",
+    "stockByStore": "Stock by Store",
+    "noInventory": "No inventory data",
+    "total": "Total",
     "columns": {
       "product": "Product",
       "name": "Name",
