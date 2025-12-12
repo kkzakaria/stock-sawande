@@ -9,10 +9,9 @@ export const dynamic = 'force-dynamic'
 
 interface StoresPageProps {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function StoresPage({ params, searchParams }: StoresPageProps) {
+export default async function StoresPage({ params }: StoresPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('Stores')
@@ -33,10 +32,7 @@ export default async function StoresPage({ params, searchParams }: StoresPagePro
     redirect('/dashboard')
   }
 
-  // searchParams available for future server-side filtering
-  await searchParams
-
-  // Get all stores (filtering is done client-side for simplicity)
+  // Get all stores
   const { data: stores } = await supabase
     .from('stores')
     .select('*')
@@ -47,9 +43,7 @@ export default async function StoresPage({ params, searchParams }: StoresPagePro
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
-          <p className="text-muted-foreground">
-            {t('description')}
-          </p>
+          <p className="text-muted-foreground">{t('description')}</p>
         </div>
         <AddStoreDialog />
       </div>
