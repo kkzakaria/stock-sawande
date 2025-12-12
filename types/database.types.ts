@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -334,6 +329,13 @@ export type Database = {
             foreignKeyName: "product_inventory_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -564,6 +566,13 @@ export type Database = {
             foreignKeyName: "proforma_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "proforma_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -751,6 +760,13 @@ export type Database = {
             foreignKeyName: "sale_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -933,6 +949,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
           },
           {
             foreignKeyName: "stock_movements_product_id_fkey"
@@ -1158,6 +1181,13 @@ export type Database = {
             foreignKeyName: "product_inventory_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -1184,6 +1214,36 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_aggregated: {
+        Row: {
+          barcode: string | null
+          category_description: string | null
+          category_id: string | null
+          category_name: string | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          image_url: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string | null
+          price: number | null
+          sku: string | null
+          store_count: number | null
+          template_id: string | null
+          total_quantity: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1249,6 +1309,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
           },
           {
             foreignKeyName: "sale_items_product_id_fkey"
@@ -1613,3 +1680,4 @@ export const Constants = {
     },
   },
 } as const
+

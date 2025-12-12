@@ -321,6 +321,8 @@ interface ProductFilters {
 
 /**
  * Get all products for the current user's store(s) with filtering, sorting, and pagination
+ * - Admins see aggregated view (total quantity across all stores)
+ * - Managers see only their store's inventory
  */
 export async function getProducts(filters: ProductFilters = {}) {
   try {
@@ -341,13 +343,18 @@ export async function getProducts(filters: ProductFilters = {}) {
       return { success: false, error: 'Profile not found', data: [], totalCount: 0 }
     }
 
-    // Use the products_with_inventory view
-    let query = supabase
-      .from('products_with_inventory')
-      .select('*', { count: 'exact' })
+    const isAdmin = profile.role === 'admin'
 
-    // Apply role-based store filter
-    if (profile.role !== 'admin' && profile.store_id) {
+    // Use aggregated view for admins (shows total stock), per-store view for managers
+    // Build query based on role
+    // Note: Using type assertion because products_aggregated view may not be in generated types yet
+    type ViewName = 'products_aggregated' | 'products_with_inventory'
+    const viewName: ViewName = isAdmin ? 'products_aggregated' : 'products_with_inventory'
+    // @ts-expect-error - View exists in database but may not be in generated types
+    let query = supabase.from(viewName).select('*', { count: 'exact' })
+
+    // Managers only see their store's products
+    if (!isAdmin && profile.store_id) {
       query = query.eq('store_id', profile.store_id)
     }
 
@@ -368,15 +375,12 @@ export async function getProducts(filters: ProductFilters = {}) {
       query = query.eq('is_active', false)
     }
 
-    // Apply store filter (for admins)
-    if (filters.store && profile.role === 'admin') {
-      query = query.eq('store_id', filters.store)
-    }
-
     // Apply sorting
     const sortBy = filters.sortBy || 'name'
+    // Map quantity to the correct column name based on view
+    const actualSortBy = sortBy === 'quantity' && isAdmin ? 'total_quantity' : sortBy
     const sortOrder = filters.sortOrder || 'asc'
-    query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+    query = query.order(actualSortBy, { ascending: sortOrder === 'asc' })
 
     // Apply pagination
     const page = filters.page || 1
@@ -392,9 +396,20 @@ export async function getProducts(filters: ProductFilters = {}) {
       return { success: false, error: error.message, data: [], totalCount: 0 }
     }
 
+    // Normalize the response to have consistent field names
+    // For admins, map total_quantity to quantity for consistency with the UI
+    const normalizedProducts = (products || []).map((p) => {
+      const product = p as Record<string, unknown>
+      return {
+        ...product,
+        // Map total_quantity to quantity for consistency
+        quantity: isAdmin ? product.total_quantity : product.quantity,
+      }
+    })
+
     return {
       success: true,
-      data: products || [],
+      data: normalizedProducts as Record<string, unknown>[],
       totalCount: count || 0
     }
   } catch (error) {

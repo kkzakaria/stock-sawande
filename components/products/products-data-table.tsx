@@ -43,7 +43,6 @@ import {
 
 interface Product {
   template_id: string | null;
-  inventory_id: string | null;
   sku: string | null;
   name: string | null;
   description: string | null;
@@ -56,8 +55,13 @@ interface Product {
   is_active: boolean | null;
   barcode: string | null;
   image_url: string | null;
-  store_id: string | null;
-  store_name: string | null;
+  // Optional fields (present in per-store view, absent in aggregated view)
+  inventory_id?: string | null;
+  store_id?: string | null;
+  store_name?: string | null;
+  // Aggregated view fields
+  store_count?: number | null;
+  total_quantity?: number | null;
 }
 
 interface ProductsDataTableProps {
