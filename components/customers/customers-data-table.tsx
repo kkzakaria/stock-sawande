@@ -177,26 +177,31 @@ export function CustomersDataTable({
         )
       },
     },
-    {
-      accessorKey: 'total_purchases',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('columns.totalPurchases')} />
-      ),
-      cell: ({ row }) => {
-        const purchases = row.getValue('total_purchases') as number | null
-        return <span>{purchases ?? 0}</span>
-      },
-    },
-    {
-      accessorKey: 'total_spent',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('columns.totalSpent')} />
-      ),
-      cell: ({ row }) => {
-        const spent = row.getValue('total_spent') as number | null
-        return <span className="font-medium">{formatCurrency(spent)}</span>
-      },
-    },
+    // Only show financial data for managers and admins
+    ...(canManage
+      ? ([
+          {
+            accessorKey: 'total_purchases',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title={t('columns.totalPurchases')} />
+            ),
+            cell: ({ row }) => {
+              const purchases = row.getValue('total_purchases') as number | null
+              return <span>{purchases ?? 0}</span>
+            },
+          },
+          {
+            accessorKey: 'total_spent',
+            header: ({ column }) => (
+              <DataTableColumnHeader column={column} title={t('columns.totalSpent')} />
+            ),
+            cell: ({ row }) => {
+              const spent = row.getValue('total_spent') as number | null
+              return <span className="font-medium">{formatCurrency(spent)}</span>
+            },
+          },
+        ] as ColumnDef<Customer>[])
+      : []),
     {
       accessorKey: 'created_at',
       header: ({ column }) => (
