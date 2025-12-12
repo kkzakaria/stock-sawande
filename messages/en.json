@@ -578,7 +578,9 @@
     "cart": {
       "title": "Cart",
       "clear": "Clear",
-      "clearConfirm": "Are you sure you want to clear the cart?",
+      "clearTitle": "Clear cart",
+      "clearConfirm": "This will remove all items from the cart. This action cannot be undone.",
+      "clearCancel": "Cancel",
       "empty": "Cart is empty",
       "emptyHint": "Add products to get started",
       "subtotal": "Subtotal",

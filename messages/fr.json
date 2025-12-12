@@ -578,7 +578,9 @@
     "cart": {
       "title": "Panier",
       "clear": "Vider",
-      "clearConfirm": "Êtes-vous sûr de vouloir vider le panier ?",
+      "clearTitle": "Vider le panier",
+      "clearConfirm": "Cette action supprimera tous les articles du panier. Cette action est irréversible.",
+      "clearCancel": "Annuler",
       "empty": "Panier vide",
       "emptyHint": "Ajoutez des produits pour commencer",
       "subtotal": "Sous-total",

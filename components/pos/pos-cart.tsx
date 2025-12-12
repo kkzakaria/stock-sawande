@@ -15,6 +15,17 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2, User, X, Check, UserPlus } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
@@ -319,19 +330,31 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
           )}
         </h2>
         {items.length > 0 && (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              if (window.confirm(t('clearConfirm'))) {
-                clearCart()
-              }
-            }}
-            className="gap-1"
-          >
-            <Trash2 className="h-4 w-4" />
-            {t('clear')}
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-1">
+                <Trash2 className="h-4 w-4" />
+                {t('clear')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('clearTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('clearConfirm')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('clearCancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={clearCart}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {t('clear')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
 
