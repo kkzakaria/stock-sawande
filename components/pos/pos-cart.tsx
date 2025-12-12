@@ -13,17 +13,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2, User, X, Check, UserPlus } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
@@ -33,7 +24,7 @@ import { createClient } from '@/lib/supabase/client'
 import { getTransaction } from '@/lib/offline/indexed-db'
 import { buildReceiptFromTransaction } from '@/lib/offline/receipt-utils'
 import { createPOSProforma, type POSProformaResult } from '@/lib/actions/proformas'
-import { createCustomer } from '@/lib/actions/customers'
+import { AddCustomerDialog } from '@/components/customers/add-customer-dialog'
 import { cn } from '@/lib/utils'
 
 interface Customer {
@@ -167,9 +158,6 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
 
   // Add customer dialog state
   const [addCustomerOpen, setAddCustomerOpen] = useState(false)
-  const [isAddingCustomer, setIsAddingCustomer] = useState(false)
-  const [newCustomerName, setNewCustomerName] = useState('')
-  const [newCustomerPhone, setNewCustomerPhone] = useState('')
 
   // Proforma state
   const [isCreatingProforma, setIsCreatingProforma] = useState(false)
@@ -179,51 +167,17 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   // Find selected customer
   const selectedCustomer = customers.find((c) => c.id === customerId)
 
-  // Handle adding new customer
-  const handleAddCustomer = async () => {
-    if (!newCustomerName.trim()) {
-      toast.error(t('customerNameRequired'))
-      return
-    }
+  // Handle new customer created from dialog
+  const handleCustomerCreated = (customer: Customer) => {
+    // Notify parent to add customer to list
+    onCustomerAdded?.(customer)
 
-    setIsAddingCustomer(true)
-    try {
-      const result = await createCustomer({
-        name: newCustomerName.trim(),
-        phone: newCustomerPhone.trim() || undefined,
-      })
+    // Select the new customer
+    setCustomer(customer.id)
 
-      if (result.success && result.data) {
-        const data = result.data as { id: string; name: string; email: string | null; phone: string | null }
-        const newCustomer: Customer = {
-          id: data.id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-        }
-
-        // Notify parent to add customer to list
-        onCustomerAdded?.(newCustomer)
-
-        // Select the new customer
-        setCustomer(newCustomer.id)
-
-        // Close dialogs and reset form
-        setAddCustomerOpen(false)
-        setCustomerSearchOpen(false)
-        setNewCustomerName('')
-        setNewCustomerPhone('')
-
-        toast.success(t('customerAdded'))
-      } else {
-        toast.error(result.error || t('customerAddError'))
-      }
-    } catch (error) {
-      console.error('Error adding customer:', error)
-      toast.error(t('customerAddError'))
-    } finally {
-      setIsAddingCustomer(false)
-    }
+    // Close popover
+    setAddCustomerOpen(false)
+    setCustomerSearchOpen(false)
   }
 
   // Auto-scroll to bottom when new item is added
@@ -599,62 +553,12 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
       />
 
       {/* Add Customer Dialog */}
-      <Dialog open={addCustomerOpen} onOpenChange={setAddCustomerOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              {t('addCustomerTitle')}
-            </DialogTitle>
-            <DialogDescription>
-              {t('addCustomerDescription')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="customerName">{t('customerName')}</Label>
-              <Input
-                id="customerName"
-                value={newCustomerName}
-                onChange={(e) => setNewCustomerName(e.target.value)}
-                placeholder={t('customerNamePlaceholder')}
-                autoFocus
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customerPhone">{t('customerPhone')}</Label>
-              <Input
-                id="customerPhone"
-                value={newCustomerPhone}
-                onChange={(e) => setNewCustomerPhone(e.target.value)}
-                placeholder={t('customerPhonePlaceholder')}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setAddCustomerOpen(false)
-                setNewCustomerName('')
-                setNewCustomerPhone('')
-              }}
-            >
-              {t('cancel')}
-            </Button>
-            <Button onClick={handleAddCustomer} disabled={isAddingCustomer}>
-              {isAddingCustomer ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('adding')}
-                </>
-              ) : (
-                t('add')
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddCustomerDialog
+        open={addCustomerOpen}
+        onOpenChange={setAddCustomerOpen}
+        onCustomerCreated={handleCustomerCreated}
+        hideTrigger
+      />
     </div>
   )
 }

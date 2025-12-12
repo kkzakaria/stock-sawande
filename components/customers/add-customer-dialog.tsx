@@ -21,13 +21,47 @@ import { AlertCircle, Plus } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
-export function AddCustomerDialog() {
+interface CustomerData {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+}
+
+interface AddCustomerDialogProps {
+  /** Control dialog open state externally */
+  open?: boolean
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void
+  /** Callback when customer is created successfully (for POS use) */
+  onCustomerCreated?: (customer: CustomerData) => void
+  /** Hide the trigger button (when controlled externally) */
+  hideTrigger?: boolean
+}
+
+export function AddCustomerDialog({
+  open: controlledOpen,
+  onOpenChange,
+  onCustomerCreated,
+  hideTrigger = false
+}: AddCustomerDialogProps = {}) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const t = useTranslations('Customers.form')
   const tButton = useTranslations('Customers')
+
+  // Use controlled or internal state
+  const isControlled = controlledOpen !== undefined
+  const open = isControlled ? controlledOpen : internalOpen
+  const setOpen = (value: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(value)
+    } else {
+      setInternalOpen(value)
+    }
+  }
 
   const form = useForm({
     defaultValues: {
@@ -46,6 +80,13 @@ export function AddCustomerDialog() {
           setOpen(false)
           form.reset()
           toast.success(tButton('messages.created'))
+
+          // Call callback if provided (for POS integration)
+          if (onCustomerCreated && result.data) {
+            const customerData = result.data as CustomerData
+            onCustomerCreated(customerData)
+          }
+
           router.refresh()
         } else {
           setError(result.error || t('errors.generic'))
@@ -56,12 +97,14 @@ export function AddCustomerDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          {tButton('addCustomer')}
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            {tButton('addCustomer')}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[525px]">
         <form
           onSubmit={(e) => {
