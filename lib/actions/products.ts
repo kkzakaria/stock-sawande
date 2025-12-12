@@ -18,13 +18,27 @@ const productTemplateSchema = z.object({
   is_active: z.boolean().default(true),
 })
 
-// Combined schema for product creation
+// Combined schema for product creation (single store - for managers)
 const productSchema = productTemplateSchema.extend({
   store_id: z.string().uuid('Invalid store'),
   quantity: z.number().int().min(0, 'Quantity must be non-negative'),
 })
 
+// Schema for multi-store inventory (for admins)
+const storeInventorySchema = z.object({
+  store_id: z.string().uuid('Invalid store'),
+  quantity: z.number().int().min(0, 'Quantity must be non-negative'),
+})
+
+// Extended schema for multi-store product creation
+const productMultiStoreSchema = productTemplateSchema.extend({
+  store_id: z.string().uuid('Invalid store').optional(),
+  quantity: z.number().int().min(0, 'Quantity must be non-negative').optional(),
+  storeInventories: z.array(storeInventorySchema).optional(),
+})
+
 type ProductInput = z.infer<typeof productSchema>
+type ProductMultiStoreInput = z.infer<typeof productMultiStoreSchema>
 
 interface ActionResult<T = unknown> {
   success: boolean
@@ -34,8 +48,11 @@ interface ActionResult<T = unknown> {
 
 /**
  * Create a new product (template + inventory)
+ * Supports two modes:
+ * - Single store: store_id + quantity (for managers)
+ * - Multi-store: storeInventories[] (for admins)
  */
-export async function createProduct(data: ProductInput): Promise<ActionResult> {
+export async function createProduct(data: ProductMultiStoreInput): Promise<ActionResult> {
   try {
     const supabase = await createClient()
 
@@ -55,13 +72,27 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
       return { success: false, error: 'Insufficient permissions' }
     }
 
-    // Managers can only create products for their store
-    if (profile.role === 'manager' && data.store_id !== profile.store_id) {
-      return { success: false, error: 'You can only create products for your assigned store' }
+    // Validate input
+    const validated = productMultiStoreSchema.parse(data)
+
+    // Determine inventory mode: multi-store or single store
+    const isMultiStoreMode = validated.storeInventories && validated.storeInventories.length > 0
+
+    // Only admins can use multi-store mode
+    if (isMultiStoreMode && profile.role !== 'admin') {
+      return { success: false, error: 'Only admins can create products for multiple stores' }
     }
 
-    // Validate input
-    const validated = productSchema.parse(data)
+    // For single store mode, validate store access
+    if (!isMultiStoreMode) {
+      if (!validated.store_id || validated.quantity === undefined) {
+        return { success: false, error: 'Store and quantity are required' }
+      }
+      // Managers can only create products for their store
+      if (profile.role === 'manager' && validated.store_id !== profile.store_id) {
+        return { success: false, error: 'You can only create products for your assigned store' }
+      }
+    }
 
     // Check for duplicate SKU
     const { data: existing } = await supabase
@@ -74,8 +105,8 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
       return { success: false, error: 'Product with this SKU already exists' }
     }
 
-    // Extract template and inventory data
-    const { store_id, quantity, ...templateData } = validated
+    // Extract template data (remove inventory fields)
+    const { store_id, quantity, storeInventories, ...templateData } = validated
 
     // Create product template
     const { data: template, error: templateError } = await supabase
@@ -89,22 +120,36 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
       return { success: false, error: templateError.message }
     }
 
-    // Create inventory for the store
-    const { data: inventory, error: inventoryError } = await supabase
-      .from('product_inventory')
-      .insert({
+    // Create inventory records
+    let inventoryRecords: Array<{ product_id: string; store_id: string; quantity: number }> = []
+
+    if (isMultiStoreMode && storeInventories) {
+      // Multi-store mode: create inventory for each selected store
+      inventoryRecords = storeInventories.map(inv => ({
+        product_id: template.id,
+        store_id: inv.store_id,
+        quantity: inv.quantity,
+      }))
+    } else if (store_id && quantity !== undefined) {
+      // Single store mode
+      inventoryRecords = [{
         product_id: template.id,
         store_id: store_id,
         quantity: quantity,
-      })
-      .select()
-      .single()
+      }]
+    }
 
-    if (inventoryError) {
-      console.error('Error creating inventory:', inventoryError)
-      // Rollback template creation
-      await supabase.from('product_templates').delete().eq('id', template.id)
-      return { success: false, error: inventoryError.message }
+    if (inventoryRecords.length > 0) {
+      const { error: inventoryError } = await supabase
+        .from('product_inventory')
+        .insert(inventoryRecords)
+
+      if (inventoryError) {
+        console.error('Error creating inventory:', inventoryError)
+        // Rollback template creation
+        await supabase.from('product_templates').delete().eq('id', template.id)
+        return { success: false, error: inventoryError.message }
+      }
     }
 
     revalidatePath('/products')
@@ -112,9 +157,9 @@ export async function createProduct(data: ProductInput): Promise<ActionResult> {
       success: true,
       data: {
         ...template,
-        inventory_id: inventory.id,
-        store_id: store_id,
-        quantity: quantity
+        store_id: isMultiStoreMode ? null : store_id,
+        quantity: isMultiStoreMode ? null : quantity,
+        storeInventories: isMultiStoreMode ? storeInventories : null,
       }
     }
   } catch (error) {
@@ -766,5 +811,193 @@ export async function duplicateProduct(productId: string, createInventory: boole
   } catch (error) {
     console.error('Duplicate product error:', error)
     return { success: false, error: 'Failed to duplicate product' }
+  }
+}
+
+/**
+ * Add an existing product to a store with initial inventory
+ * Permissions: Admin can add to any store, Manager can add to their store only
+ */
+export async function addProductToStore(
+  productId: string,
+  storeId: string,
+  quantity: number
+): Promise<ActionResult<{ inventory_id: string }>> {
+  try {
+    const supabase = await createClient()
+
+    // Verify user has permission
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, store_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['admin', 'manager'].includes(profile.role)) {
+      return { success: false, error: 'Insufficient permissions' }
+    }
+
+    // Managers can only add products to their assigned store
+    if (profile.role === 'manager' && storeId !== profile.store_id) {
+      return { success: false, error: 'You can only add products to your assigned store' }
+    }
+
+    // Validate quantity
+    if (quantity < 0 || !Number.isInteger(quantity)) {
+      return { success: false, error: 'Quantity must be a non-negative integer' }
+    }
+
+    // Check if product template exists
+    const { data: template } = await supabase
+      .from('product_templates')
+      .select('id')
+      .eq('id', productId)
+      .single()
+
+    if (!template) {
+      return { success: false, error: 'Product not found' }
+    }
+
+    // Check if inventory already exists for this product-store combination
+    const { data: existingInventory } = await supabase
+      .from('product_inventory')
+      .select('id')
+      .eq('product_id', productId)
+      .eq('store_id', storeId)
+      .maybeSingle()
+
+    if (existingInventory) {
+      return { success: false, error: 'Product already exists in this store' }
+    }
+
+    // Create inventory record
+    const { data: inventory, error } = await supabase
+      .from('product_inventory')
+      .insert({
+        product_id: productId,
+        store_id: storeId,
+        quantity: quantity,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding product to store:', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/products/${productId}`)
+    revalidatePath('/products')
+
+    return { success: true, data: { inventory_id: inventory.id } }
+  } catch (error) {
+    console.error('Add product to store error:', error)
+    return { success: false, error: 'Failed to add product to store' }
+  }
+}
+
+/**
+ * Batch update inventory quantities across multiple stores
+ * Permissions: Admin can update all, Manager can only update their store
+ */
+export async function updateMultiStoreInventory(
+  productId: string,
+  inventories: Array<{ storeId: string; quantity: number }>
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+
+    // Verify user has permission
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, store_id')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['admin', 'manager'].includes(profile.role)) {
+      return { success: false, error: 'Insufficient permissions' }
+    }
+
+    // Validate inventories array
+    if (!inventories || inventories.length === 0) {
+      return { success: false, error: 'At least one inventory update is required' }
+    }
+
+    // Validate each inventory entry
+    for (const inv of inventories) {
+      if (inv.quantity < 0 || !Number.isInteger(inv.quantity)) {
+        return { success: false, error: 'All quantities must be non-negative integers' }
+      }
+      // Managers can only update their own store
+      if (profile.role === 'manager' && inv.storeId !== profile.store_id) {
+        return { success: false, error: 'You can only update inventory for your assigned store' }
+      }
+    }
+
+    // Update each inventory record
+    const errors: string[] = []
+    for (const inv of inventories) {
+      const { error } = await supabase
+        .from('product_inventory')
+        .update({ quantity: inv.quantity })
+        .eq('product_id', productId)
+        .eq('store_id', inv.storeId)
+
+      if (error) {
+        errors.push(`Store ${inv.storeId}: ${error.message}`)
+      }
+    }
+
+    if (errors.length > 0) {
+      console.error('Errors updating inventories:', errors)
+      return { success: false, error: `Failed to update some inventories: ${errors.join(', ')}` }
+    }
+
+    revalidatePath(`/products/${productId}`)
+    revalidatePath('/products')
+
+    return { success: true }
+  } catch (error) {
+    console.error('Update multi-store inventory error:', error)
+    return { success: false, error: 'Failed to update inventories' }
+  }
+}
+
+/**
+ * Get all stores (for admin) - used to show stores where product can be added
+ */
+export async function getAllStores(): Promise<ActionResult<Array<{ id: string; name: string }>>> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated', data: [] }
+    }
+
+    const { data: stores, error } = await supabase
+      .from('stores')
+      .select('id, name')
+      .order('name')
+
+    if (error) {
+      console.error('Error fetching all stores:', error)
+      return { success: false, error: error.message, data: [] }
+    }
+
+    return { success: true, data: stores || [] }
+  } catch (error) {
+    console.error('Get all stores error:', error)
+    return { success: false, error: 'Failed to fetch stores', data: [] }
   }
 }

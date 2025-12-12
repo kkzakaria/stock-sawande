@@ -272,6 +272,41 @@
         "saving": "Saving...",
         "create": "Create Product",
         "update": "Update Product"
+      },
+      "multiStore": {
+        "inventoryByStore": "Inventory by Store",
+        "totalStock": "Total Stock",
+        "addToStore": "Add to Store",
+        "notInAnyStore": "This product is not available in any store yet.",
+        "yourStore": "Your store",
+        "viewOnly": "View only",
+        "outOfStock": "Out of Stock",
+        "lowStock": "Low Stock",
+        "inStock": "In Stock",
+        "saveChanges": "Save Changes",
+        "saving": "Saving...",
+        "updateSuccess": "Inventory updated successfully",
+        "updateError": "Failed to update inventory",
+        "managerNote": "You can only edit inventory for your assigned store. Other stores are shown for reference.",
+        "adminDescription": "Select which stores should carry this product and set initial quantities.",
+        "managerDescription": "Set the initial quantity for your store.",
+        "selectedCount": "{count} store(s) selected",
+        "quantityLabel": "Qty",
+        "noStoresSelected": "Please select at least one store"
+      },
+      "addToStoreDialog": {
+        "title": "Add Product to Store",
+        "description": "Add this product to another store with initial inventory.",
+        "selectStore": "Select Store",
+        "selectStorePlaceholder": "Choose a store...",
+        "initialQuantity": "Initial Quantity",
+        "confirm": "Add to Store",
+        "adding": "Adding...",
+        "cancel": "Cancel",
+        "success": "Product added to store successfully",
+        "error": "Failed to add product to store",
+        "selectStoreError": "Please select a store",
+        "invalidQuantityError": "Please enter a valid quantity"
       }
     }
   },

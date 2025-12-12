@@ -272,6 +272,41 @@
         "saving": "Enregistrement...",
         "create": "Créer le produit",
         "update": "Mettre à jour le produit"
+      },
+      "multiStore": {
+        "inventoryByStore": "Inventaire par magasin",
+        "totalStock": "Stock total",
+        "addToStore": "Ajouter au magasin",
+        "notInAnyStore": "Ce produit n'est disponible dans aucun magasin.",
+        "yourStore": "Votre magasin",
+        "viewOnly": "Lecture seule",
+        "outOfStock": "Rupture de stock",
+        "lowStock": "Stock faible",
+        "inStock": "En stock",
+        "saveChanges": "Enregistrer",
+        "saving": "Enregistrement...",
+        "updateSuccess": "Inventaire mis à jour avec succès",
+        "updateError": "Erreur lors de la mise à jour de l'inventaire",
+        "managerNote": "Vous ne pouvez modifier que l'inventaire de votre magasin assigné. Les autres magasins sont affichés à titre indicatif.",
+        "adminDescription": "Sélectionnez les magasins qui doivent proposer ce produit et définissez les quantités initiales.",
+        "managerDescription": "Définissez la quantité initiale pour votre magasin.",
+        "selectedCount": "{count} magasin(s) sélectionné(s)",
+        "quantityLabel": "Qté",
+        "noStoresSelected": "Veuillez sélectionner au moins un magasin"
+      },
+      "addToStoreDialog": {
+        "title": "Ajouter le produit au magasin",
+        "description": "Ajouter ce produit à un autre magasin avec un stock initial.",
+        "selectStore": "Sélectionner le magasin",
+        "selectStorePlaceholder": "Choisir un magasin...",
+        "initialQuantity": "Quantité initiale",
+        "confirm": "Ajouter au magasin",
+        "adding": "Ajout en cours...",
+        "cancel": "Annuler",
+        "success": "Produit ajouté au magasin avec succès",
+        "error": "Erreur lors de l'ajout du produit au magasin",
+        "selectStoreError": "Veuillez sélectionner un magasin",
+        "invalidQuantityError": "Veuillez entrer une quantité valide"
       }
     }
   },
