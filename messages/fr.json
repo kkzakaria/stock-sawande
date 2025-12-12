@@ -41,6 +41,7 @@
   "Navigation": {
     "dashboard": "Tableau de bord",
     "products": "Produits",
+    "customers": "Clients",
     "sales": "Ventes",
     "proformas": "Proformas",
     "pos": "Caisse",
@@ -1039,6 +1040,78 @@
         "create": "Créer le magasin",
         "creating": "Création en cours..."
       }
+    }
+  },
+
+  "Customers": {
+    "title": "Clients",
+    "description": "Gérez votre base de données clients",
+    "addCustomer": "Ajouter un client",
+    "searchPlaceholder": "Rechercher des clients...",
+    "showing": "Affichage de {filtered} sur {total} clients",
+    "noResults": "Aucun client trouvé correspondant à vos filtres.",
+    "empty": "Aucun client trouvé. Ajoutez votre premier client pour commencer.",
+    "columns": {
+      "name": "Nom",
+      "email": "Email",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "totalPurchases": "Achats",
+      "totalSpent": "Total dépensé",
+      "createdAt": "Créé le"
+    },
+    "actions": {
+      "view": "Voir les détails",
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "delete": {
+      "title": "Supprimer le client",
+      "description": "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.",
+      "confirm": "Supprimer",
+      "deleting": "Suppression..."
+    },
+    "form": {
+      "title": "Nouveau client",
+      "editTitle": "Modifier le client",
+      "description": "Ajouter un nouveau client à votre base de données",
+      "editDescription": "Mettre à jour les informations du client",
+      "fields": {
+        "name": "Nom du client",
+        "namePlaceholder": "Ex: Jean Dupont",
+        "email": "Email",
+        "emailPlaceholder": "client@exemple.com",
+        "phone": "Téléphone",
+        "phonePlaceholder": "+1 234 567 890",
+        "address": "Adresse",
+        "addressPlaceholder": "123 Rue Principale, Ville",
+        "notes": "Notes",
+        "notesPlaceholder": "Informations supplémentaires sur ce client..."
+      },
+      "errors": {
+        "nameRequired": "Le nom du client est requis",
+        "invalidEmail": "Format d'email invalide",
+        "generic": "Une erreur est survenue"
+      },
+      "buttons": {
+        "cancel": "Annuler",
+        "create": "Créer le client",
+        "creating": "Création...",
+        "update": "Mettre à jour",
+        "updating": "Mise à jour..."
+      }
+    },
+    "messages": {
+      "created": "Client créé avec succès",
+      "updated": "Client mis à jour avec succès",
+      "deleted": "Client supprimé avec succès"
+    },
+    "errors": {
+      "createFailed": "Échec de la création du client",
+      "updateFailed": "Échec de la mise à jour du client",
+      "deleteFailed": "Échec de la suppression du client",
+      "hasSales": "Impossible de supprimer un client avec des ventes existantes",
+      "hasProformas": "Impossible de supprimer un client avec des proformas existants"
     }
   },
 

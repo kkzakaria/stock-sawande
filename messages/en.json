@@ -41,6 +41,7 @@
   "Navigation": {
     "dashboard": "Dashboard",
     "products": "Products",
+    "customers": "Customers",
     "sales": "Sales",
     "proformas": "Proformas",
     "pos": "POS",
@@ -1039,6 +1040,78 @@
         "create": "Create Store",
         "creating": "Creating..."
       }
+    }
+  },
+
+  "Customers": {
+    "title": "Customers",
+    "description": "Manage your customer database",
+    "addCustomer": "Add Customer",
+    "searchPlaceholder": "Search customers...",
+    "showing": "Showing {filtered} of {total} customers",
+    "noResults": "No customers found matching your filters.",
+    "empty": "No customers found. Add your first customer to get started.",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "totalPurchases": "Purchases",
+      "totalSpent": "Total Spent",
+      "createdAt": "Created"
+    },
+    "actions": {
+      "view": "View Details",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "delete": {
+      "title": "Delete Customer",
+      "description": "Are you sure you want to delete this customer? This action cannot be undone.",
+      "confirm": "Delete",
+      "deleting": "Deleting..."
+    },
+    "form": {
+      "title": "New Customer",
+      "editTitle": "Edit Customer",
+      "description": "Add a new customer to your database",
+      "editDescription": "Update customer information",
+      "fields": {
+        "name": "Customer Name",
+        "namePlaceholder": "e.g. John Doe",
+        "email": "Email",
+        "emailPlaceholder": "customer@example.com",
+        "phone": "Phone",
+        "phonePlaceholder": "+1 234 567 890",
+        "address": "Address",
+        "addressPlaceholder": "123 Main Street, City",
+        "notes": "Notes",
+        "notesPlaceholder": "Additional information about this customer..."
+      },
+      "errors": {
+        "nameRequired": "Customer name is required",
+        "invalidEmail": "Invalid email format",
+        "generic": "An error occurred"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create Customer",
+        "creating": "Creating...",
+        "update": "Update Customer",
+        "updating": "Updating..."
+      }
+    },
+    "messages": {
+      "created": "Customer created successfully",
+      "updated": "Customer updated successfully",
+      "deleted": "Customer deleted successfully"
+    },
+    "errors": {
+      "createFailed": "Failed to create customer",
+      "updateFailed": "Failed to update customer",
+      "deleteFailed": "Failed to delete customer",
+      "hasSales": "Cannot delete customer with existing sales",
+      "hasProformas": "Cannot delete customer with existing proformas"
     }
   },
 
