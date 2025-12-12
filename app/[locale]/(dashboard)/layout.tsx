@@ -50,6 +50,7 @@ export default async function DashboardLayout({
   const navTranslations = {
     dashboard: t('dashboard'),
     products: t('products'),
+    customers: t('customers'),
     sales: t('sales'),
     proformas: t('proformas'),
     pos: t('pos'),

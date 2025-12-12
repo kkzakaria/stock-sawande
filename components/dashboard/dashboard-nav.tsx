@@ -7,6 +7,7 @@ import Image from 'next/image'
 import {
   LayoutDashboard,
   Package,
+  Users,
   ShoppingCart,
   FileText,
   CreditCard,
@@ -27,6 +28,7 @@ interface Profile {
 interface NavTranslations {
   dashboard: string
   products: string
+  customers: string
   sales: string
   proformas: string
   pos: string
@@ -52,6 +54,12 @@ const navItems = [
     href: '/products',
     icon: Package,
     roles: ['admin', 'manager'],
+  },
+  {
+    titleKey: 'customers',
+    href: '/customers',
+    icon: Users,
+    roles: ['admin', 'manager', 'cashier'],
   },
   {
     titleKey: 'sales',
