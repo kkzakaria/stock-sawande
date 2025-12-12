@@ -129,6 +129,12 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }
   }
 
+  // Fetch customers for proforma creation
+  const { data: customers } = await supabase
+    .from('customers')
+    .select('id, name, email, phone')
+    .order('name')
+
   // Fetch products with ALL inventory (not just current store) for multi-store visibility
   const { data: products, error: productsError } = await supabase
     .from('product_templates')
@@ -211,6 +217,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     <div className="h-full overflow-hidden">
       <POSClient
         products={productsWithInventory}
+        customers={customers || []}
         storeId={activeStoreId}
         cashierId={user.id}
         cashierName={profile.full_name || 'User'}

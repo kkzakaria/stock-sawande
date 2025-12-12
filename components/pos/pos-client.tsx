@@ -53,8 +53,16 @@ interface Product {
   otherStoresInventory?: OtherStoreInventory[]
 }
 
+interface Customer {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+}
+
 interface POSClientProps {
   products: Product[]
+  customers: Customer[]
   storeId: string
   cashierId: string
   cashierName: string
@@ -69,6 +77,7 @@ interface POSClientProps {
 
 export function POSClient({
   products,
+  customers,
   storeId,
   cashierId,
   cashierName,
@@ -389,6 +398,7 @@ export function POSClient({
           cashierName={cashierName}
           storeInfo={storeInfo}
           sessionId={activeSession?.id}
+          customers={customers}
           onCheckoutComplete={handleCheckoutComplete}
         />
       </div>
