@@ -22,9 +22,20 @@ const stockAlertSettingsSchema = z.object({
   enabled: z.boolean(),
 })
 
+const companyInfoSettingsSchema = z.object({
+  name: z.string().min(1, 'Company name is required'),
+  taxId: z.string(),
+  address: z.string(),
+  phone: z.string(),
+  email: z.string().email().or(z.literal('')),
+  website: z.string().url().or(z.literal('')),
+  logoUrl: z.string(),
+})
+
 type TaxSettings = z.infer<typeof taxSettingsSchema>
 type CurrencySettings = z.infer<typeof currencySettingsSchema>
 type StockAlertSettings = z.infer<typeof stockAlertSettingsSchema>
+type CompanyInfoSettings = z.infer<typeof companyInfoSettingsSchema>
 
 interface ActionResult<T = unknown> {
   success: boolean
@@ -264,6 +275,105 @@ export async function updateStockAlertSettings(data: StockAlertSettings): Promis
       return { success: false, error: error.issues[0].message }
     }
     console.error('Error updating stock alert settings:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Update company info settings (admin only)
+ */
+export async function updateCompanyInfoSettings(data: CompanyInfoSettings): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+
+    // Verify user is admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return { success: false, error: 'Only admins can update company info' }
+    }
+
+    // Validate input
+    const validated = companyInfoSettingsSchema.parse(data)
+
+    // Upsert setting (insert if not exists, update if exists)
+    const { error } = await supabase
+      .from('business_settings')
+      .upsert({
+        key: 'company_info',
+        value: validated,
+        description: 'Company information (name, tax ID, logo, contact)',
+        updated_by: user.id,
+      }, {
+        onConflict: 'key',
+      })
+
+    if (error) {
+      console.error('Error updating company info settings:', error)
+      return { success: false, error: 'Failed to update company info' }
+    }
+
+    revalidatePath('/settings')
+    revalidatePath('/pos')
+    revalidatePath('/sales')
+    return { success: true }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0].message }
+    }
+    console.error('Error updating company info settings:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Get company info settings
+ */
+export async function getCompanyInfoSettings(): Promise<ActionResult<CompanyInfoSettings>> {
+  try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const { data: setting, error } = await supabase
+      .from('business_settings')
+      .select('value')
+      .eq('key', 'company_info')
+      .single()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+      console.error('Error fetching company info:', error)
+      return { success: false, error: 'Failed to fetch company info' }
+    }
+
+    const defaultCompanyInfo: CompanyInfoSettings = {
+      name: '',
+      taxId: '',
+      address: '',
+      phone: '',
+      email: '',
+      website: '',
+      logoUrl: '',
+    }
+
+    return {
+      success: true,
+      data: (setting?.value as CompanyInfoSettings) || defaultCompanyInfo,
+    }
+  } catch (error) {
+    console.error('Error fetching company info:', error)
     return { success: false, error: 'An unexpected error occurred' }
   }
 }

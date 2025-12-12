@@ -947,6 +947,35 @@
         "save": "Enregistrer",
         "success": "Paramètres d'alertes mis à jour",
         "error": "Échec de la mise à jour des paramètres d'alertes"
+      },
+      "companyInfo": {
+        "title": "Informations de l'entreprise",
+        "description": "Configurez les informations de votre entreprise qui apparaîtront sur les factures et reçus",
+        "logo": "Logo de l'entreprise",
+        "uploadLogo": "Télécharger un logo",
+        "removeLogo": "Supprimer le logo",
+        "logoHelp": "PNG, JPG ou GIF. Max 2 Mo.",
+        "name": "Nom de l'entreprise",
+        "namePlaceholder": "Ma Société SARL",
+        "taxId": "Numéro d'identification fiscale",
+        "taxIdPlaceholder": "CI-ABJ-2024-001234",
+        "taxIdHelp": "Numéro du compte contribuable (NCC) ou RCCM",
+        "address": "Adresse",
+        "addressPlaceholder": "123 Rue du Commerce\nAbidjan, Côte d'Ivoire",
+        "phone": "Téléphone",
+        "phonePlaceholder": "+225 07 00 00 00 00",
+        "email": "Email",
+        "emailPlaceholder": "contact@masociete.ci",
+        "website": "Site web",
+        "websitePlaceholder": "https://www.masociete.ci",
+        "save": "Enregistrer",
+        "success": "Informations de l'entreprise mises à jour",
+        "error": "Échec de la mise à jour des informations",
+        "errors": {
+          "nameRequired": "Le nom de l'entreprise est requis",
+          "logoTooLarge": "Le logo ne doit pas dépasser 2 Mo",
+          "invalidLogoType": "Le fichier doit être une image (PNG, JPG, GIF)"
+        }
       }
     },
     "pin": {

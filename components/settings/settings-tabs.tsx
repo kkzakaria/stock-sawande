@@ -38,6 +38,15 @@ interface BusinessSettings {
     defaultThreshold: number
     enabled: boolean
   }
+  company_info: {
+    name: string
+    taxId: string
+    address: string
+    phone: string
+    email: string
+    website: string
+    logoUrl: string
+  }
 }
 
 interface IntegrationsSettings {

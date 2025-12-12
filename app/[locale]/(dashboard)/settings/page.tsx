@@ -111,6 +111,23 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           defaultThreshold: 10,
           enabled: true,
         },
+        company_info: (settingsMap.company_info as {
+          name: string
+          taxId: string
+          address: string
+          phone: string
+          email: string
+          website: string
+          logoUrl: string
+        }) || {
+          name: '',
+          taxId: '',
+          address: '',
+          phone: '',
+          email: '',
+          website: '',
+          logoUrl: '',
+        },
       }
 
       // Extract integrations settings

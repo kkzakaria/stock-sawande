@@ -947,6 +947,35 @@
         "save": "Save",
         "success": "Stock alert settings updated",
         "error": "Failed to update stock alert settings"
+      },
+      "companyInfo": {
+        "title": "Company Information",
+        "description": "Configure your company information that will appear on invoices and receipts",
+        "logo": "Company Logo",
+        "uploadLogo": "Upload Logo",
+        "removeLogo": "Remove Logo",
+        "logoHelp": "PNG, JPG or GIF. Max 2 MB.",
+        "name": "Company Name",
+        "namePlaceholder": "My Company LLC",
+        "taxId": "Tax Identification Number",
+        "taxIdPlaceholder": "12-3456789",
+        "taxIdHelp": "EIN, VAT number, or local tax ID",
+        "address": "Address",
+        "addressPlaceholder": "123 Business Street\nNew York, NY 10001",
+        "phone": "Phone",
+        "phonePlaceholder": "+1 (555) 123-4567",
+        "email": "Email",
+        "emailPlaceholder": "contact@mycompany.com",
+        "website": "Website",
+        "websitePlaceholder": "https://www.mycompany.com",
+        "save": "Save",
+        "success": "Company information updated",
+        "error": "Failed to update company information",
+        "errors": {
+          "nameRequired": "Company name is required",
+          "logoTooLarge": "Logo must be less than 2 MB",
+          "invalidLogoType": "File must be an image (PNG, JPG, GIF)"
+        }
       }
     },
     "pin": {
