@@ -8,17 +8,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
+import { useOfflineStore } from '@/lib/store/offline-store'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
-import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2 } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
+import { POSProformaReceipt } from './pos-proforma-receipt'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getTransaction } from '@/lib/offline/indexed-db'
 import { buildReceiptFromTransaction } from '@/lib/offline/receipt-utils'
+import { createPOSProforma, type POSProformaResult } from '@/lib/actions/proformas'
 
 interface POSCartProps {
   storeId: string
@@ -123,6 +126,11 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const getSubtotal = useCartStore((state) => state.getSubtotal)
   const getTax = useCartStore((state) => state.getTax)
   const getTotal = useCartStore((state) => state.getTotal)
+  const notes = useCartStore((state) => state.notes)
+  const discount = useCartStore((state) => state.discount)
+  const customerId = useCartStore((state) => state.customerId)
+
+  const isOnline = useOfflineStore((state) => state.isOnline)
 
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [receiptOpen, setReceiptOpen] = useState(false)
@@ -130,6 +138,11 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const [currentSaleNumber, setCurrentSaleNumber] = useState<string>('')
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null)
   const cartItemsRef = useRef<HTMLDivElement>(null)
+
+  // Proforma state
+  const [isCreatingProforma, setIsCreatingProforma] = useState(false)
+  const [proformaReceiptOpen, setProformaReceiptOpen] = useState(false)
+  const [proformaReceiptData, setProformaReceiptData] = useState<POSProformaResult | null>(null)
 
   // Auto-scroll to bottom when new item is added
   useEffect(() => {
@@ -141,6 +154,50 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const subtotal = getSubtotal()
   const tax = getTax()
   const total = getTotal()
+
+  // Create proforma handler
+  const handleCreateProforma = async () => {
+    setIsCreatingProforma(true)
+
+    try {
+      const result = await createPOSProforma({
+        store_id: storeId,
+        customer_id: customerId || null,
+        items: items.map(item => ({
+          product_id: item.productId,
+          name: item.name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unit_price: item.price,
+          discount: item.discount || 0,
+        })),
+        subtotal,
+        tax,
+        discount: discount || 0,
+        total,
+        notes: notes || undefined,
+      })
+
+      if (result.success && result.data) {
+        // Clear cart
+        clearCart()
+
+        // Show success toast
+        toast.success(t('proformaCreated', { number: result.data.proforma_number }))
+
+        // Set receipt data and open receipt modal
+        setProformaReceiptData(result.data)
+        setProformaReceiptOpen(true)
+      } else {
+        toast.error(result.error || t('proformaError'))
+      }
+    } catch (error) {
+      console.error('Error creating proforma:', error)
+      toast.error(t('proformaError'))
+    } finally {
+      setIsCreatingProforma(false)
+    }
+  }
 
   const handleCheckoutComplete = async (saleId: string, saleNumber: string, isOffline?: boolean) => {
     // Close checkout modal
@@ -316,15 +373,40 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
             <span>{formatCurrency(total)}</span>
           </div>
 
-          {/* Checkout Button */}
-          <Button
-            className="w-full h-12 text-lg"
-            size="lg"
-            disabled={items.length === 0}
-            onClick={() => setCheckoutOpen(true)}
-          >
-            {t('checkout')}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {/* Create Proforma Button */}
+            <Button
+              variant="outline"
+              className="flex-1 h-12"
+              size="lg"
+              disabled={items.length === 0 || isCreatingProforma || !isOnline}
+              onClick={handleCreateProforma}
+              title={!isOnline ? t('proformaRequiresConnection') : undefined}
+            >
+              {isCreatingProforma ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('creatingProforma')}
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t('createProforma')}
+                </>
+              )}
+            </Button>
+
+            {/* Checkout Button */}
+            <Button
+              className="flex-1 h-12 text-lg"
+              size="lg"
+              disabled={items.length === 0}
+              onClick={() => setCheckoutOpen(true)}
+            >
+              {t('checkout')}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -347,6 +429,13 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
         saleId={currentSaleId}
         saleNumber={currentSaleNumber}
         receiptData={receiptData}
+      />
+
+      {/* Proforma Receipt Modal */}
+      <POSProformaReceipt
+        open={proformaReceiptOpen}
+        onOpenChange={setProformaReceiptOpen}
+        proformaData={proformaReceiptData}
       />
     </div>
   )

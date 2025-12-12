@@ -584,7 +584,20 @@
       "tax": "Tax ({rate})",
       "total": "Total",
       "checkout": "Checkout",
-      "editQuantity": "Click to edit quantity"
+      "editQuantity": "Click to edit quantity",
+      "createProforma": "Create Quote",
+      "creatingProforma": "Creating...",
+      "proformaCreated": "Quote created - #{number}",
+      "proformaError": "Failed to create quote",
+      "proformaRequiresConnection": "Quote creation requires internet connection"
+    },
+    "proformaReceipt": {
+      "title": "Quote",
+      "description": "Quote #{number} - Print or download",
+      "validUntil": "Valid until",
+      "disclaimer": "This is a quote, not an invoice",
+      "print": "Print",
+      "download": "Download"
     },
     "checkout": {
       "title": "Complete Sale",
