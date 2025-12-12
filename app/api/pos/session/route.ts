@@ -34,13 +34,13 @@ export async function GET(_request: Request) {
       )
     }
 
-    // Get active session for this cashier
+    // Get active session for this cashier (open or locked)
     const { data: session, error } = await supabase
       .from('cash_sessions')
       .select('*')
       .eq('store_id', profile.store_id)
       .eq('cashier_id', user.id)
-      .eq('status', 'open')
+      .in('status', ['open', 'locked'] as const)
       .maybeSingle()
 
     if (error) {
@@ -111,18 +111,21 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check if there's already an open session for this cashier
+    // Check if there's already an active session for this cashier (open or locked)
     const { data: existingSession } = await supabase
       .from('cash_sessions')
-      .select('id')
+      .select('id, status')
       .eq('store_id', body.storeId)
       .eq('cashier_id', user.id)
-      .eq('status', 'open')
+      .in('status', ['open', 'locked'] as const)
       .maybeSingle()
 
     if (existingSession) {
+      const message = (existingSession.status as string) === 'locked'
+        ? 'You have a locked session. Please unlock it first.'
+        : 'You already have an open session'
       return NextResponse.json(
-        { error: 'You already have an open session' },
+        { error: message },
         { status: 400 }
       )
     }

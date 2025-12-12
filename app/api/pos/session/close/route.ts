@@ -53,13 +53,21 @@ export async function POST(request: Request) {
       .from('cash_sessions')
       .select('*')
       .eq('id', body.sessionId)
-      .eq('status', 'open')
+      .in('status', ['open', 'locked'] as const)
       .single()
 
     if (fetchError || !session) {
       return NextResponse.json(
         { error: 'Session not found or already closed' },
         { status: 404 }
+      )
+    }
+
+    // Cannot close a locked session - must unlock first
+    if ((session.status as string) === 'locked') {
+      return NextResponse.json(
+        { error: 'Cannot close a locked session. Please unlock it first.' },
+        { status: 400 }
       )
     }
 

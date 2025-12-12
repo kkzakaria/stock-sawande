@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -91,6 +96,8 @@ export type Database = {
           discrepancy: number | null
           expected_closing_amount: number | null
           id: string
+          locked_at: string | null
+          locked_by: string | null
           opened_at: string
           opening_amount: number
           opening_notes: string | null
@@ -115,6 +122,8 @@ export type Database = {
           discrepancy?: number | null
           expected_closing_amount?: number | null
           id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           opened_at?: string
           opening_amount?: number
           opening_notes?: string | null
@@ -139,6 +148,8 @@ export type Database = {
           discrepancy?: number | null
           expected_closing_amount?: number | null
           id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           opened_at?: string
           opening_amount?: number
           opening_notes?: string | null
@@ -177,6 +188,20 @@ export type Database = {
           {
             foreignKeyName: "cash_sessions_cashier_id_fkey"
             columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_locked_by_fkey"
+            columns: ["locked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1344,6 +1369,27 @@ export type Database = {
         Returns: string
       }
       generate_sale_number: { Args: { store_uuid: string }; Returns: string }
+      get_all_products_aggregated: {
+        Args: never
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          created_at: string
+          description: string
+          image_url: string
+          is_active: boolean
+          min_stock_level: number
+          name: string
+          price: number
+          sku: string
+          store_count: number
+          template_id: string
+          total_quantity: number
+          updated_at: string
+        }[]
+      }
       get_cashier_performance: {
         Args: { p_date_from?: string; p_date_to?: string; p_store_id?: string }
         Returns: {
@@ -1438,6 +1484,31 @@ export type Database = {
           template_id: string
         }[]
       }
+      get_products_with_totals: {
+        Args: { p_store_id: string }
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          created_at: string
+          description: string
+          image_url: string
+          inventory_id: string
+          is_active: boolean
+          min_stock_level: number
+          my_quantity: number
+          name: string
+          price: number
+          sku: string
+          store_count: number
+          store_id: string
+          store_name: string
+          template_id: string
+          total_quantity: number
+          updated_at: string
+        }[]
+      }
       get_sales_trend: {
         Args: {
           p_date_from?: string
@@ -1511,7 +1582,7 @@ export type Database = {
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
     }
     Enums: {
-      cash_session_status: "open" | "closed"
+      cash_session_status: "open" | "closed" | "locked"
       proforma_status:
         | "draft"
         | "sent"
@@ -1658,7 +1729,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      cash_session_status: ["open", "closed"],
+      cash_session_status: ["open", "closed", "locked"],
       proforma_status: [
         "draft",
         "sent",
@@ -1680,4 +1751,3 @@ export const Constants = {
     },
   },
 } as const
-

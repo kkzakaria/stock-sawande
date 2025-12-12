@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useTransition } from 'react'
 import { User } from '@supabase/supabase-js'
 import { useTranslations } from 'next-intl'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -15,8 +16,8 @@ import { Button } from '@/components/ui/button'
 import { LogOut, User as UserIcon, RefreshCw } from 'lucide-react'
 import { logout } from '@/app/[locale]/(auth)/actions'
 import { refreshUserSession } from '@/lib/actions/session'
-import { useTransition } from 'react'
 import { LocaleSwitcher } from '@/components/locale-switcher'
+import { ProfileDialog } from './profile-dialog'
 
 interface Profile {
   id: string
@@ -36,8 +37,10 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   const t = useTranslations('Auth')
   const tCommon = useTranslations('Common')
+  const tProfile = useTranslations('ProfileDialog')
   const [isPending, startTransition] = useTransition()
   const [isRefreshing, startRefresh] = useTransition()
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false)
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -107,9 +110,9 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
               <UserIcon className="mr-2 h-4 w-4" />
-              <span>Profile</span>
+              <span>{tProfile('tabs.profile')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -126,6 +129,18 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Profile Dialog */}
+      <ProfileDialog
+        open={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+        initialData={{
+          full_name: profile?.full_name || '',
+          avatar_url: profile?.avatar_url || '',
+          email: user.email || '',
+        }}
+        userRole={profile?.role || 'cashier'}
+      />
     </header>
   )
 }

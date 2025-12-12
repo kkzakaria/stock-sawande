@@ -13,6 +13,7 @@ const SALT_ROUNDS = 10
 /**
  * GET /api/settings/pin
  * Returns whether the current user has a PIN configured
+ * All authenticated users can have a PIN (cashiers need it to unlock their register)
  */
 export async function GET() {
   try {
@@ -25,20 +26,6 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is manager or admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || !['manager', 'admin'].includes(profile.role)) {
-      return NextResponse.json(
-        { error: 'Only managers and admins can have a PIN' },
-        { status: 403 }
-      )
     }
 
     // Check if user has a PIN
@@ -66,6 +53,7 @@ export async function GET() {
  * POST /api/settings/pin
  * Create or update the user's PIN
  * Body: { pin: string } - 6 digit PIN
+ * All authenticated users can have a PIN (cashiers need it to unlock their register)
  */
 export async function POST(request: Request) {
   try {
@@ -78,20 +66,6 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check if user is manager or admin
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile || !['manager', 'admin'].includes(profile.role)) {
-      return NextResponse.json(
-        { error: 'Only managers and admins can set a PIN' },
-        { status: 403 }
-      )
     }
 
     // Parse and validate request body

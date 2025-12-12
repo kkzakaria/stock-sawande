@@ -689,7 +689,31 @@
       "registerClosedDescription": "You must open a cash session before making sales. This allows tracking transactions and balancing at the end of the day.",
       "whatIsOpeningFund": "What is the opening fund?",
       "openingFundExplanation": "It's the initial cash amount in your register drawer at the start of your work session.",
-      "openMyRegister": "Open my register"
+      "openMyRegister": "Open my register",
+      "cartNotEmptyTitle": "Cart not empty",
+      "cartNotEmptyDescription": "You have items in your cart. Please complete the sale or clear the cart before closing the register.",
+      "cartItemsCount": "{count, plural, =1 {# item} other {# items}} in cart",
+      "cartNotEmptyHint": "Complete the current sale or clear the cart to close the register.",
+      "understood": "Understood",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "lockTitle": "Lock Register",
+      "lockDescription": "The register will be temporarily inaccessible. You can unlock it with your PIN code.",
+      "lockConfirm": "Lock",
+      "unlockTitle": "Unlock Register",
+      "unlockDescription": "Enter your PIN code to unlock the register.",
+      "unlockConfirm": "Unlock",
+      "unlocking": "Unlocking...",
+      "locking": "Locking...",
+      "registerLocked": "Register Locked",
+      "registerLockedDescription": "This register is temporarily locked. Enter your PIN code to unlock it.",
+      "managerUnlock": "Manager",
+      "managerUnlockHint": "Select a manager to force unlock",
+      "lockSuccess": "Register locked",
+      "unlockSuccess": "Register unlocked",
+      "unlockError": "Failed to unlock",
+      "invalidPin": "Invalid PIN code",
+      "enterPin": "Enter your PIN code"
     },
     "approval": {
       "title": "Validation Required",
@@ -1283,5 +1307,42 @@
     "tryAgain": "Try again",
     "goBack": "Go back",
     "goHome": "Go home"
+  },
+
+  "ProfileDialog": {
+    "title": "My Profile",
+    "description": "Manage your personal information and security settings",
+    "tabs": {
+      "profile": "Profile",
+      "pin": "PIN Code"
+    },
+    "cancel": "Cancel",
+    "profile": {
+      "invalidUrl": "Invalid URL format"
+    },
+    "pin": {
+      "configured": "PIN code configured",
+      "configuredDescriptionManager": "You can approve cash register closings with discrepancies and unlock registers.",
+      "configuredDescriptionCashier": "You can unlock your register with your PIN code.",
+      "notConfigured": "No PIN code configured",
+      "notConfiguredDescriptionManager": "Configure a PIN code to approve cash register closings and unlock registers.",
+      "notConfiguredDescriptionCashier": "Configure a PIN code to unlock your register.",
+      "securityWarning": "Make sure no one is watching you while entering your PIN code. Never share your code with anyone.",
+      "configure": "Configure PIN",
+      "modify": "Modify PIN",
+      "modifyButton": "Modify",
+      "createButton": "Create",
+      "delete": "Delete",
+      "newPin": "New PIN code (6 digits)",
+      "confirmPin": "Confirm PIN code",
+      "confirmDelete": "Are you sure you want to delete your PIN code?",
+      "created": "PIN code created successfully",
+      "modified": "PIN code modified successfully",
+      "deleted": "PIN code deleted",
+      "deleteError": "Error deleting PIN",
+      "error": "An error occurred",
+      "errorLength": "PIN code must be 6 digits",
+      "errorMismatch": "PIN codes do not match"
+    }
   }
 }

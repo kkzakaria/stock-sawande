@@ -689,7 +689,31 @@
       "registerClosedDescription": "Vous devez ouvrir une session de caisse avant de pouvoir effectuer des ventes. Cela permet de suivre les transactions et de faire le bilan en fin de journée.",
       "whatIsOpeningFund": "Qu'est-ce que le fond de caisse ?",
       "openingFundExplanation": "C'est le montant initial en espèces dans votre tiroir-caisse au début de votre session de travail.",
-      "openMyRegister": "Ouvrir ma caisse"
+      "openMyRegister": "Ouvrir ma caisse",
+      "cartNotEmptyTitle": "Panier non vide",
+      "cartNotEmptyDescription": "Vous avez des articles dans votre panier. Veuillez terminer la vente ou vider le panier avant de fermer la caisse.",
+      "cartItemsCount": "{count, plural, =1 {# article} other {# articles}} dans le panier",
+      "cartNotEmptyHint": "Terminez la vente en cours ou videz le panier pour pouvoir fermer la caisse.",
+      "understood": "Compris",
+      "lock": "Verrouiller",
+      "unlock": "Déverrouiller",
+      "lockTitle": "Verrouiller la caisse",
+      "lockDescription": "La caisse sera temporairement inaccessible. Vous pourrez la déverrouiller avec votre code PIN.",
+      "lockConfirm": "Verrouiller",
+      "unlockTitle": "Déverrouiller la caisse",
+      "unlockDescription": "Entrez votre code PIN pour déverrouiller la caisse.",
+      "unlockConfirm": "Déverrouiller",
+      "unlocking": "Déverrouillage...",
+      "locking": "Verrouillage...",
+      "registerLocked": "Caisse verrouillée",
+      "registerLockedDescription": "Cette caisse est temporairement verrouillée. Entrez votre code PIN pour la déverrouiller.",
+      "managerUnlock": "Manager",
+      "managerUnlockHint": "Sélectionnez un manager pour forcer le déverrouillage",
+      "lockSuccess": "Caisse verrouillée",
+      "unlockSuccess": "Caisse déverrouillée",
+      "unlockError": "Échec du déverrouillage",
+      "invalidPin": "Code PIN incorrect",
+      "enterPin": "Entrez votre code PIN"
     },
     "approval": {
       "title": "Validation requise",
@@ -1283,5 +1307,42 @@
     "tryAgain": "Réessayer",
     "goBack": "Retour",
     "goHome": "Accueil"
+  },
+
+  "ProfileDialog": {
+    "title": "Mon profil",
+    "description": "Gérez vos informations personnelles et paramètres de sécurité",
+    "tabs": {
+      "profile": "Profil",
+      "pin": "Code PIN"
+    },
+    "cancel": "Annuler",
+    "profile": {
+      "invalidUrl": "Format d'URL invalide"
+    },
+    "pin": {
+      "configured": "Code PIN configuré",
+      "configuredDescriptionManager": "Vous pouvez approuver les fermetures de caisse avec écart et déverrouiller les caisses.",
+      "configuredDescriptionCashier": "Vous pouvez déverrouiller votre caisse avec votre code PIN.",
+      "notConfigured": "Aucun code PIN configuré",
+      "notConfiguredDescriptionManager": "Configurez un code PIN pour approuver les fermetures de caisse et déverrouiller les caisses.",
+      "notConfiguredDescriptionCashier": "Configurez un code PIN pour pouvoir déverrouiller votre caisse.",
+      "securityWarning": "Assurez-vous que personne ne vous observe pendant la saisie de votre code PIN. Ne partagez jamais votre code avec quiconque.",
+      "configure": "Configurer le PIN",
+      "modify": "Modifier le PIN",
+      "modifyButton": "Modifier",
+      "createButton": "Créer",
+      "delete": "Supprimer",
+      "newPin": "Nouveau code PIN (6 chiffres)",
+      "confirmPin": "Confirmer le code PIN",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer votre code PIN ?",
+      "created": "Code PIN créé avec succès",
+      "modified": "Code PIN modifié avec succès",
+      "deleted": "Code PIN supprimé",
+      "deleteError": "Erreur lors de la suppression du PIN",
+      "error": "Une erreur est survenue",
+      "errorLength": "Le code PIN doit contenir 6 chiffres",
+      "errorMismatch": "Les codes PIN ne correspondent pas"
+    }
   }
 }

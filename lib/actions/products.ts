@@ -452,7 +452,6 @@ export async function getProducts(filters: ProductFilters = {}) {
     }
 
     // Admin path: Use aggregated view (shows total stock)
-    // @ts-expect-error - View exists in database but may not be in generated types
     let query = supabase.from('products_aggregated').select('*', { count: 'exact' })
 
     // Apply search filter (name or SKU)

@@ -96,6 +96,8 @@ export type Database = {
           discrepancy: number | null
           expected_closing_amount: number | null
           id: string
+          locked_at: string | null
+          locked_by: string | null
           opened_at: string
           opening_amount: number
           opening_notes: string | null
@@ -120,6 +122,8 @@ export type Database = {
           discrepancy?: number | null
           expected_closing_amount?: number | null
           id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           opened_at?: string
           opening_amount?: number
           opening_notes?: string | null
@@ -144,6 +148,8 @@ export type Database = {
           discrepancy?: number | null
           expected_closing_amount?: number | null
           id?: string
+          locked_at?: string | null
+          locked_by?: string | null
           opened_at?: string
           opening_amount?: number
           opening_notes?: string | null
@@ -182,6 +188,20 @@ export type Database = {
           {
             foreignKeyName: "cash_sessions_cashier_id_fkey"
             columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_locked_by_fkey"
+            columns: ["locked_by"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_sessions_locked_by_fkey"
+            columns: ["locked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -329,6 +349,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
           },
           {
             foreignKeyName: "product_inventory_product_id_fkey"
@@ -564,6 +591,13 @@ export type Database = {
             foreignKeyName: "proforma_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "proforma_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -751,6 +785,13 @@ export type Database = {
             foreignKeyName: "sale_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -933,6 +974,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "product_templates"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
           },
           {
             foreignKeyName: "stock_movements_product_id_fkey"
@@ -1158,6 +1206,13 @@ export type Database = {
             foreignKeyName: "product_inventory_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -1184,6 +1239,36 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products_aggregated: {
+        Row: {
+          barcode: string | null
+          category_description: string | null
+          category_id: string | null
+          category_name: string | null
+          cost: number | null
+          created_at: string | null
+          description: string | null
+          image_url: string | null
+          is_active: boolean | null
+          min_stock_level: number | null
+          name: string | null
+          price: number | null
+          sku: string | null
+          store_count: number | null
+          template_id: string | null
+          total_quantity: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1254,6 +1339,13 @@ export type Database = {
             foreignKeyName: "sale_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products_aggregated"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "sale_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products_with_inventory"
             referencedColumns: ["template_id"]
           },
@@ -1277,6 +1369,27 @@ export type Database = {
         Returns: string
       }
       generate_sale_number: { Args: { store_uuid: string }; Returns: string }
+      get_all_products_aggregated: {
+        Args: never
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          created_at: string
+          description: string
+          image_url: string
+          is_active: boolean
+          min_stock_level: number
+          name: string
+          price: number
+          sku: string
+          store_count: number
+          template_id: string
+          total_quantity: number
+          updated_at: string
+        }[]
+      }
       get_cashier_performance: {
         Args: { p_date_from?: string; p_date_to?: string; p_store_id?: string }
         Returns: {
@@ -1371,6 +1484,31 @@ export type Database = {
           template_id: string
         }[]
       }
+      get_products_with_totals: {
+        Args: { p_store_id: string }
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          created_at: string
+          description: string
+          image_url: string
+          inventory_id: string
+          is_active: boolean
+          min_stock_level: number
+          my_quantity: number
+          name: string
+          price: number
+          sku: string
+          store_count: number
+          store_id: string
+          store_name: string
+          template_id: string
+          total_quantity: number
+          updated_at: string
+        }[]
+      }
       get_sales_trend: {
         Args: {
           p_date_from?: string
@@ -1444,7 +1582,7 @@ export type Database = {
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
     }
     Enums: {
-      cash_session_status: "open" | "closed"
+      cash_session_status: "open" | "closed" | "locked"
       proforma_status:
         | "draft"
         | "sent"
@@ -1591,7 +1729,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      cash_session_status: ["open", "closed"],
+      cash_session_status: ["open", "closed", "locked"],
       proforma_status: [
         "draft",
         "sent",

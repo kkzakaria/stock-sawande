@@ -19,6 +19,8 @@ import { POSCart } from './pos-cart'
 import { CashSessionStatus } from './cash-session-status'
 import { OpenSessionDialog } from './open-session-dialog'
 import { CloseSessionDialog } from './close-session-dialog'
+import { LockSessionDialog } from './lock-session-dialog'
+import { UnlockSessionDialog } from './unlock-session-dialog'
 import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
 import { NetworkBanner } from './network-banner'
@@ -100,6 +102,8 @@ export function POSClient({
   const [sessionLoading, setSessionLoading] = useState(true)
   const [openSessionDialogOpen, setOpenSessionDialogOpen] = useState(false)
   const [closeSessionDialogOpen, setCloseSessionDialogOpen] = useState(false)
+  const [lockSessionDialogOpen, setLockSessionDialogOpen] = useState(false)
+  const [unlockSessionDialogOpen, setUnlockSessionDialogOpen] = useState(false)
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false)
 
@@ -179,6 +183,21 @@ export function POSClient({
     setActiveSession(null)
     toast.success('Caisse fermée avec succès')
   }
+
+  // Handle session locked
+  const handleSessionLocked = () => {
+    fetchActiveSession()
+    toast.success(t('session.lockSuccess'))
+  }
+
+  // Handle session unlocked
+  const handleSessionUnlocked = () => {
+    fetchActiveSession()
+    toast.success(t('session.unlockSuccess'))
+  }
+
+  // Check if session is locked
+  const isSessionLocked = (activeSession?.status as string) === 'locked'
 
   // Refresh product data after checkout to update stock quantities
   const handleCheckoutComplete = () => {
@@ -347,12 +366,14 @@ export function POSClient({
       {/* Network Status Banner */}
       <NetworkBanner />
 
-      {/* Session Required Overlay */}
-      {!activeSession && (
+      {/* Session Required Overlay (shown when no session OR session is locked) */}
+      {(!activeSession || isSessionLocked) && (
         <SessionRequiredOverlay
           onOpenSession={() => setOpenSessionDialogOpen(true)}
           canSelectStore={canSelectStore}
           onChangeStore={() => setStoreSelectorOpen(true)}
+          isLocked={isSessionLocked}
+          onUnlock={() => setUnlockSessionDialogOpen(true)}
         />
       )}
 
@@ -365,6 +386,8 @@ export function POSClient({
               session={activeSession}
               onOpenSession={() => setOpenSessionDialogOpen(true)}
               onCloseSession={() => setCloseSessionDialogOpen(true)}
+              onLockSession={() => setLockSessionDialogOpen(true)}
+              cartItemCount={itemCount}
             />
           </div>
           {canSelectStore && (
@@ -441,6 +464,27 @@ export function POSClient({
         storeId={storeId}
         onSessionClosed={handleSessionClosed}
       />
+
+      {/* Lock Session Dialog */}
+      {activeSession && (
+        <LockSessionDialog
+          open={lockSessionDialogOpen}
+          onOpenChange={setLockSessionDialogOpen}
+          sessionId={activeSession.id}
+          onSessionLocked={handleSessionLocked}
+        />
+      )}
+
+      {/* Unlock Session Dialog */}
+      {activeSession && (
+        <UnlockSessionDialog
+          open={unlockSessionDialogOpen}
+          onOpenChange={setUnlockSessionDialogOpen}
+          sessionId={activeSession.id}
+          isOwner={activeSession.cashier_id === cashierId}
+          onSessionUnlocked={handleSessionUnlocked}
+        />
+      )}
 
       {/* Sync Conflict Dialog */}
       <SyncConflictDialog

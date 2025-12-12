@@ -13,9 +13,10 @@ import { Label } from '@/components/ui/label'
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSlot,
+  InputOTPSlotMasked,
 } from '@/components/ui/input-otp'
-import { Loader2, ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, ShieldCheck, ShieldAlert, KeyRound, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface PinSettingsProps {
@@ -31,8 +32,9 @@ export function PinSettings({ userRole }: PinSettingsProps) {
   const [showForm, setShowForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Only managers and admins can have a PIN
-  const canHavePin = ['manager', 'admin'].includes(userRole)
+  // All users can have a PIN (cashiers need it to unlock their register)
+  const canHavePin = true
+  const isManagerOrAdmin = ['manager', 'admin'].includes(userRole)
 
   useEffect(() => {
     if (canHavePin) {
@@ -142,7 +144,7 @@ export function PinSettings({ userRole }: PinSettingsProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <KeyRound className="h-5 w-5" />
-            Code PIN de validation
+            Code PIN de sécurité
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
@@ -157,12 +159,12 @@ export function PinSettings({ userRole }: PinSettingsProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <KeyRound className="h-5 w-5" />
-          Code PIN de validation
+          Code PIN de sécurité
         </CardTitle>
         <CardDescription>
-          Ce code PIN à 6 chiffres est utilisé pour approuver les fermetures de
-          caisse avec écart. Vous devrez le saisir lorsqu&apos;un caissier demande
-          votre validation.
+          {isManagerOrAdmin
+            ? "Ce code PIN à 6 chiffres est utilisé pour approuver les fermetures de caisse avec écart et déverrouiller les caisses."
+            : "Ce code PIN à 6 chiffres est utilisé pour déverrouiller votre caisse."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -189,8 +191,12 @@ export function PinSettings({ userRole }: PinSettingsProps) {
                 </p>
                 <p className="text-sm opacity-80">
                   {hasPin
-                    ? 'Vous pouvez approuver les fermetures de caisse avec écart.'
-                    : 'Configurez un code PIN pour pouvoir approuver les fermetures de caisse.'}
+                    ? (isManagerOrAdmin
+                        ? 'Vous pouvez approuver les fermetures de caisse et déverrouiller les caisses.'
+                        : 'Vous pouvez déverrouiller votre caisse avec votre code PIN.')
+                    : (isManagerOrAdmin
+                        ? 'Configurez un code PIN pour approuver les fermetures de caisse et déverrouiller les caisses.'
+                        : 'Configurez un code PIN pour pouvoir déverrouiller votre caisse.')}
                 </p>
               </div>
             </div>
@@ -213,6 +219,14 @@ export function PinSettings({ userRole }: PinSettingsProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Security Warning */}
+            <Alert className="border-amber-200 bg-amber-50 text-amber-800">
+              <EyeOff className="h-4 w-4" />
+              <AlertDescription>
+                Assurez-vous que personne ne vous observe pendant la saisie de votre code PIN. Ne partagez jamais votre code avec quiconque.
+              </AlertDescription>
+            </Alert>
+
             {error && (
               <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
                 {error}
@@ -227,12 +241,12 @@ export function PinSettings({ userRole }: PinSettingsProps) {
                 onChange={(value) => setPin(value)}
               >
                 <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
+                  <InputOTPSlotMasked index={0} />
+                  <InputOTPSlotMasked index={1} />
+                  <InputOTPSlotMasked index={2} />
+                  <InputOTPSlotMasked index={3} />
+                  <InputOTPSlotMasked index={4} />
+                  <InputOTPSlotMasked index={5} />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -245,12 +259,12 @@ export function PinSettings({ userRole }: PinSettingsProps) {
                 onChange={(value) => setConfirmPin(value)}
               >
                 <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
+                  <InputOTPSlotMasked index={0} />
+                  <InputOTPSlotMasked index={1} />
+                  <InputOTPSlotMasked index={2} />
+                  <InputOTPSlotMasked index={3} />
+                  <InputOTPSlotMasked index={4} />
+                  <InputOTPSlotMasked index={5} />
                 </InputOTPGroup>
               </InputOTP>
             </div>
