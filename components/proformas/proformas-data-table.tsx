@@ -40,12 +40,14 @@ interface ProformasDataTableProps {
   proformas: ProformaWithDetails[]
   isLoading?: boolean
   onRefresh?: () => void
+  userRole: 'admin' | 'manager' | 'cashier'
 }
 
 export function ProformasDataTable({
   proformas,
   isLoading = false,
   onRefresh,
+  userRole,
 }: ProformasDataTableProps) {
   const t = useTranslations('Proformas')
   const tCommon = useTranslations('Common')
@@ -223,7 +225,8 @@ export function ProformasDataTable({
         const canSend = proforma.status === 'draft'
         const canAcceptReject = proforma.status === 'sent'
         const canConvert = ['draft', 'sent', 'accepted'].includes(proforma.status)
-        const canDelete = proforma.status !== 'converted'
+        // Only admin and manager can delete proformas
+        const canDelete = proforma.status !== 'converted' && ['admin', 'manager'].includes(userRole)
 
         return (
           <DropdownMenu>

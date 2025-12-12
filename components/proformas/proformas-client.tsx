@@ -180,6 +180,7 @@ export function ProformasClient({ userStoreId, userRole, userId }: ProformasClie
         proformas={proformas}
         isLoading={isLoading}
         onRefresh={handleRefresh}
+        userRole={userRole}
       />
     </div>
   )
