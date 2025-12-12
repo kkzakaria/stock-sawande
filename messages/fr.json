@@ -584,7 +584,20 @@
       "tax": "TVA ({rate})",
       "total": "Total",
       "checkout": "Payer",
-      "editQuantity": "Cliquez pour modifier la quantité"
+      "editQuantity": "Cliquez pour modifier la quantité",
+      "createProforma": "Créer Proforma",
+      "creatingProforma": "Création...",
+      "proformaCreated": "Proforma créée - #{number}",
+      "proformaError": "Échec de création de la proforma",
+      "proformaRequiresConnection": "La création de proforma nécessite une connexion internet"
+    },
+    "proformaReceipt": {
+      "title": "Proforma",
+      "description": "Proforma #{number} - Imprimez ou téléchargez",
+      "validUntil": "Valide jusqu'au",
+      "disclaimer": "Ceci est un devis, pas une facture",
+      "print": "Imprimer",
+      "download": "Télécharger"
     },
     "checkout": {
       "title": "Finaliser la vente",
