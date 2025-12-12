@@ -348,7 +348,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
                 <AlertDialogCancel>{t('clearCancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={clearCart}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="bg-destructive text-white hover:bg-destructive/90"
                 >
                   {t('clear')}
                 </AlertDialogAction>
