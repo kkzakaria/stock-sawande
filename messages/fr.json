@@ -783,7 +783,8 @@
       "profile": "Profil",
       "users": "Utilisateurs",
       "categories": "Catégories",
-      "business": "Business"
+      "business": "Business",
+      "integrations": "Intégrations"
     },
     "profile": {
       "title": "Profil",
@@ -981,6 +982,52 @@
       "french": "Français",
       "english": "Anglais",
       "updating": "Changement de langue..."
+    },
+    "integrations": {
+      "title": "Intégrations",
+      "description": "Configurez les services externes (email, WhatsApp)",
+      "email": {
+        "title": "Email (Resend)",
+        "description": "Configurez l'envoi d'emails via Resend pour les notifications et factures",
+        "enabled": "Activer l'envoi d'emails",
+        "apiKey": "Clé API Resend",
+        "apiKeyHelp": "Obtenez votre clé API sur resend.com/api-keys",
+        "fromEmail": "Email d'expédition",
+        "fromName": "Nom d'expédition",
+        "save": "Enregistrer",
+        "testConnection": "Tester la connexion",
+        "success": "Paramètres email mis à jour",
+        "error": "Échec de la mise à jour des paramètres email",
+        "testSuccess": "Email de test envoyé avec succès",
+        "testError": "Échec de l'envoi de l'email de test",
+        "errors": {
+          "apiKeyRequired": "La clé API est requise",
+          "fromEmailRequired": "L'email d'expédition est requis"
+        }
+      },
+      "whatsapp": {
+        "title": "WhatsApp Business API",
+        "description": "Configurez l'envoi de messages WhatsApp via l'API Meta Business",
+        "enabled": "Activer WhatsApp",
+        "phoneNumberId": "ID du numéro de téléphone",
+        "phoneNumberIdHelp": "Trouvez-le dans le tableau de bord Meta Business",
+        "accessToken": "Token d'accès",
+        "accessTokenHelp": "Token d'accès permanent de l'API WhatsApp Business",
+        "businessAccountId": "ID du compte Business",
+        "businessAccountIdHelp": "ID de votre compte WhatsApp Business",
+        "webhookVerifyToken": "Token de vérification Webhook",
+        "webhookVerifyTokenHelp": "Token personnalisé pour vérifier les webhooks entrants",
+        "save": "Enregistrer",
+        "testConnection": "Tester la connexion",
+        "success": "Paramètres WhatsApp mis à jour",
+        "error": "Échec de la mise à jour des paramètres WhatsApp",
+        "testSuccess": "Connexion WhatsApp vérifiée avec succès",
+        "testError": "Échec de la vérification de la connexion WhatsApp",
+        "errors": {
+          "phoneNumberIdRequired": "L'ID du numéro de téléphone est requis",
+          "accessTokenRequired": "Le token d'accès est requis"
+        }
+      }
     }
   },
 

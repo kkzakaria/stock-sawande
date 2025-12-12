@@ -47,6 +47,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   let users = null
   let stores = null
   let businessSettings = null
+  let integrationsSettings = null
 
   if (isAdmin) {
     // Admin: fetch all users with store assignments
@@ -111,6 +112,34 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
           enabled: true,
         },
       }
+
+      // Extract integrations settings
+      integrationsSettings = {
+        email: (settingsMap.email_settings as {
+          enabled: boolean
+          apiKey: string
+          fromEmail: string
+          fromName: string
+        }) || {
+          enabled: false,
+          apiKey: '',
+          fromEmail: '',
+          fromName: '',
+        },
+        whatsapp: (settingsMap.whatsapp_settings as {
+          enabled: boolean
+          phoneNumberId: string
+          accessToken: string
+          businessAccountId: string
+          webhookVerifyToken: string
+        }) || {
+          enabled: false,
+          phoneNumberId: '',
+          accessToken: '',
+          businessAccountId: '',
+          webhookVerifyToken: '',
+        },
+      }
     }
   }
 
@@ -145,6 +174,7 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         categories={categories || undefined}
         stores={stores || undefined}
         businessSettings={businessSettings || undefined}
+        integrationsSettings={integrationsSettings || undefined}
       />
     </div>
   )
