@@ -338,13 +338,17 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
                 )}
               </span>
               {selectedCustomer && (
-                <X
-                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100"
+                <span
+                  role="button"
+                  className="ml-2 rounded-full p-0.5 hover:bg-gray-200 cursor-pointer"
                   onClick={(e) => {
+                    e.preventDefault()
                     e.stopPropagation()
                     setCustomer(null)
                   }}
-                />
+                >
+                  <X className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100" />
+                </span>
               )}
             </Button>
           </PopoverTrigger>
