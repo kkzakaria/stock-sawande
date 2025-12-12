@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -506,6 +511,172 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proforma_items: {
+        Row: {
+          created_at: string
+          discount: number | null
+          id: string
+          notes: string | null
+          product_id: string
+          proforma_id: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount?: number | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          proforma_id: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          discount?: number | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          proforma_id?: string
+          quantity?: number
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proforma_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proforma_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products_with_inventory"
+            referencedColumns: ["template_id"]
+          },
+          {
+            foreignKeyName: "proforma_items_proforma_id_fkey"
+            columns: ["proforma_id"]
+            isOneToOne: false
+            referencedRelation: "proformas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proformas: {
+        Row: {
+          accepted_at: string | null
+          converted_at: string | null
+          converted_sale_id: string | null
+          created_at: string
+          created_by: string
+          customer_id: string | null
+          discount: number | null
+          id: string
+          notes: string | null
+          proforma_number: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["proforma_status"]
+          store_id: string
+          subtotal: number
+          tax: number
+          terms: string | null
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          converted_at?: string | null
+          converted_sale_id?: string | null
+          created_at?: string
+          created_by: string
+          customer_id?: string | null
+          discount?: number | null
+          id?: string
+          notes?: string | null
+          proforma_number: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["proforma_status"]
+          store_id: string
+          subtotal: number
+          tax?: number
+          terms?: string | null
+          total: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          converted_at?: string | null
+          converted_sale_id?: string | null
+          created_at?: string
+          created_by?: string
+          customer_id?: string | null
+          discount?: number | null
+          id?: string
+          notes?: string | null
+          proforma_number?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["proforma_status"]
+          store_id?: string
+          subtotal?: number
+          tax?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proformas_converted_sale_id_fkey"
+            columns: ["converted_sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proformas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proformas_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proformas_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proformas_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -1101,6 +1272,10 @@ export type Database = {
         Args: { new_role: string; user_email: string }
         Returns: undefined
       }
+      generate_proforma_number: {
+        Args: { store_uuid: string }
+        Returns: string
+      }
       generate_sale_number: { Args: { store_uuid: string }; Returns: string }
       get_cashier_performance: {
         Args: { p_date_from?: string; p_date_to?: string; p_store_id?: string }
@@ -1265,10 +1440,18 @@ export type Database = {
       is_user_active: { Args: { check_user_id: string }; Returns: boolean }
       restore_deleted_user: { Args: { target_user_id: string }; Returns: Json }
       soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
+      update_expired_proformas: { Args: never; Returns: number }
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
     }
     Enums: {
       cash_session_status: "open" | "closed"
+      proforma_status:
+        | "draft"
+        | "sent"
+        | "accepted"
+        | "rejected"
+        | "converted"
+        | "expired"
       stock_movement_type:
         | "purchase"
         | "sale"
@@ -1409,6 +1592,14 @@ export const Constants = {
   public: {
     Enums: {
       cash_session_status: ["open", "closed"],
+      proforma_status: [
+        "draft",
+        "sent",
+        "accepted",
+        "rejected",
+        "converted",
+        "expired",
+      ],
       stock_movement_type: [
         "purchase",
         "sale",
@@ -1422,4 +1613,3 @@ export const Constants = {
     },
   },
 } as const
-

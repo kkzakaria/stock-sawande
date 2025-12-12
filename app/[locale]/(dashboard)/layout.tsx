@@ -51,6 +51,7 @@ export default async function DashboardLayout({
     dashboard: t('dashboard'),
     products: t('products'),
     sales: t('sales'),
+    proformas: t('proformas'),
     pos: t('pos'),
     reports: t('reports'),
     stores: t('stores'),
