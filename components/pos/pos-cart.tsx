@@ -13,7 +13,9 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
-import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2 } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2, User, X, Check } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
 import { POSProformaReceipt } from './pos-proforma-receipt'
@@ -22,6 +24,14 @@ import { createClient } from '@/lib/supabase/client'
 import { getTransaction } from '@/lib/offline/indexed-db'
 import { buildReceiptFromTransaction } from '@/lib/offline/receipt-utils'
 import { createPOSProforma, type POSProformaResult } from '@/lib/actions/proformas'
+import { cn } from '@/lib/utils'
+
+interface Customer {
+  id: string
+  name: string
+  email: string | null
+  phone: string | null
+}
 
 interface POSCartProps {
   storeId: string
@@ -33,6 +43,7 @@ interface POSCartProps {
     phone: string | null
   }
   sessionId?: string | null
+  customers: Customer[]
   onCheckoutComplete?: () => void
 }
 
@@ -114,7 +125,7 @@ function QuantityEditor({ quantity, maxStock, onUpdate, t, tCart }: QuantityEdit
   )
 }
 
-export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId, onCheckoutComplete }: POSCartProps) {
+export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId, customers, onCheckoutComplete }: POSCartProps) {
   const t = useTranslations('POS.cart')
   const tQuantity = useTranslations('POS.quantity')
   const tCheckout = useTranslations('POS.checkout')
@@ -129,6 +140,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const notes = useCartStore((state) => state.notes)
   const discount = useCartStore((state) => state.discount)
   const customerId = useCartStore((state) => state.customerId)
+  const setCustomer = useCartStore((state) => state.setCustomer)
 
   const isOnline = useOfflineStore((state) => state.isOnline)
 
@@ -139,10 +151,16 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null)
   const cartItemsRef = useRef<HTMLDivElement>(null)
 
+  // Customer selection state
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false)
+
   // Proforma state
   const [isCreatingProforma, setIsCreatingProforma] = useState(false)
   const [proformaReceiptOpen, setProformaReceiptOpen] = useState(false)
   const [proformaReceiptData, setProformaReceiptData] = useState<POSProformaResult | null>(null)
+
+  // Find selected customer
+  const selectedCustomer = customers.find((c) => c.id === customerId)
 
   // Auto-scroll to bottom when new item is added
   useEffect(() => {
@@ -281,6 +299,73 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
             {t('clear')}
           </Button>
         )}
+      </div>
+
+      {/* Customer Selection */}
+      <div className="flex-shrink-0 px-4 py-2 border-b bg-gray-50">
+        <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={customerSearchOpen}
+              className="w-full justify-between h-9 text-sm"
+            >
+              <span className="flex items-center gap-2 truncate">
+                <User className="h-4 w-4 shrink-0" />
+                {selectedCustomer ? (
+                  <span className="truncate">{selectedCustomer.name}</span>
+                ) : (
+                  <span className="text-muted-foreground">{t('selectCustomer')}</span>
+                )}
+              </span>
+              {selectedCustomer && (
+                <X
+                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCustomer(null)
+                  }}
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[350px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder={t('searchCustomer')} />
+              <CommandList>
+                <CommandEmpty>{t('noCustomerFound')}</CommandEmpty>
+                <CommandGroup>
+                  {customers.map((customer) => (
+                    <CommandItem
+                      key={customer.id}
+                      value={customer.name}
+                      onSelect={() => {
+                        setCustomer(customer.id)
+                        setCustomerSearchOpen(false)
+                      }}
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        <Check
+                          className={cn(
+                            'h-4 w-4 shrink-0',
+                            customerId === customer.id ? 'opacity-100' : 'opacity-0'
+                          )}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{customer.name}</p>
+                          {customer.phone && (
+                            <p className="text-xs text-muted-foreground">{customer.phone}</p>
+                          )}
+                        </div>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Cart Items - Scrollable */}
