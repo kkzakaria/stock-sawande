@@ -111,6 +111,8 @@ export function CustomersDataTable({
     }).format(new Date(dateString))
   }
 
+  const canManage = canEdit || canDelete
+
   const columns: ColumnDef<Customer>[] = [
     {
       id: 'select',
@@ -205,45 +207,50 @@ export function CustomersDataTable({
         return <span className="text-muted-foreground">{formatDate(date)}</span>
       },
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        const customer = row.original
+    // Only show actions column if user can edit or delete
+    ...(canManage
+      ? [
+          {
+            id: 'actions',
+            cell: ({ row }: { row: { original: Customer } }) => {
+              const customer = row.original
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">{tCommon('actions')}</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
-              {canEdit && (
-                <DropdownMenuItem onClick={() => openEditDialog(customer)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  {t('actions.edit')}
-                </DropdownMenuItem>
-              )}
-              {canDelete && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => confirmDelete(customer.id)}
-                    className="text-destructive"
-                    disabled={isPending}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {t('actions.delete')}
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
-    },
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">{tCommon('actions')}</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{tCommon('actions')}</DropdownMenuLabel>
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => openEditDialog(customer)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        {t('actions.edit')}
+                      </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => confirmDelete(customer.id)}
+                          className="text-destructive"
+                          disabled={isPending}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          {t('actions.delete')}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )
+            },
+          } as ColumnDef<Customer>,
+        ]
+      : []),
   ]
 
   return (
