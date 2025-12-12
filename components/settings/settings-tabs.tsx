@@ -3,11 +3,10 @@
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { UserProfileTab } from './user-profile-tab'
 import { CategoriesTab } from './categories-tab'
 import { UserManagementTab } from './user-management-tab'
 import { BusinessSettingsTab } from './business-settings-tab'
-import { User, UserCog, Tags, Settings2 } from 'lucide-react'
+import { UserCog, Tags, Settings2 } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -42,7 +41,6 @@ interface BusinessSettings {
 
 interface SettingsTabsProps {
   userRole: 'admin' | 'manager' | 'cashier'
-  profile: Profile
   users?: UserWithStores[]
   categories?: Category[]
   stores?: Store[]
@@ -51,7 +49,6 @@ interface SettingsTabsProps {
 
 export function SettingsTabs({
   userRole,
-  profile,
   users,
   categories,
   stores,
@@ -64,13 +61,6 @@ export function SettingsTabs({
 
   const tabs = useMemo(() => {
     const availableTabs = []
-
-    // Profile tab - available to all users
-    availableTabs.push({
-      value: 'profile',
-      label: t('tabs.profile'),
-      icon: User,
-    })
 
     // Categories tab - admin and manager
     if (isManager) {
@@ -102,8 +92,10 @@ export function SettingsTabs({
     return availableTabs
   }, [isAdmin, isManager, t])
 
+  const defaultTab = tabs[0]?.value || 'categories'
+
   return (
-    <Tabs defaultValue="profile" className="space-y-6">
+    <Tabs defaultValue={defaultTab} className="space-y-6">
       <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex lg:grid-cols-none">
         {tabs.map((tab) => {
           const Icon = tab.icon
@@ -119,10 +111,6 @@ export function SettingsTabs({
           )
         })}
       </TabsList>
-
-      <TabsContent value="profile" className="space-y-6">
-        <UserProfileTab profile={profile} />
-      </TabsContent>
 
       {isManager && (
         <TabsContent value="categories" className="space-y-6">

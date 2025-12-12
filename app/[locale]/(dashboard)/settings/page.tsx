@@ -141,7 +141,6 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
       <SettingsTabs
         userRole={profile.role as 'admin' | 'manager' | 'cashier'}
-        profile={profile}
         users={users || undefined}
         categories={categories || undefined}
         stores={stores || undefined}

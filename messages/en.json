@@ -979,7 +979,8 @@
       "title": "Language",
       "description": "Select your preferred language",
       "french": "French",
-      "english": "English"
+      "english": "English",
+      "updating": "Changing language..."
     }
   },
 
@@ -1314,6 +1315,7 @@
     "description": "Manage your personal information and security settings",
     "tabs": {
       "profile": "Profile",
+      "language": "Language",
       "pin": "PIN Code"
     },
     "cancel": "Cancel",
