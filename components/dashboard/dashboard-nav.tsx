@@ -80,16 +80,16 @@ const navItems = [
     roles: ['admin', 'manager', 'cashier'],
   },
   {
-    titleKey: 'reports',
-    href: '/reports',
-    icon: BarChart3,
-    roles: ['admin', 'manager'],
-  },
-  {
     titleKey: 'stores',
     href: '/stores',
     icon: Store,
     roles: ['admin'],
+  },
+  {
+    titleKey: 'reports',
+    href: '/reports',
+    icon: BarChart3,
+    roles: ['admin', 'manager'],
   },
   {
     titleKey: 'settings',
