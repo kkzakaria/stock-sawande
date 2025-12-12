@@ -593,7 +593,8 @@
       "creatingProforma": "Création...",
       "proformaCreated": "Proforma créée - #{number}",
       "proformaError": "Échec de création de la proforma",
-      "proformaRequiresConnection": "La création de proforma nécessite une connexion internet"
+      "proformaRequiresConnection": "La création de proforma nécessite une connexion internet",
+      "proformaRequiresCustomer": "Veuillez sélectionner un client pour créer une proforma"
     },
     "proformaReceipt": {
       "title": "Proforma",

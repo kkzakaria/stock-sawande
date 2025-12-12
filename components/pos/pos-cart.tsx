@@ -193,12 +193,18 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
 
   // Create proforma handler
   const handleCreateProforma = async () => {
+    // Proforma requires a customer
+    if (!customerId) {
+      toast.error(t('proformaRequiresCustomer'))
+      return
+    }
+
     setIsCreatingProforma(true)
 
     try {
       const result = await createPOSProforma({
         store_id: storeId,
-        customer_id: customerId || null,
+        customer_id: customerId,
         items: items.map(item => ({
           product_id: item.productId,
           name: item.name,
@@ -498,9 +504,9 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
               variant="outline"
               className="flex-1 h-12"
               size="lg"
-              disabled={items.length === 0 || isCreatingProforma || !isOnline}
+              disabled={items.length === 0 || isCreatingProforma || !isOnline || !customerId}
               onClick={handleCreateProforma}
-              title={!isOnline ? t('proformaRequiresConnection') : undefined}
+              title={!customerId ? t('proformaRequiresCustomer') : !isOnline ? t('proformaRequiresConnection') : undefined}
             >
               {isCreatingProforma ? (
                 <>

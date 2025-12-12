@@ -593,7 +593,8 @@
       "creatingProforma": "Creating...",
       "proformaCreated": "Quote created - #{number}",
       "proformaError": "Failed to create quote",
-      "proformaRequiresConnection": "Quote creation requires internet connection"
+      "proformaRequiresConnection": "Quote creation requires internet connection",
+      "proformaRequiresCustomer": "Please select a customer to create a quote"
     },
     "proformaReceipt": {
       "title": "Quote",
