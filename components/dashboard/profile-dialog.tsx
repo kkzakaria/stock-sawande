@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
+import { useRouter, usePathname } from 'next/navigation'
 import { useForm } from '@tanstack/react-form'
 import {
   Dialog,
@@ -19,17 +20,19 @@ import {
   InputOTPGroup,
   InputOTPSlotMasked,
 } from '@/components/ui/input-otp'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Loader2,
   User,
   KeyRound,
+  Globe,
   ShieldCheck,
   ShieldAlert,
   EyeOff,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateProfile } from '@/lib/actions/profile'
+import { updateProfile, updateLanguage } from '@/lib/actions/profile'
 
 interface ProfileDialogProps {
   open: boolean
@@ -38,6 +41,7 @@ interface ProfileDialogProps {
     full_name: string
     avatar_url: string
     email: string
+    preferred_language: string
   }
   userRole: string
 }
@@ -50,11 +54,18 @@ export function ProfileDialog({
 }: ProfileDialogProps) {
   const t = useTranslations('ProfileDialog')
   const tSettings = useTranslations('Settings.profile')
+  const tLanguage = useTranslations('Settings.language')
+  const router = useRouter()
+  const pathname = usePathname()
   const [activeTab, setActiveTab] = useState('profile')
 
   // Profile form state
   const [isPending, startTransition] = useTransition()
   const [profileError, setProfileError] = useState<string | null>(null)
+
+  // Language state
+  const [selectedLanguage, setSelectedLanguage] = useState(initialData.preferred_language || 'fr')
+  const [isLanguagePending, startLanguageTransition] = useTransition()
 
   // PIN state
   const [hasPin, setHasPin] = useState(false)
@@ -196,6 +207,31 @@ export function ProfileDialog({
     setPinError(null)
   }
 
+  const handleLanguageChange = async (newLanguage: string) => {
+    if (newLanguage === selectedLanguage) return
+
+    setSelectedLanguage(newLanguage)
+
+    startLanguageTransition(async () => {
+      const result = await updateLanguage(newLanguage)
+
+      if (result.success) {
+        // Update the URL to reflect the new locale
+        const currentPathParts = pathname.split('/')
+        currentPathParts[1] = newLanguage // Replace locale segment
+        const newPath = currentPathParts.join('/')
+
+        router.push(newPath)
+        router.refresh()
+        onOpenChange(false)
+      } else {
+        // Revert selection on error
+        setSelectedLanguage(initialData.preferred_language || 'fr')
+        toast.error(result.error || 'Failed to update language')
+      }
+    })
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -205,10 +241,14 @@ export function ProfileDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className={`grid w-full ${canHavePin ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <TabsList className={`grid w-full ${canHavePin ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               {t('tabs.profile')}
+            </TabsTrigger>
+            <TabsTrigger value="language" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              {t('tabs.language')}
             </TabsTrigger>
             {canHavePin && (
               <TabsTrigger value="pin" className="flex items-center gap-2">
@@ -315,6 +355,49 @@ export function ProfileDialog({
                 </Button>
               </div>
             </form>
+          </TabsContent>
+
+          {/* Language Tab */}
+          <TabsContent value="language" className="mt-4">
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {tLanguage('description')}
+              </p>
+              <RadioGroup
+                value={selectedLanguage}
+                onValueChange={handleLanguageChange}
+                disabled={isLanguagePending}
+                className="space-y-3"
+              >
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="fr" id="lang-fr" />
+                  <Label
+                    htmlFor="lang-fr"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-lg">🇫🇷</span>
+                    {tLanguage('french')}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <RadioGroupItem value="en" id="lang-en" />
+                  <Label
+                    htmlFor="lang-en"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-lg">🇬🇧</span>
+                    {tLanguage('english')}
+                  </Label>
+                </div>
+              </RadioGroup>
+
+              {isLanguagePending && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{tLanguage('updating')}</span>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* PIN Tab */}

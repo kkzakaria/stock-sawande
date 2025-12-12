@@ -26,6 +26,7 @@ interface Profile {
   role: string
   store_id: string | null
   avatar_url?: string | null
+  preferred_language?: string | null
   stores?: { name: string } | null
 }
 
@@ -138,6 +139,7 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
           full_name: profile?.full_name || '',
           avatar_url: profile?.avatar_url || '',
           email: user.email || '',
+          preferred_language: profile?.preferred_language || 'fr',
         }}
         userRole={profile?.role || 'cashier'}
       />
