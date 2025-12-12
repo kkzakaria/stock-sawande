@@ -166,6 +166,7 @@ export function SalesClient({ userStoreId, userRole, userId }: SalesClientProps)
         sales={sales}
         isLoading={isLoading}
         onRefresh={handleRefresh}
+        userRole={userRole}
       />
     </div>
   )

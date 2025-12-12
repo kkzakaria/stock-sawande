@@ -26,12 +26,14 @@ interface SalesDataTableProps {
   sales: SaleWithDetails[]
   isLoading?: boolean
   onRefresh?: () => void
+  userRole: 'admin' | 'manager' | 'cashier'
 }
 
 export function SalesDataTable({
   sales,
   isLoading = false,
   onRefresh,
+  userRole,
 }: SalesDataTableProps) {
   const t = useTranslations('Sales')
   const tCommon = useTranslations('Common')
@@ -221,7 +223,8 @@ export function SalesDataTable({
                 <Eye className="mr-2 h-4 w-4" />
                 {t('actions.viewDetail')}
               </DropdownMenuItem>
-              {sale.status === 'completed' && (
+              {/* Only admin and manager can refund sales */}
+              {sale.status === 'completed' && ['admin', 'manager'].includes(userRole) && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -287,6 +290,7 @@ export function SalesDataTable({
             handleRefund(selectedSale)
           }
         }}
+        canRefund={['admin', 'manager'].includes(userRole)}
       />
 
       {/* Refund Dialog */}

@@ -30,6 +30,7 @@ interface SaleDetailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onRefund?: () => void
+  canRefund?: boolean
 }
 
 export function SaleDetailDialog({
@@ -37,6 +38,7 @@ export function SaleDetailDialog({
   open,
   onOpenChange,
   onRefund,
+  canRefund = false,
 }: SaleDetailDialogProps) {
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<SaleItemWithProduct[]>([])
@@ -307,7 +309,7 @@ export function SaleDetailDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {sale.status === 'completed' && onRefund && (
+          {sale.status === 'completed' && onRefund && canRefund && (
             <Button variant="destructive" onClick={onRefund}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Refund Sale
