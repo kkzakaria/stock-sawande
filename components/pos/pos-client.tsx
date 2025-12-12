@@ -77,7 +77,7 @@ interface POSClientProps {
 
 export function POSClient({
   products,
-  customers,
+  customers: initialCustomers,
   storeId,
   cashierId,
   cashierName,
@@ -92,6 +92,9 @@ export function POSClient({
   const storeItemCount = useCartStore((state) => state.getItemCount())
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Local customers state (allows adding new customers without page refresh)
+  const [customers, setCustomers] = useState(initialCustomers)
+
   // Cash session state
   const [activeSession, setActiveSession] = useState<CashSession | null>(null)
   const [sessionLoading, setSessionLoading] = useState(true)
@@ -99,6 +102,11 @@ export function POSClient({
   const [closeSessionDialogOpen, setCloseSessionDialogOpen] = useState(false)
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false)
+
+  // Handle new customer added from cart
+  const handleCustomerAdded = (newCustomer: Customer) => {
+    setCustomers((prev) => [...prev, newCustomer].sort((a, b) => a.name.localeCompare(b.name)))
+  }
 
   // Offline mode hooks - use both polling and SSE for fast detection
   const { isOnline } = useNetworkStatus()
@@ -399,6 +407,7 @@ export function POSClient({
           storeInfo={storeInfo}
           sessionId={activeSession?.id}
           customers={customers}
+          onCustomerAdded={handleCustomerAdded}
           onCheckoutComplete={handleCheckoutComplete}
         />
       </div>
