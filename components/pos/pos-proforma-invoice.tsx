@@ -4,12 +4,11 @@
  * POS Proforma Invoice Component
  * Professional A4 format invoice for proformas created from POS
  * - Print: Native browser print dialog -> PDF
- * - Download: html-to-image -> PNG
+ * - Download: html2pdf.js -> PDF
  */
 
 import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { toPng } from 'html-to-image'
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
 import {
@@ -53,21 +52,18 @@ export function POSProformaInvoice({
     setAction('download')
 
     try {
-      const dataUrl = await toPng(printRef.current, {
-        quality: 0.95,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-      })
+      // Dynamic import for client-side only library
+      const html2pdf = (await import('html2pdf.js')).default
 
-      const response = await fetch(dataUrl)
-      const blob = await response.blob()
+      const opt = {
+        margin: 10,
+        filename: `proforma-${proformaData.proforma_number}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+      }
 
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `proforma-${proformaData.proforma_number}.png`
-      a.click()
-      URL.revokeObjectURL(url)
+      await html2pdf().set(opt).from(printRef.current).save()
     } catch (error) {
       console.error('Error downloading proforma:', error)
     } finally {
