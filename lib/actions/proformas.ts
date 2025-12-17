@@ -968,8 +968,14 @@ export interface POSProformaResult {
   discount: number
   total: number
   status: 'sent'
-  store: { name: string; address: string | null; phone: string | null }
+  store: { name: string; address: string | null; phone: string | null; email: string | null }
   created_by: { full_name: string | null }
+  customer: {
+    name: string
+    email: string | null
+    phone: string | null
+    address: string | null
+  } | null
   items: Array<{
     product: { name: string; sku: string }
     quantity: number
@@ -1018,15 +1024,29 @@ export async function createPOSProforma(
       return { success: false, error: 'Access denied to this store' }
     }
 
-    // Get store info for receipt
+    // Get store info for receipt (including email)
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('name, address, phone')
+      .select('name, address, phone, email')
       .eq('id', validated.store_id)
       .single()
 
     if (storeError || !store) {
       return { success: false, error: 'Store not found' }
+    }
+
+    // Get customer info if provided
+    let customer: { name: string; email: string | null; phone: string | null; address: string | null } | null = null
+    if (validated.customer_id) {
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('name, email, phone, address')
+        .eq('id', validated.customer_id)
+        .single()
+
+      if (customerData) {
+        customer = customerData
+      }
     }
 
     // Calculate valid_until (30 days from now)
@@ -1100,10 +1120,12 @@ export async function createPOSProforma(
           name: store.name,
           address: store.address,
           phone: store.phone,
+          email: store.email,
         },
         created_by: {
           full_name: profile.full_name,
         },
+        customer,
         items: validated.items.map(item => ({
           product: {
             name: item.name,
