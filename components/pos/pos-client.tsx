@@ -92,6 +92,7 @@ export function POSClient({
   const [searchQuery, setSearchQuery] = useState('')
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
+  const ensureStoreMatch = useCartStore((state) => state.ensureStoreMatch)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Local customers state (allows adding new customers without page refresh)
@@ -120,6 +121,14 @@ export function POSClient({
   const cachedProducts = useProductCacheStore((state) => state.products)
   const cacheIsInitialized = useProductCacheStore((state) => state.isInitialized)
   const unacknowledgedConflicts = useOfflineStore((state) => state.unacknowledgedConflicts)
+
+  // Ensure cart belongs to current store (clears if store changed)
+  useEffect(() => {
+    const cartWasCleared = !ensureStoreMatch(storeId)
+    if (cartWasCleared) {
+      toast.info(t('storeSelector.cartCleared'))
+    }
+  }, [storeId, ensureStoreMatch, t])
 
   // Initialize product cache for offline mode
   useEffect(() => {

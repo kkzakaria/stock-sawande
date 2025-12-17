@@ -71,6 +71,7 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
 
   /**
    * Initialize the cache for a store
+   * Clears cache if store has changed
    */
   initialize: async (storeId: string) => {
     const state = get()
@@ -78,6 +79,12 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
     // Skip if already initialized for this store
     if (state.isInitialized && state.storeId === storeId) {
       return
+    }
+
+    // If store changed, clear the old cache first
+    if (state.storeId && state.storeId !== storeId) {
+      console.log(`[ProductCache] Store changed from ${state.storeId} to ${storeId}, clearing cache`)
+      await get().clearCache()
     }
 
     set({ isLoading: true, error: null, storeId })
