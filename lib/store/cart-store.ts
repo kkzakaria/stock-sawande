@@ -27,7 +27,7 @@ interface CartState {
   customerId: string | null
   discount: number // cart-level discount
   tax: number // tax amount (calculated)
-  taxRate: number // tax percentage (e.g., 0.0875 for 8.75%)
+  taxRate: number // tax percentage (e.g., 0.18 for 18%)
   notes: string
 
   // Item management
@@ -43,15 +43,16 @@ interface CartState {
   setTaxRate: (taxRate: number) => void
   setNotes: (notes: string) => void
 
-  // Totals calculation
-  getSubtotal: () => number
-  getTax: () => number
-  getTotal: () => number
+  // Totals calculation (tax-inclusive pricing)
+  getSubtotalTTC: () => number // Total with tax included (sum of item prices)
+  getSubtotalHT: () => number // Subtotal without tax (for display)
+  getTax: () => number // Tax amount extracted from total
+  getTotal: () => number // Final total (same as subtotalTTC - discount)
   getItemCount: () => number
 }
 
-// Default tax rate (8.75% - can be customized per store)
-const DEFAULT_TAX_RATE = 0.0875
+// Default tax rate (18% - can be customized per store)
+const DEFAULT_TAX_RATE = 0.18
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -161,28 +162,33 @@ export const useCartStore = create<CartState>()(
         set({ notes })
       },
 
-      // Calculate subtotal (before tax and discount)
-      getSubtotal: () => {
+      // Calculate subtotal TTC (prices include tax)
+      getSubtotalTTC: () => {
         return get().items.reduce((sum, item) => {
           const itemTotal = item.price * item.quantity - item.discount
           return sum + itemTotal
         }, 0)
       },
 
-      // Calculate tax amount
+      // Calculate tax amount (extracted from total, tax-inclusive)
+      // Formula: Tax = Total * taxRate / (1 + taxRate)
       getTax: () => {
-        const subtotal = get().getSubtotal()
-        const cartDiscount = get().discount
-        const taxableAmount = Math.max(0, subtotal - cartDiscount)
-        return taxableAmount * get().taxRate
+        const total = get().getTotal()
+        const taxRate = get().taxRate
+        return total * taxRate / (1 + taxRate)
       },
 
-      // Calculate final total
+      // Calculate subtotal HT (before tax, for display)
+      // Formula: SubtotalHT = Total - Tax
+      getSubtotalHT: () => {
+        return get().getTotal() - get().getTax()
+      },
+
+      // Calculate final total (tax already included in prices)
       getTotal: () => {
-        const subtotal = get().getSubtotal()
+        const subtotalTTC = get().getSubtotalTTC()
         const discount = get().discount
-        const tax = get().getTax()
-        return Math.max(0, subtotal - discount + tax)
+        return Math.max(0, subtotalTTC - discount)
       },
 
       // Get total item count

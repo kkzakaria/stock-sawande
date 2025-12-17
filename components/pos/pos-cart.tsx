@@ -147,7 +147,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const clearCart = useCartStore((state) => state.clearCart)
-  const getSubtotal = useCartStore((state) => state.getSubtotal)
+  const getSubtotalTTC = useCartStore((state) => state.getSubtotalTTC)
+  const getSubtotalHT = useCartStore((state) => state.getSubtotalHT)
   const getTax = useCartStore((state) => state.getTax)
   const getTotal = useCartStore((state) => state.getTotal)
   const notes = useCartStore((state) => state.notes)
@@ -198,7 +199,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
     }
   }, [items.length])
 
-  const subtotal = getSubtotal()
+  const subtotalHT = getSubtotalHT()
+  const subtotalTTC = getSubtotalTTC()
   const tax = getTax()
   const total = getTotal()
 
@@ -224,7 +226,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
           unit_price: item.price,
           discount: item.discount || 0,
         })),
-        subtotal,
+        subtotal: subtotalTTC,
         tax,
         discount: discount || 0,
         total,
@@ -517,16 +519,16 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
       {items.length > 0 && (
         <div className="flex-shrink-0 border-t pt-4 px-4 pb-4 bg-gray-50 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">{t('subtotal')}</span>
-            <span className="font-medium">{formatCurrency(subtotal)}</span>
+            <span className="text-gray-600">{t('subtotalHT')}</span>
+            <span className="font-medium">{formatCurrency(subtotalHT)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">{t('tax', { rate: '8.75%' })}</span>
+            <span className="text-gray-600">{t('tax', { rate: '18%' })}</span>
             <span className="font-medium">{formatCurrency(tax)}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-lg font-bold">
-            <span>{t('total')}</span>
+            <span>{t('totalTTC')}</span>
             <span>{formatCurrency(total)}</span>
           </div>
 
