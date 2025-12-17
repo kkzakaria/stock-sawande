@@ -29,7 +29,7 @@ import {
 import { ShoppingCart, Trash2, Plus, Minus, FileText, Loader2, User, X, Check, UserPlus } from 'lucide-react'
 import { POSCheckoutModal } from './pos-checkout-modal'
 import { POSReceipt, type ReceiptData } from './pos-receipt'
-import { POSProformaReceipt } from './pos-proforma-receipt'
+import { POSProformaInvoice } from './pos-proforma-invoice'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getTransaction } from '@/lib/offline/indexed-db'
@@ -590,8 +590,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
         receiptData={receiptData}
       />
 
-      {/* Proforma Receipt Modal */}
-      <POSProformaReceipt
+      {/* Proforma Invoice Modal (A4 format) */}
+      <POSProformaInvoice
         open={proformaReceiptOpen}
         onOpenChange={setProformaReceiptOpen}
         proformaData={proformaReceiptData}

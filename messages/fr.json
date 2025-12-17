@@ -609,6 +609,38 @@
       "print": "Imprimer",
       "download": "Télécharger"
     },
+    "proformaInvoice": {
+      "title": "Facture Proforma",
+      "description": "Proforma #{number} - Format A4 professionnel",
+      "loading": "Chargement...",
+      "documentTitle": "FACTURE PROFORMA",
+      "status": {
+        "sent": "Envoyée"
+      },
+      "billTo": "Facturé à",
+      "noCustomer": "Client non spécifié",
+      "dateIssued": "Date d'émission",
+      "validUntil": "Valide jusqu'au",
+      "columns": {
+        "product": "Article",
+        "qty": "Qté",
+        "unitPrice": "Prix unitaire",
+        "discount": "Remise",
+        "subtotal": "Sous-total"
+      },
+      "totals": {
+        "subtotal": "Sous-total HT",
+        "tax": "TVA (8.75%)",
+        "discount": "Remise",
+        "total": "TOTAL TTC"
+      },
+      "disclaimer": "Ce document est une facture proforma et ne constitue pas une facture définitive. Les prix et disponibilités peuvent être soumis à modification.",
+      "generatedBy": "Généré par Next Stock",
+      "createdBy": "Créé par",
+      "scanToVerify": "Scanner pour vérifier",
+      "print": "Imprimer (PDF)",
+      "download": "Télécharger (PNG)"
+    },
     "checkout": {
       "title": "Finaliser la vente",
       "titleOffline": "Mode hors ligne",
