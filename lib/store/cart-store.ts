@@ -29,6 +29,7 @@ interface CartState {
   tax: number // tax amount (calculated)
   taxRate: number // tax percentage (e.g., 0.18 for 18%)
   notes: string
+  storeId: string | null // Store ID to track which store the cart belongs to
 
   // Item management
   addItem: (item: Omit<CartItem, 'quantity' | 'discount'>) => void
@@ -42,6 +43,9 @@ interface CartState {
   setDiscount: (discount: number) => void
   setTaxRate: (taxRate: number) => void
   setNotes: (notes: string) => void
+
+  // Store management - clears cart if store changes
+  ensureStoreMatch: (storeId: string) => boolean
 
   // Totals calculation (tax-inclusive pricing)
   getSubtotalTTC: () => number // Total with tax included (sum of item prices)
@@ -64,6 +68,7 @@ export const useCartStore = create<CartState>()(
       tax: 0,
       taxRate: DEFAULT_TAX_RATE,
       notes: '',
+      storeId: null,
 
       // Add item to cart
       addItem: (item) => {
@@ -139,7 +144,35 @@ export const useCartStore = create<CartState>()(
           customerId: null,
           discount: 0,
           notes: '',
+          storeId: null,
         })
+      },
+
+      // Ensure cart belongs to current store, clear if different
+      ensureStoreMatch: (storeId: string) => {
+        const currentStoreId = get().storeId
+
+        // If no store set yet, set it
+        if (!currentStoreId) {
+          set({ storeId })
+          return true
+        }
+
+        // If store matches, all good
+        if (currentStoreId === storeId) {
+          return true
+        }
+
+        // Store changed - clear cart and set new store
+        console.log(`[Cart] Store changed from ${currentStoreId} to ${storeId}, clearing cart`)
+        set({
+          items: [],
+          customerId: null,
+          discount: 0,
+          notes: '',
+          storeId,
+        })
+        return false // Returns false to indicate cart was cleared
       },
 
       // Set customer ID
@@ -205,6 +238,7 @@ export const useCartStore = create<CartState>()(
         discount: state.discount,
         taxRate: state.taxRate,
         notes: state.notes,
+        storeId: state.storeId,
       }),
     }
   )
