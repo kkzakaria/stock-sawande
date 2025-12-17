@@ -638,8 +638,8 @@
       "generatedBy": "Généré par Next Stock",
       "createdBy": "Créé par",
       "scanToVerify": "Scanner pour vérifier",
-      "print": "Imprimer (PDF)",
-      "download": "Télécharger (PNG)"
+      "print": "Imprimer",
+      "download": "Télécharger (PDF)"
     },
     "checkout": {
       "title": "Finaliser la vente",
