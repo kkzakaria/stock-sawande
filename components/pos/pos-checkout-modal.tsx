@@ -60,7 +60,8 @@ export function POSCheckoutModal({
   const customerId = useCartStore((state) => state.customerId)
   const discount = useCartStore((state) => state.discount)
   const notes = useCartStore((state) => state.notes)
-  const getSubtotal = useCartStore((state) => state.getSubtotal)
+  const getSubtotalTTC = useCartStore((state) => state.getSubtotalTTC)
+  const getSubtotalHT = useCartStore((state) => state.getSubtotalHT)
   const getTax = useCartStore((state) => state.getTax)
   const getTotal = useCartStore((state) => state.getTotal)
   const clearCart = useCartStore((state) => state.clearCart)
@@ -73,7 +74,8 @@ export function POSCheckoutModal({
   const [error, setError] = useState<string | null>(null)
   const [offlineWarnings, setOfflineWarnings] = useState<string[]>([])
 
-  const subtotal = getSubtotal()
+  const subtotalHT = getSubtotalHT()
+  const subtotalTTC = getSubtotalTTC()
   const tax = getTax()
   const total = getTotal()
 
@@ -112,7 +114,7 @@ export function POSCheckoutModal({
           price: item.price,
           discount: item.discount,
         })),
-        subtotal,
+        subtotal: subtotalTTC,
         tax,
         discount,
         total,
@@ -147,7 +149,7 @@ export function POSCheckoutModal({
       sessionId: sessionId ?? null,
       customerId,
       items: offlineItems,
-      subtotal,
+      subtotal: subtotalTTC,
       tax,
       discount,
       total,
@@ -258,8 +260,8 @@ export function POSCheckoutModal({
             <h3 className="font-semibold text-sm">{t('orderSummary')}</h3>
             <div className="bg-gray-50 rounded-lg p-3 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">{t('items', { count: items.length })}</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span className="text-gray-600">{t('subtotalHT')}</span>
+                <span>{formatCurrency(subtotalHT)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -268,11 +270,11 @@ export function POSCheckoutModal({
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-600">Tax (8.75%)</span>
+                <span className="text-gray-600">{t('tax', { rate: '18%' })}</span>
                 <span>{formatCurrency(tax)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                <span>Total</span>
+                <span>{t('totalTTC')}</span>
                 <span>{formatCurrency(total)}</span>
               </div>
             </div>
