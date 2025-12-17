@@ -135,7 +135,7 @@ export function POSProformaInvoice({
       }
 
       const opt = {
-        margin: 10,
+        margin: 0, // No PDF margins - container handles padding
         filename: `proforma-${proformaData.proforma_number}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: {
