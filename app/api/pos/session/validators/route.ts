@@ -5,8 +5,9 @@ import { createClient } from '@/lib/supabase/server'
  * GET /api/pos/session/validators
  * Returns list of managers/admins who can validate cash session discrepancies
  * Only returns users who have configured a PIN (checked server-side for security)
+ * Accepts optional ?storeId= param for admins operating in different stores
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
 
@@ -20,18 +21,48 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get current user's store
+    // Get optional storeId from query params
+    const { searchParams } = new URL(request.url)
+    const requestedStoreId = searchParams.get('storeId')
+
+    // Get current user's profile
     const { data: currentProfile } = await supabase
       .from('profiles')
-      .select('store_id')
+      .select('store_id, role')
       .eq('id', user.id)
       .single()
 
-    if (!currentProfile?.store_id) {
+    if (!currentProfile) {
       return NextResponse.json(
-        { error: 'User not assigned to a store' },
+        { error: 'User profile not found' },
         { status: 400 }
       )
+    }
+
+    const isAdmin = currentProfile.role === 'admin'
+
+    // Determine which store to query validators for
+    let storeId: string | null = null
+
+    if (requestedStoreId) {
+      // If storeId is provided, verify access
+      if (isAdmin || currentProfile.store_id === requestedStoreId) {
+        storeId = requestedStoreId
+      } else {
+        return NextResponse.json(
+          { error: 'You do not have access to this store' },
+          { status: 403 }
+        )
+      }
+    } else {
+      // No storeId provided - use assigned store
+      if (!isAdmin && !currentProfile.store_id) {
+        return NextResponse.json(
+          { error: 'User not assigned to a store' },
+          { status: 400 }
+        )
+      }
+      storeId = currentProfile.store_id
     }
 
     // Use service role to bypass RLS and check PINs server-side
@@ -45,13 +76,17 @@ export async function GET(_request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Get managers from same store
-    const { data: storeManagers } = await serviceClient
-      .from('profiles')
-      .select('id, full_name, role')
-      .eq('role', 'manager')
-      .eq('store_id', currentProfile.store_id)
-      .neq('id', user.id) // Exclude current user
+    // Get managers from the store (if storeId is available)
+    let storeManagers: { id: string; full_name: string | null; role: string }[] = []
+    if (storeId) {
+      const { data } = await serviceClient
+        .from('profiles')
+        .select('id, full_name, role')
+        .eq('role', 'manager')
+        .eq('store_id', storeId)
+        .neq('id', user.id) // Exclude current user
+      storeManagers = data || []
+    }
 
     // Get all admins
     const { data: admins } = await serviceClient
