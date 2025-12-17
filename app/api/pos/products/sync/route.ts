@@ -34,11 +34,23 @@ export async function GET(request: NextRequest) {
     // Verify user has access to this store
     const { data: profile } = await supabase
       .from('profiles')
-      .select('store_id')
+      .select('store_id, role')
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.store_id !== storeId) {
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'User profile not found' },
+        { status: 400 }
+      )
+    }
+
+    // Admins can sync products from any store
+    // Managers and cashiers can only sync from their assigned store
+    const isAdmin = profile.role === 'admin'
+    const hasStoreAccess = profile.store_id === storeId
+
+    if (!isAdmin && !hasStoreAccess) {
       return NextResponse.json(
         { error: 'Unauthorized: user not assigned to this store' },
         { status: 403 }

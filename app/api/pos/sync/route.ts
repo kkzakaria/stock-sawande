@@ -128,7 +128,20 @@ async function processTransaction(
     .eq('id', userId)
     .single()
 
-  if (!profile || profile.store_id !== tx.storeId) {
+  if (!profile) {
+    return {
+      localId: tx.localId,
+      status: 'failed',
+      error: 'User profile not found',
+    }
+  }
+
+  // Admins can sync transactions for any store
+  // Managers and cashiers can only sync for their assigned store
+  const isAdmin = profile.role === 'admin'
+  const hasStoreAccess = profile.store_id === tx.storeId
+
+  if (!isAdmin && !hasStoreAccess) {
     return {
       localId: tx.localId,
       status: 'failed',
