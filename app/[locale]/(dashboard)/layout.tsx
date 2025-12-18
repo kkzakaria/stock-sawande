@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { BottomNav } from '@/components/layout/bottom-nav'
 import { buildLoginUrl } from '@/lib/auth/redirect'
 
 // Force dynamic rendering to always fetch fresh profile data
@@ -57,11 +58,14 @@ export default async function DashboardLayout({
     reports: t('reports'),
     stores: t('stores'),
     settings: t('settings'),
+    more: t('more'),
+    logout: t('logout'),
+    menu: t('menu'),
   }
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar - hidden on mobile */}
       <DashboardNav profile={profile} translations={navTranslations} />
 
       {/* Main content */}
@@ -69,9 +73,12 @@ export default async function DashboardLayout({
         {/* Header */}
         <DashboardHeader user={user} profile={profile} />
 
-        {/* Page content */}
-        <main className="flex-1 p-6 bg-muted/40 overflow-auto">{children}</main>
+        {/* Page content - add bottom padding on mobile for nav */}
+        <main className="flex-1 p-6 pb-20 md:pb-6 bg-muted/40 overflow-auto">{children}</main>
       </div>
+
+      {/* Bottom nav - mobile only */}
+      <BottomNav profile={profile} translations={navTranslations} />
     </div>
   )
 }

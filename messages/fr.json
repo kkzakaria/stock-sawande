@@ -47,7 +47,10 @@
     "pos": "Caisse",
     "reports": "Rapports",
     "stores": "Magasins",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "more": "Plus",
+    "logout": "Déconnexion",
+    "menu": "Menu"
   },
 
   "Auth": {
@@ -599,7 +602,8 @@
       "proformaCreated": "Proforma créée - #{number}",
       "proformaError": "Échec de création de la proforma",
       "proformaRequiresConnection": "La création de proforma nécessite une connexion internet",
-      "proformaRequiresCustomer": "Veuillez sélectionner un client pour créer une proforma"
+      "proformaRequiresCustomer": "Veuillez sélectionner un client pour créer une proforma",
+      "close": "Fermer le panier"
     },
     "proformaReceipt": {
       "title": "Proforma",

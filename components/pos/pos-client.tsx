@@ -16,6 +16,7 @@ import { useProductCacheStore } from '@/lib/store/product-cache-store'
 import { useOfflineStore } from '@/lib/store/offline-store'
 import { POSProductGrid } from './pos-product-grid'
 import { POSCart } from './pos-cart'
+import { MobileCartSheet } from './mobile-cart-sheet'
 import { CashSessionStatus } from './cash-session-status'
 import { OpenSessionDialog } from './open-session-dialog'
 import { CloseSessionDialog } from './close-session-dialog'
@@ -107,6 +108,7 @@ export function POSClient({
   const [unlockSessionDialogOpen, setUnlockSessionDialogOpen] = useState(false)
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false)
   const [storeSelectorOpen, setStoreSelectorOpen] = useState(false)
+  const [mobileCartOpen, setMobileCartOpen] = useState(false)
 
   // Handle new customer added from cart
   const handleCustomerAdded = (newCustomer: Customer) => {
@@ -430,8 +432,8 @@ export function POSClient({
         />
       </div>
 
-      {/* Right side: Cart */}
-      <div className="w-[400px] flex flex-col border-l bg-gray-50">
+      {/* Right side: Cart - hidden on mobile */}
+      <div className="hidden lg:flex lg:w-[400px] lg:flex-col lg:border-l bg-gray-50">
         <POSCart
           storeId={storeId}
           cashierId={cashierId}
@@ -446,8 +448,9 @@ export function POSClient({
 
       {/* Mobile cart toggle (hidden on desktop) */}
       <Button
-        className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg lg:hidden"
+        className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg lg:hidden z-40"
         size="icon"
+        onClick={() => setMobileCartOpen(true)}
       >
         <ShoppingCart className="h-6 w-6" />
         {itemCount > 0 && (
@@ -456,6 +459,20 @@ export function POSClient({
           </span>
         )}
       </Button>
+
+      {/* Mobile cart sheet */}
+      <MobileCartSheet
+        open={mobileCartOpen}
+        onOpenChange={setMobileCartOpen}
+        storeId={storeId}
+        cashierId={cashierId}
+        cashierName={cashierName}
+        storeInfo={storeInfo}
+        sessionId={activeSession?.id}
+        customers={customers}
+        onCustomerAdded={handleCustomerAdded}
+        onCheckoutComplete={handleCheckoutComplete}
+      />
 
       {/* Open Session Dialog */}
       <OpenSessionDialog

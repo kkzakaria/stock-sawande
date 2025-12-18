@@ -47,7 +47,10 @@
     "pos": "POS",
     "reports": "Reports",
     "stores": "Stores",
-    "settings": "Settings"
+    "settings": "Settings",
+    "more": "More",
+    "logout": "Logout",
+    "menu": "Menu"
   },
 
   "Auth": {
@@ -599,7 +602,8 @@
       "proformaCreated": "Quote created - #{number}",
       "proformaError": "Failed to create quote",
       "proformaRequiresConnection": "Quote creation requires internet connection",
-      "proformaRequiresCustomer": "Please select a customer to create a quote"
+      "proformaRequiresCustomer": "Please select a customer to create a quote",
+      "close": "Close cart"
     },
     "proformaReceipt": {
       "title": "Quote",

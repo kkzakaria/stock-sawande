@@ -246,58 +246,63 @@ export function POSProformaInvoice({
               className="print-container"
               style={{
                 width: '210mm',
+                minHeight: '297mm',
                 margin: '0 auto',
                 fontFamily: 'Arial, sans-serif',
                 backgroundColor: colors.white,
-                padding: '32px',
+                padding: '20px 24px',
                 color: colors.gray800,
                 boxSizing: 'border-box',
+                fontSize: '11px',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              {/* Header */}
+              {/* Header - Fixed at top */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-start',
-                marginBottom: '32px',
-                paddingBottom: '24px',
-                borderBottom: `2px solid ${colors.gray200}`,
+                marginBottom: '16px',
+                paddingBottom: '12px',
+                borderBottom: `1px solid ${colors.gray200}`,
+                flexShrink: 0,
               }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                   {/* Logo placeholder */}
                   <div style={{
-                    width: '80px',
-                    height: '80px',
+                    width: '50px',
+                    height: '50px',
                     backgroundColor: colors.gray100,
-                    border: `2px dashed ${colors.gray300}`,
-                    borderRadius: '8px',
+                    border: `1px dashed ${colors.gray300}`,
+                    borderRadius: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                     color: colors.gray400,
-                    fontSize: '12px',
+                    fontSize: '9px',
                   }}>
                     LOGO
                   </div>
 
                   {/* Store Info */}
                   <div>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: colors.gray800, margin: 0 }}>
+                    <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: colors.gray800, margin: 0 }}>
                       {proformaData.store.name}
                     </h2>
                     {proformaData.store.address && (
-                      <p style={{ fontSize: '14px', color: colors.gray600, margin: '4px 0 0 0' }}>
+                      <p style={{ fontSize: '10px', color: colors.gray600, margin: '2px 0 0 0' }}>
                         {proformaData.store.address}
                       </p>
                     )}
                     {proformaData.store.phone && (
-                      <p style={{ fontSize: '14px', color: colors.gray600, margin: '2px 0 0 0' }}>
+                      <p style={{ fontSize: '10px', color: colors.gray600, margin: '1px 0 0 0' }}>
                         Tél: {proformaData.store.phone}
                       </p>
                     )}
                     {proformaData.store.email && (
-                      <p style={{ fontSize: '14px', color: colors.gray600, margin: '2px 0 0 0' }}>
+                      <p style={{ fontSize: '10px', color: colors.gray600, margin: '1px 0 0 0' }}>
                         {proformaData.store.email}
                       </p>
                     )}
@@ -306,20 +311,20 @@ export function POSProformaInvoice({
 
                 {/* Document Title */}
                 <div style={{ textAlign: 'right' }}>
-                  <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: colors.gray800, margin: '0 0 8px 0' }}>
+                  <h1 style={{ fontSize: '18px', fontWeight: 'bold', color: colors.gray800, margin: '0 0 4px 0' }}>
                     {t('documentTitle')}
                   </h1>
-                  <p style={{ fontSize: '16px', color: colors.gray600, fontFamily: 'monospace', margin: 0 }}>
+                  <p style={{ fontSize: '11px', color: colors.gray600, fontFamily: 'monospace', margin: 0 }}>
                     {proformaData.proforma_number}
                   </p>
                   <span style={{
                     display: 'inline-block',
-                    marginTop: '8px',
-                    padding: '4px 12px',
+                    marginTop: '4px',
+                    padding: '2px 8px',
                     backgroundColor: colors.blue100,
                     color: colors.blue800,
-                    borderRadius: '4px',
-                    fontSize: '14px',
+                    borderRadius: '3px',
+                    fontSize: '10px',
                     fontWeight: '600',
                   }}>
                     {t('status.sent')}
@@ -327,80 +332,86 @@ export function POSProformaInvoice({
                 </div>
               </div>
 
-              {/* Customer & Date Info */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '32px',
-                marginBottom: '32px',
-              }}>
+              {/* Main Content - Grows to fill space */}
+              <div style={{ flex: 1 }}>
+                {/* Customer & Date Info */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '20px',
+                  marginBottom: '16px',
+                }}>
                 <div>
                   <h3 style={{
-                    fontSize: '12px',
+                    fontSize: '9px',
                     fontWeight: '600',
                     color: colors.gray500,
                     textTransform: 'uppercase',
-                    margin: '0 0 8px 0',
+                    margin: '0 0 4px 0',
+                    letterSpacing: '0.5px',
                   }}>
                     {t('billTo')}
                   </h3>
                   {proformaData.customer ? (
                     <div>
-                      <p style={{ fontWeight: '600', color: colors.gray800, margin: 0 }}>
+                      <p style={{ fontWeight: '600', color: colors.gray800, margin: 0, fontSize: '11px' }}>
                         {proformaData.customer.name}
                       </p>
                       {proformaData.customer.email && (
-                        <p style={{ fontSize: '14px', color: colors.gray600, margin: '2px 0 0 0' }}>
+                        <p style={{ fontSize: '10px', color: colors.gray600, margin: '1px 0 0 0' }}>
                           {proformaData.customer.email}
                         </p>
                       )}
                       {proformaData.customer.phone && (
-                        <p style={{ fontSize: '14px', color: colors.gray600, margin: '2px 0 0 0' }}>
+                        <p style={{ fontSize: '10px', color: colors.gray600, margin: '1px 0 0 0' }}>
                           {proformaData.customer.phone}
                         </p>
                       )}
                       {proformaData.customer.address && (
-                        <p style={{ fontSize: '14px', color: colors.gray600, margin: '2px 0 0 0' }}>
+                        <p style={{ fontSize: '10px', color: colors.gray600, margin: '1px 0 0 0' }}>
                           {proformaData.customer.address}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p style={{ color: colors.gray500, fontStyle: 'italic', margin: 0 }}>
+                    <p style={{ color: colors.gray500, fontStyle: 'italic', margin: 0, fontSize: '10px' }}>
                       {t('noCustomer')}
                     </p>
                   )}
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ marginBottom: '16px' }}>
+                  <div style={{ marginBottom: '8px' }}>
                     <p style={{
-                      fontSize: '12px',
+                      fontSize: '9px',
                       fontWeight: '600',
                       color: colors.gray500,
                       textTransform: 'uppercase',
                       margin: 0,
+                      letterSpacing: '0.5px',
                     }}>
                       {t('dateIssued')}
                     </p>
-                    <p style={{ color: colors.gray800, margin: '4px 0 0 0' }}>
+                    <p style={{ color: colors.gray800, margin: '2px 0 0 0', fontSize: '10px' }}>
                       {formatDateTime(proformaData.created_at)}
                     </p>
                   </div>
                   <div>
                     <p style={{
-                      fontSize: '12px',
+                      fontSize: '9px',
                       fontWeight: '600',
                       color: colors.gray500,
                       textTransform: 'uppercase',
                       margin: 0,
+                      letterSpacing: '0.5px',
                     }}>
                       {t('validUntil')}
                     </p>
                     <p style={{
                       color: isExpired ? colors.red600 : colors.gray800,
                       fontWeight: isExpired ? '600' : 'normal',
-                      margin: '4px 0 0 0',
+                      margin: '2px 0 0 0',
+                      fontSize: '10px',
                     }}>
                       {formatDate(proformaData.valid_until)}
                     </p>
@@ -409,15 +420,15 @@ export function POSProformaInvoice({
               </div>
 
               {/* Items Table */}
-              <div style={{ marginBottom: '32px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                   <thead>
                     <tr style={{ backgroundColor: colors.gray100 }}>
                       <th style={{
                         border: `1px solid ${colors.gray200}`,
-                        padding: '12px 16px',
+                        padding: '6px 10px',
                         textAlign: 'left',
-                        fontSize: '14px',
+                        fontSize: '10px',
                         fontWeight: '600',
                         color: colors.gray700,
                       }}>
@@ -425,45 +436,45 @@ export function POSProformaInvoice({
                       </th>
                       <th style={{
                         border: `1px solid ${colors.gray200}`,
-                        padding: '12px 16px',
+                        padding: '6px 10px',
                         textAlign: 'center',
-                        fontSize: '14px',
+                        fontSize: '10px',
                         fontWeight: '600',
                         color: colors.gray700,
-                        width: '60px',
+                        width: '40px',
                       }}>
                         {t('columns.qty')}
                       </th>
                       <th style={{
                         border: `1px solid ${colors.gray200}`,
-                        padding: '12px 16px',
+                        padding: '6px 10px',
                         textAlign: 'right',
-                        fontSize: '14px',
+                        fontSize: '10px',
                         fontWeight: '600',
                         color: colors.gray700,
-                        width: '120px',
+                        width: '80px',
                       }}>
                         {t('columns.unitPrice')}
                       </th>
                       <th style={{
                         border: `1px solid ${colors.gray200}`,
-                        padding: '12px 16px',
+                        padding: '6px 10px',
                         textAlign: 'right',
-                        fontSize: '14px',
+                        fontSize: '10px',
                         fontWeight: '600',
                         color: colors.gray700,
-                        width: '90px',
+                        width: '60px',
                       }}>
                         {t('columns.discount')}
                       </th>
                       <th style={{
                         border: `1px solid ${colors.gray200}`,
-                        padding: '12px 16px',
+                        padding: '6px 10px',
                         textAlign: 'right',
-                        fontSize: '14px',
+                        fontSize: '10px',
                         fontWeight: '600',
                         color: colors.gray700,
-                        width: '120px',
+                        width: '80px',
                       }}>
                         {t('columns.subtotal')}
                       </th>
@@ -472,26 +483,26 @@ export function POSProformaInvoice({
                   <tbody>
                     {proformaData.items.map((item, index) => (
                       <tr key={index} style={{ backgroundColor: index % 2 === 0 ? colors.white : colors.gray50 }}>
-                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '12px 16px' }}>
+                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '6px 10px' }}>
                           <div>
-                            <p style={{ fontWeight: '500', color: colors.gray800, margin: 0 }}>
+                            <p style={{ fontWeight: '500', color: colors.gray800, margin: 0, fontSize: '10px' }}>
                               {item.product.name}
                             </p>
-                            <p style={{ fontSize: '12px', color: colors.gray500, fontFamily: 'monospace', margin: '2px 0 0 0' }}>
+                            <p style={{ fontSize: '8px', color: colors.gray500, fontFamily: 'monospace', margin: '1px 0 0 0' }}>
                               {item.product.sku}
                             </p>
                           </div>
                         </td>
-                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '12px 16px', textAlign: 'center' }}>
+                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '6px 10px', textAlign: 'center', fontSize: '10px' }}>
                           {item.quantity}
                         </td>
-                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '12px 16px', textAlign: 'right' }}>
+                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '6px 10px', textAlign: 'right', fontSize: '10px' }}>
                           {formatCurrency(item.unit_price)}
                         </td>
-                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '12px 16px', textAlign: 'right' }}>
+                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '6px 10px', textAlign: 'right', fontSize: '10px' }}>
                           {item.discount ? formatCurrency(item.discount) : '-'}
                         </td>
-                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '12px 16px', textAlign: 'right', fontWeight: '500' }}>
+                        <td style={{ border: `1px solid ${colors.gray200}`, padding: '6px 10px', textAlign: 'right', fontWeight: '500', fontSize: '10px' }}>
                           {formatCurrency(item.subtotal)}
                         </td>
                       </tr>
@@ -501,12 +512,12 @@ export function POSProformaInvoice({
               </div>
 
               {/* Totals */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '32px' }}>
-                <div style={{ width: '280px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                <div style={{ width: '200px', fontSize: '10px' }}>
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    padding: '8px 0',
+                    padding: '4px 0',
                     borderBottom: `1px solid ${colors.gray200}`,
                   }}>
                     <span style={{ color: colors.gray600 }}>{t('totals.subtotal')}</span>
@@ -515,7 +526,7 @@ export function POSProformaInvoice({
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    padding: '8px 0',
+                    padding: '4px 0',
                     borderBottom: `1px solid ${colors.gray200}`,
                   }}>
                     <span style={{ color: colors.gray600 }}>{t('totals.tax')}</span>
@@ -525,7 +536,7 @@ export function POSProformaInvoice({
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      padding: '8px 0',
+                      padding: '4px 0',
                       borderBottom: `1px solid ${colors.gray200}`,
                       color: colors.green600,
                     }}>
@@ -536,9 +547,9 @@ export function POSProformaInvoice({
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    padding: '12px 0',
+                    padding: '6px 0',
                     borderBottom: `2px solid ${colors.gray800}`,
-                    fontSize: '18px',
+                    fontSize: '12px',
                     fontWeight: 'bold',
                   }}>
                     <span>{t('totals.total')}</span>
@@ -547,40 +558,42 @@ export function POSProformaInvoice({
                 </div>
               </div>
 
-              {/* Disclaimer */}
-              <div style={{
-                backgroundColor: colors.yellow50,
-                border: `1px solid ${colors.yellow200}`,
-                borderRadius: '8px',
-                padding: '16px',
-                marginBottom: '32px',
-              }}>
-                <p style={{ fontSize: '14px', color: colors.yellow800, fontWeight: '500', margin: 0 }}>
-                  {t('disclaimer')}
-                </p>
+                {/* Disclaimer */}
+                <div style={{
+                  backgroundColor: colors.yellow50,
+                  border: `1px solid ${colors.yellow200}`,
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                }}>
+                  <p style={{ fontSize: '9px', color: colors.yellow800, fontWeight: '500', margin: 0 }}>
+                    {t('disclaimer')}
+                  </p>
+                </div>
               </div>
 
-              {/* Footer with QR */}
+              {/* Footer with QR - Fixed at bottom */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'flex-end',
-                paddingTop: '24px',
-                borderTop: `2px solid ${colors.gray200}`,
+                paddingTop: '12px',
+                borderTop: `1px solid ${colors.gray200}`,
+                marginTop: 'auto',
+                flexShrink: 0,
               }}>
-                <div style={{ fontSize: '12px', color: colors.gray400 }}>
+                <div style={{ fontSize: '9px', color: colors.gray400 }}>
                   <p style={{ margin: 0 }}>{t('generatedBy')}</p>
-                  <p style={{ margin: '4px 0 0 0' }}>{t('createdBy')}: {proformaData.created_by.full_name || 'N/A'}</p>
+                  <p style={{ margin: '2px 0 0 0' }}>{t('createdBy')}: {proformaData.created_by.full_name || 'N/A'}</p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <QRCodeSVG
                     value={`PROFORMA:${proformaData.id}:${proformaData.proforma_number}`}
-                    size={80}
+                    size={50}
                     level="M"
                     bgColor={colors.white}
                     fgColor={colors.gray800}
                   />
-                  <p style={{ fontSize: '12px', color: colors.gray400, margin: '4px 0 0 0' }}>{t('scanToVerify')}</p>
+                  <p style={{ fontSize: '8px', color: colors.gray400, margin: '2px 0 0 0' }}>{t('scanToVerify')}</p>
                 </div>
               </div>
             </div>

@@ -16,7 +16,7 @@ import {
   Settings,
 } from 'lucide-react'
 
-interface Profile {
+export interface Profile {
   id: string
   email: string | null
   full_name: string | null
@@ -25,7 +25,7 @@ interface Profile {
   stores?: { name: string } | null
 }
 
-interface NavTranslations {
+export interface NavTranslations {
   dashboard: string
   products: string
   customers: string
@@ -35,14 +35,17 @@ interface NavTranslations {
   reports: string
   stores: string
   settings: string
+  more?: string
+  logout?: string
+  menu?: string
 }
 
-interface DashboardNavProps {
+export interface DashboardNavProps {
   profile: Profile | null
   translations: NavTranslations
 }
 
-const navItems = [
+export const navItems = [
   {
     titleKey: 'dashboard',
     href: '/dashboard',
@@ -115,7 +118,7 @@ export function DashboardNav({ profile, translations }: DashboardNavProps) {
   }
 
   return (
-    <aside className="w-[200px] border-r bg-card flex flex-col h-screen">
+    <aside className="hidden md:flex md:flex-col w-[200px] border-r bg-card h-screen">
       <div className="flex h-16 items-center justify-center border-b flex-shrink-0">
         <Link href="/dashboard">
           <Image
