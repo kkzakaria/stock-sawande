@@ -10,7 +10,6 @@
 
 import { useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
-import { QRCodeSVG } from 'qrcode.react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -177,14 +176,6 @@ export function POSReceipt({
     return `${formatted} CFA`
   }
 
-  // Format number without currency symbol (for table cells)
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount)
-  }
-
   const formatPaymentMethod = (method: string) => {
     const methods: Record<string, string> = {
       cash: 'Espèces',
@@ -253,103 +244,37 @@ export function POSReceipt({
               style={{ width: '80mm', fontFamily: 'monospace' }}
             >
             {/* Header */}
-            <div className="text-center mb-4 border-b-2 border-dashed border-gray-300 pb-4">
-              <h1 className="text-xl font-bold mb-1">{receiptData.store.name}</h1>
-              {receiptData.store.address && (
-                <p className="text-xs text-gray-600">{receiptData.store.address}</p>
-              )}
-              {receiptData.store.phone && (
-                <p className="text-xs text-gray-600">{receiptData.store.phone}</p>
-              )}
+            <div className="text-center mb-2 border-b border-dashed border-gray-300 pb-2">
+              <h1 className="text-base font-bold">{receiptData.store.name}</h1>
+              <p className="text-xs text-gray-600">#{receiptData.sale_number} • {formatDate(receiptData.created_at)}</p>
             </div>
 
-            {/* Sale Info */}
-            <div className="text-xs mb-4">
-              <div className="flex justify-between">
-                <span>Ticket:</span>
-                <span className="font-bold">{receiptData.sale_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date:</span>
-                <span>{formatDate(receiptData.created_at)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Caissier:</span>
-                <span>{receiptData.cashier.full_name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Paiement:</span>
-                <span>{formatPaymentMethod(receiptData.payment_method)}</span>
-              </div>
-            </div>
-
-            {/* Items */}
-            <div className="border-t-2 border-dashed border-gray-300 pt-2 mb-4">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-gray-300">
-                    <th className="text-left py-1">Article</th>
-                    <th className="text-center py-1">Qté</th>
-                    <th className="text-right py-1">Prix ($)</th>
-                    <th className="text-right py-1">Total ($)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receiptData.sale_items.map((item, idx) => (
-                    <tr key={idx} className="border-b border-gray-200">
-                      <td className="py-1">
-                        <div className="font-medium">{item.product.name}</div>
-                        <div className="text-gray-500">{item.product.sku}</div>
-                      </td>
-                      <td className="text-center">{item.quantity}</td>
-                      <td className="text-right">{formatAmount(item.unit_price)}</td>
-                      <td className="text-right font-medium">
-                        {formatAmount(item.subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Totals */}
-            <div className="border-t-2 border-dashed border-gray-300 pt-2 mb-4">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Sous-total:</span>
-                <span>{formatCurrency(receiptData.subtotal)}</span>
-              </div>
-              {receiptData.discount && receiptData.discount > 0 && (
-                <div className="flex justify-between text-sm mb-1 text-red-600">
-                  <span>Remise:</span>
-                  <span>-{formatCurrency(receiptData.discount)}</span>
+            {/* Items - Compact format */}
+            <div className="text-xs mb-2">
+              {receiptData.sale_items.map((item, idx) => (
+                <div key={idx} className="flex justify-between py-0.5">
+                  <span className="truncate flex-1 mr-2">
+                    {item.product.name} × {item.quantity}
+                  </span>
+                  <span className="font-medium whitespace-nowrap">
+                    {formatCurrency(item.subtotal)}
+                  </span>
                 </div>
-              )}
-              <div className="flex justify-between text-sm mb-1">
-                <span>TVA (8.75%):</span>
-                <span>{formatCurrency(receiptData.tax)}</span>
-              </div>
-              <div className="flex justify-between text-lg font-bold border-t-2 border-gray-800 pt-2 mt-2">
-                <span>TOTAL:</span>
+              ))}
+            </div>
+
+            {/* Total */}
+            <div className="border-t border-dashed border-gray-300 pt-2">
+              <div className="flex justify-between text-sm font-bold">
+                <span>TOTAL</span>
                 <span>{formatCurrency(receiptData.total)}</span>
               </div>
-            </div>
-
-            {/* QR Code */}
-            <div className="flex justify-center mb-4 border-t-2 border-dashed border-gray-300 pt-4">
-              <div className="text-center">
-                <QRCodeSVG
-                  value={`SALE:${receiptData.id}:${receiptData.sale_number}`}
-                  size={100}
-                  level="M"
-                />
-                <p className="text-xs text-gray-500 mt-2">Scanner pour vérifier</p>
-              </div>
+              <p className="text-xs text-gray-500 mt-1">{formatPaymentMethod(receiptData.payment_method)}</p>
             </div>
 
             {/* Footer */}
-            <div className="text-center text-xs text-gray-500 border-t-2 border-dashed border-gray-300 pt-4">
-              <p>Merci de votre visite!</p>
-              <p className="mt-1">À bientôt</p>
+            <div className="text-center text-xs text-gray-400 mt-2 pt-2 border-t border-dashed border-gray-300">
+              Merci!
             </div>
 
             {receiptData.notes && (
