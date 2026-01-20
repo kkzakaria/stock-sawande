@@ -244,6 +244,10 @@
         "barcodePlaceholder": "123456789",
         "price": "Prix de vente",
         "pricePlaceholder": "0.00",
+        "minPrice": "Prix minimum",
+        "minPricePlaceholder": "0.00",
+        "maxPrice": "Prix maximum",
+        "maxPricePlaceholder": "0.00",
         "cost": "Coût",
         "costPlaceholder": "0.00",
         "quantity": "Quantité",
@@ -258,6 +262,8 @@
       "descriptions": {
         "sku": "Identifiant unique du produit",
         "price": "Prix client",
+        "minPrice": "Laisser vide pour un prix fixe",
+        "maxPrice": "Laisser vide pour un prix fixe",
         "cost": "Coût interne",
         "quantity": "Niveau de stock actuel",
         "minStock": "Seuil d'alerte stock faible",
@@ -593,6 +599,7 @@
       "totalTTC": "Total TTC",
       "checkout": "Payer",
       "editQuantity": "Cliquez pour modifier la quantité",
+      "clickToEditPrice": "Cliquer pour modifier le prix",
       "selectCustomer": "Sélectionner un client",
       "searchCustomer": "Rechercher un client...",
       "noCustomerFound": "Aucun client trouvé",
@@ -787,6 +794,7 @@
       "placeholder": "Rechercher un produit...",
       "noResults": "Aucun produit trouvé"
     },
+    "flexiblePrice": "Prix ajustable",
     "stock": {
       "availableElsewhere": "Disponible dans d'autres magasins",
       "totalOther": "Total ailleurs"

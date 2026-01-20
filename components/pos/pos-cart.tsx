@@ -60,6 +60,114 @@ interface POSCartProps {
   onCheckoutComplete?: () => void
 }
 
+interface PriceEditorProps {
+  price: number
+  originalPrice: number
+  minPrice: number | null
+  maxPrice: number | null
+  onUpdate: (newPrice: number) => void
+  t: ReturnType<typeof useTranslations<'POS.cart'>>
+}
+
+function PriceEditor({ price, originalPrice, minPrice, maxPrice, onUpdate, t }: PriceEditorProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [inputValue, setInputValue] = useState(price.toString())
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Check if price is flexible (has min or max)
+  const isFlexible = minPrice !== null || maxPrice !== null
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  useEffect(() => {
+    setInputValue(price.toString())
+  }, [price])
+
+  const handleSubmit = () => {
+    let newPrice = parseFloat(inputValue)
+
+    if (isNaN(newPrice) || newPrice < 0) {
+      setInputValue(price.toString())
+      setIsEditing(false)
+      return
+    }
+
+    // Clamp to allowed range
+    if (minPrice !== null && newPrice < minPrice) {
+      newPrice = minPrice
+    }
+    if (maxPrice !== null && newPrice > maxPrice) {
+      newPrice = maxPrice
+    }
+
+    onUpdate(newPrice)
+    setInputValue(newPrice.toString())
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSubmit()
+    } else if (e.key === 'Escape') {
+      setInputValue(price.toString())
+      setIsEditing(false)
+    }
+  }
+
+  if (!isFlexible) {
+    // Fixed price - just display it
+    return (
+      <span className="font-medium text-sm">
+        {formatCurrency(price)}
+      </span>
+    )
+  }
+
+  if (isEditing) {
+    return (
+      <Input
+        ref={inputRef}
+        type="number"
+        step="0.01"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onBlur={handleSubmit}
+        onKeyDown={handleKeyDown}
+        className="w-24 h-7 text-right p-1 text-sm"
+        min={minPrice || 0}
+        max={maxPrice || undefined}
+      />
+    )
+  }
+
+  const isPriceModified = price !== originalPrice
+
+  return (
+    <div className="flex flex-col items-end">
+      <span
+        className={cn(
+          'font-medium text-sm cursor-pointer hover:bg-orange-50 rounded px-2 py-0.5 transition-colors',
+          'text-orange-600 border border-dashed border-orange-300'
+        )}
+        onClick={() => setIsEditing(true)}
+        title={t('clickToEditPrice')}
+      >
+        {formatCurrency(price)}
+      </span>
+      {isPriceModified && (
+        <span className="text-xs text-gray-400 line-through">
+          {formatCurrency(originalPrice)}
+        </span>
+      )}
+    </div>
+  )
+}
+
 interface QuantityEditorProps {
   quantity: number
   maxStock: number
@@ -146,6 +254,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const updateItemPrice = useCartStore((state) => state.updateItemPrice)
   const clearCart = useCartStore((state) => state.clearCart)
   const getSubtotalTTC = useCartStore((state) => state.getSubtotalTTC)
   const getSubtotalHT = useCartStore((state) => state.getSubtotalHT)
@@ -500,12 +609,20 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
                   </Button>
                 </div>
 
-                {/* Item Total */}
+                {/* Item Price & Total */}
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">
-                    {formatCurrency(item.price)} each
-                  </p>
-                  <p className="font-bold">
+                  <div className="flex items-center justify-end gap-1">
+                    <span className="text-xs text-gray-500">@</span>
+                    <PriceEditor
+                      price={item.price}
+                      originalPrice={item.originalPrice}
+                      minPrice={item.minPrice}
+                      maxPrice={item.maxPrice}
+                      onUpdate={(newPrice) => updateItemPrice(item.productId, newPrice)}
+                      t={t}
+                    />
+                  </div>
+                  <p className="font-bold mt-1">
                     {formatCurrency(item.price * item.quantity)}
                   </p>
                 </div>

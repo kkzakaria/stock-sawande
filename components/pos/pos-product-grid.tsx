@@ -26,6 +26,8 @@ interface Product {
   sku: string
   name: string
   price: number
+  minPrice: number | null
+  maxPrice: number | null
   barcode: string | null
   imageUrl: string | null
   category: { id: string; name: string } | null
@@ -63,9 +65,16 @@ export function POSProductGrid({
       name: product.name,
       sku: product.sku,
       barcode: product.barcode,
-      price: product.price,
+      originalPrice: product.price,
+      minPrice: product.minPrice,
+      maxPrice: product.maxPrice,
       maxStock: product.quantity,
     })
+  }
+
+  // Helper to check if product has flexible pricing
+  const hasFlexiblePrice = (product: Product) => {
+    return product.minPrice !== null || product.maxPrice !== null
   }
 
   return (
@@ -130,9 +139,14 @@ export function POSProductGrid({
 
                   {/* Price and Stock */}
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-lg font-bold text-blue-600">
-                      {formatCurrency(product.price)}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-lg font-bold ${hasFlexiblePrice(product) ? 'text-orange-600' : 'text-blue-600'}`}>
+                        {formatCurrency(product.price)}
+                      </span>
+                      {hasFlexiblePrice(product) && (
+                        <span className="text-xs text-orange-500" title={t('flexiblePrice')}>~</span>
+                      )}
+                    </div>
                     <POSStockIndicator
                       quantity={product.quantity}
                       otherStoresInventory={product.otherStoresInventory ?? []}

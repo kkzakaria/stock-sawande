@@ -41,6 +41,8 @@ interface ProductData {
   category_id?: string | null
   category_name?: string | null
   price: number | null
+  min_price?: number | null
+  max_price?: number | null
   cost?: number | null
   quantity: number | null
   min_stock_level?: number | null
@@ -108,6 +110,8 @@ export function ProductForm({
           description: initialData.description || '',
           category_id: initialData.category_id || 'uncategorized',
           price: initialData.price?.toString() || '0',
+          min_price: initialData.min_price?.toString() || '',
+          max_price: initialData.max_price?.toString() || '',
           cost: initialData.cost?.toString() || '',
           min_stock_level: initialData.min_stock_level?.toString() || '10',
           image_url: initialData.image_url || '',
@@ -123,6 +127,8 @@ export function ProductForm({
           description: '',
           category_id: 'uncategorized',
           price: '0',
+          min_price: '',
+          max_price: '',
           cost: '',
           min_stock_level: '10',
           image_url: '',
@@ -140,6 +146,8 @@ export function ProductForm({
           name: value.name,
           description: value.description,
           price: parseFloat(value.price),
+          min_price: value.min_price ? parseFloat(value.min_price) : null,
+          max_price: value.max_price ? parseFloat(value.max_price) : null,
           cost: value.cost ? parseFloat(value.cost) : undefined,
           min_stock_level: parseInt(value.min_stock_level, 10),
           category_id: value.category_id === 'uncategorized' ? null : value.category_id || null,
@@ -417,6 +425,51 @@ export function ProductForm({
                     placeholder={t('fields.costPlaceholder')}
                   />
                   <p className="text-sm text-muted-foreground">{t('descriptions.cost')}</p>
+                </div>
+              )}
+            </form.Field>
+          </div>
+
+          {/* Price Range Section */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <form.Field name="min_price">
+              {(field) => (
+                <div className="space-y-2">
+                  <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t('fields.minPrice')}
+                  </label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type="number"
+                    step="0.01"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder={t('fields.minPricePlaceholder')}
+                  />
+                  <p className="text-sm text-muted-foreground">{t('descriptions.minPrice')}</p>
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="max_price">
+              {(field) => (
+                <div className="space-y-2">
+                  <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    {t('fields.maxPrice')}
+                  </label>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type="number"
+                    step="0.01"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder={t('fields.maxPricePlaceholder')}
+                  />
+                  <p className="text-sm text-muted-foreground">{t('descriptions.maxPrice')}</p>
                 </div>
               )}
             </form.Field>

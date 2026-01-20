@@ -15,7 +15,10 @@ export interface CartItem {
   name: string
   sku: string
   barcode?: string | null
-  price: number // unit price
+  price: number // current unit price (can be adjusted)
+  originalPrice: number // default unit price from product_templates
+  minPrice: number | null // minimum allowed price
+  maxPrice: number | null // maximum allowed price
   quantity: number
   maxStock: number // available inventory
   discount: number // item-level discount
@@ -32,10 +35,11 @@ interface CartState {
   storeId: string | null // Store ID to track which store the cart belongs to
 
   // Item management
-  addItem: (item: Omit<CartItem, 'quantity' | 'discount'>) => void
+  addItem: (item: Omit<CartItem, 'quantity' | 'discount' | 'price'> & { price?: number }) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   updateItemDiscount: (productId: string, discount: number) => void
+  updateItemPrice: (productId: string, newPrice: number) => void
   clearCart: () => void
 
   // Cart-level operations
@@ -87,11 +91,13 @@ export const useCartStore = create<CartState>()(
           }
         } else {
           // New item, add to cart
+          // Use originalPrice as the initial price
           set({
             items: [
               ...get().items,
               {
                 ...item,
+                price: item.price ?? item.originalPrice,
                 quantity: 1,
                 discount: 0,
               },
@@ -133,6 +139,27 @@ export const useCartStore = create<CartState>()(
         set({
           items: get().items.map((i) =>
             i.productId === productId ? { ...i, discount: Math.max(0, discount) } : i
+          ),
+        })
+      },
+
+      // Update item price (within allowed range)
+      updateItemPrice: (productId, newPrice) => {
+        const item = get().items.find((i) => i.productId === productId)
+        if (!item) return
+
+        // Clamp price to allowed range
+        let clampedPrice = newPrice
+        if (item.minPrice !== null && newPrice < item.minPrice) {
+          clampedPrice = item.minPrice
+        }
+        if (item.maxPrice !== null && newPrice > item.maxPrice) {
+          clampedPrice = item.maxPrice
+        }
+
+        set({
+          items: get().items.map((i) =>
+            i.productId === productId ? { ...i, price: clampedPrice } : i
           ),
         })
       },

@@ -135,28 +135,34 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     .select('id, name, email, phone')
     .order('name')
 
+  // Type for the product query result
+  type ProductQueryResult = {
+    id: string
+    sku: string
+    name: string
+    price: number
+    min_price: number | null
+    max_price: number | null
+    barcode: string | null
+    image_url: string | null
+    category: { id: string; name: string } | null
+    inventory: Array<{
+      id: string
+      quantity: number
+      store_id: string
+      stores: { name: string } | null
+    }>
+  }
+
   // Fetch products with ALL inventory (not just current store) for multi-store visibility
   const { data: products, error: productsError } = await supabase
     .from('product_templates')
     .select(
-      `
-      id,
-      sku,
-      name,
-      price,
-      barcode,
-      image_url,
-      category:categories(id, name),
-      inventory:product_inventory!product_inventory_product_id_fkey(
-        id,
-        quantity,
-        store_id,
-        stores:store_id(name)
-      )
-    `
+      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!product_inventory_product_id_fkey(id, quantity, store_id, stores:store_id(name))'
     )
     .eq('is_active', true)
     .order('name')
+    .returns<ProductQueryResult[]>()
 
   if (productsError) {
     console.error('Error fetching products:', productsError)
@@ -201,6 +207,8 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
         sku: product.sku,
         name: product.name,
         price: Number(product.price),
+        minPrice: product.min_price !== null ? Number(product.min_price) : null,
+        maxPrice: product.max_price !== null ? Number(product.max_price) : null,
         barcode: product.barcode || '',
         imageUrl: product.image_url || null,
         category: product.category,
