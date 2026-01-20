@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
-import Image from "next/image";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 import Link from "next/link";
 import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
@@ -221,7 +221,7 @@ export function ProductsDataTable({
           <div className="flex items-center gap-3">
             <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md border">
               {imageUrl ? (
-                <Image
+                <OptimizedImage
                   src={imageUrl}
                   alt={name || t("columns.product")}
                   fill

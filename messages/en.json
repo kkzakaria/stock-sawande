@@ -256,6 +256,7 @@
         "minStockPlaceholder": "10",
         "store": "Store",
         "storePlaceholder": "Select store",
+        "image": "Product Image",
         "imageUrl": "Image URL",
         "imageUrlPlaceholder": "https://example.com/image.jpg"
       },
@@ -1422,6 +1423,24 @@
     },
     "footer": {
       "copyright": "2025 Next Stock. All rights reserved."
+    }
+  },
+
+  "ImageUpload": {
+    "dragDrop": "Drag & drop an image here",
+    "or": "or",
+    "clickToSelect": "click to select",
+    "clickToChange": "Click to change image",
+    "maxSize": "Max {maxSize}MB",
+    "uploading": "Uploading...",
+    "pendingUpload": "Image will be uploaded on save",
+    "remove": "Remove",
+    "viewFull": "View",
+    "previewTitle": "Image preview",
+    "errors": {
+      "tooLarge": "File is too large. Maximum size is {maxSize}MB.",
+      "invalidType": "Invalid file type. Accepted types: JPEG, PNG, WebP, GIF.",
+      "uploadFailed": "Failed to upload image. Please try again."
     }
   },
 

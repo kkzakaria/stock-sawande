@@ -256,6 +256,7 @@
         "minStockPlaceholder": "10",
         "store": "Magasin",
         "storePlaceholder": "Sélectionner un magasin",
+        "image": "Image du produit",
         "imageUrl": "URL de l'image",
         "imageUrlPlaceholder": "https://exemple.com/image.jpg"
       },
@@ -1422,6 +1423,24 @@
     },
     "footer": {
       "copyright": "2025 Next Stock. Tous droits réservés."
+    }
+  },
+
+  "ImageUpload": {
+    "dragDrop": "Glissez-déposez une image ici",
+    "or": "ou",
+    "clickToSelect": "cliquez pour sélectionner",
+    "clickToChange": "Cliquez pour changer l'image",
+    "maxSize": "Max {maxSize} Mo",
+    "uploading": "Téléchargement...",
+    "pendingUpload": "L'image sera téléchargée à l'enregistrement",
+    "remove": "Supprimer",
+    "viewFull": "Voir",
+    "previewTitle": "Aperçu de l'image",
+    "errors": {
+      "tooLarge": "Le fichier est trop volumineux. Taille maximale : {maxSize} Mo.",
+      "invalidType": "Type de fichier invalide. Types acceptés : JPEG, PNG, WebP, GIF.",
+      "uploadFailed": "Échec du téléchargement de l'image. Veuillez réessayer."
     }
   },
 

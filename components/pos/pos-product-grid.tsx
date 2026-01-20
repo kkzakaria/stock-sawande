@@ -5,8 +5,8 @@
  * Displays products in a grid with search functionality
  */
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { OptimizedImage } from '@/components/ui/optimized-image'
 import { useCartStore } from '@/lib/store/cart-store'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -114,7 +114,7 @@ export function POSProductGrid({
                 {/* Product Image */}
                 <div className="relative h-32 w-full bg-gray-100 flex items-center justify-center">
                   {product.imageUrl ? (
-                    <Image
+                    <OptimizedImage
                       src={product.imageUrl}
                       alt={product.name}
                       fill

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from '@tanstack/react-form'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,7 @@ import { AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { StoreInventorySection } from './store-inventory-section'
 import { MultiStoreInventoryCreation, StoreQuantity } from './multi-store-inventory-creation'
+import { ImageUpload, ImageUploadRef } from '@/components/ui/image-upload'
 
 interface InventoryData {
   id: string
@@ -74,6 +75,8 @@ export function ProductForm({
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
+  const imageUploadRef = useRef<ImageUploadRef>(null)
   const t = useTranslations('Products.form')
   const tCategories = useTranslations('Products.categories')
   const tMultiStore = useTranslations('Products.form.multiStore')
@@ -140,7 +143,7 @@ export function ProductForm({
     onSubmit: async ({ value }) => {
       setError(null)
       startTransition(async () => {
-        // Build product data
+        // Build product data (without image_url initially - it will be set after upload)
         const baseProductData = {
           sku: value.sku,
           name: value.name,
@@ -151,24 +154,37 @@ export function ProductForm({
           cost: value.cost ? parseFloat(value.cost) : undefined,
           min_stock_level: parseInt(value.min_stock_level, 10),
           category_id: value.category_id === 'uncategorized' ? null : value.category_id || null,
-          image_url: value.image_url || undefined,
+          // Keep existing image_url if no new file selected, clear it if user removed the image
+          image_url: pendingImageFile ? undefined : (value.image_url || undefined),
           barcode: value.barcode || undefined,
           is_active: value.is_active,
         }
 
         if (isEditing) {
           // Edit mode: only update template, inventory is managed separately
-          const result = await updateProduct(
-            initialData.template_id || initialData.id!,
-            baseProductData
-          )
+          const productId = initialData.template_id || initialData.id!
 
-          if (result.success) {
-            router.push('/products')
-            router.refresh()
-          } else {
+          const result = await updateProduct(productId, baseProductData)
+
+          if (!result.success) {
             setError(result.error || t('errors.generic'))
+            return
           }
+
+          // Upload image if a new file was selected
+          if (pendingImageFile && imageUploadRef.current) {
+            const imageUrl = await imageUploadRef.current.uploadFile(
+              'product-images',
+              `products/${productId}`
+            )
+            if (imageUrl) {
+              // Update the product with the new image URL
+              await updateProduct(productId, { image_url: imageUrl })
+            }
+          }
+
+          router.push('/products')
+          router.refresh()
         } else {
           // Creation mode
           let productData: typeof baseProductData & {
@@ -203,12 +219,25 @@ export function ProductForm({
 
           const result = await createProduct(productData)
 
-          if (result.success) {
-            router.push('/products')
-            router.refresh()
-          } else {
+          if (!result.success) {
             setError(result.error || t('errors.generic'))
+            return
           }
+
+          // Upload image if a file was selected
+          if (pendingImageFile && imageUploadRef.current && result.data?.id) {
+            const imageUrl = await imageUploadRef.current.uploadFile(
+              'product-images',
+              `products/${result.data.id}`
+            )
+            if (imageUrl) {
+              // Update the product with the image URL
+              await updateProduct(result.data.id, { image_url: imageUrl })
+            }
+          }
+
+          router.push('/products')
+          router.refresh()
         }
       })
     },
@@ -541,38 +570,20 @@ export function ProductForm({
           <CardTitle>{t('sections.storeStatus')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form.Field
-            name="image_url"
-            validators={{
-              onChange: ({ value }) => {
-                if (value && value.length > 0 && value !== '') {
-                  try {
-                    new URL(value)
-                  } catch {
-                    return t('errors.invalidUrl')
-                  }
-                }
-                return undefined
-              },
-            }}
-          >
+          <form.Field name="image_url">
             {(field) => (
               <div className="space-y-2">
-                <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  {t('fields.imageUrl')}
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  {t('fields.image')}
                 </label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="url"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder={t('fields.imageUrlPlaceholder')}
+                <ImageUpload
+                  ref={imageUploadRef}
+                  value={field.state.value || null}
+                  onFileSelect={setPendingImageFile}
+                  onValueChange={(url) => field.handleChange(url)}
+                  maxSize={5 * 1024 * 1024}
+                  disabled={isPending}
                 />
-                {field.state.meta.errors.length > 0 && (
-                  <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
-                )}
               </div>
             )}
           </form.Field>

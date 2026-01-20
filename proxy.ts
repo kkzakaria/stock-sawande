@@ -28,7 +28,8 @@ function generateCSPHeader(nonce: string): string {
     `style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}' 'unsafe-inline'`}`,
 
     // Images: allow self, data URIs, blob URIs, and Supabase storage
-    `img-src 'self' blob: data: https://*.supabase.co https://images.unsplash.com`,
+    // In development, allow local Supabase storage
+    `img-src 'self' blob: data: https://*.supabase.co https://images.unsplash.com ${isDev ? 'http://localhost:* http://127.0.0.1:*' : ''}`,
 
     // Fonts: allow self and Google Fonts
     "font-src 'self' https://fonts.gstatic.com",

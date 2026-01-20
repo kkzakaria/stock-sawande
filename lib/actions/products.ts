@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { deleteStorageFile } from './storage'
 
 // Base validation schema for product template (without refine, so it can be extended)
 const productTemplateBaseSchema = z.object({
@@ -75,13 +76,18 @@ interface ActionResult<T = unknown> {
   data?: T
 }
 
+interface CreatedProductData {
+  id: string
+  [key: string]: unknown
+}
+
 /**
  * Create a new product (template + inventory)
  * Supports two modes:
  * - Single store: store_id + quantity (for managers)
  * - Multi-store: storeInventories[] (for admins)
  */
-export async function createProduct(data: ProductMultiStoreInput): Promise<ActionResult> {
+export async function createProduct(data: ProductMultiStoreInput): Promise<ActionResult<CreatedProductData>> {
   try {
     const supabase = await createClient()
 
@@ -250,6 +256,30 @@ export async function updateProduct(id: string, data: Partial<ProductInput>): Pr
         }
       }
 
+      // If image_url is being updated, check if we need to delete the old image
+      if ('image_url' in templateUpdates) {
+        const { data: currentProduct } = await supabase
+          .from('product_templates')
+          .select('image_url')
+          .eq('id', id)
+          .single()
+
+        const oldImageUrl = currentProduct?.image_url
+        const newImageUrl = templateUpdates.image_url
+
+        // Delete old image if it exists, is different from the new one, and is a Supabase Storage URL
+        if (
+          oldImageUrl &&
+          oldImageUrl !== newImageUrl &&
+          oldImageUrl.includes('supabase.co/storage/v1/object/public/')
+        ) {
+          // Fire and forget - don't fail the update if image deletion fails
+          deleteStorageFile(oldImageUrl).catch((err) => {
+            console.error('Failed to delete old product image:', err)
+          })
+        }
+      }
+
       const { error: templateError } = await supabase
         .from('product_templates')
         .update(templateUpdates)
@@ -315,6 +345,15 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    // Get product image_url before deleting
+    const { data: product } = await supabase
+      .from('product_templates')
+      .select('image_url')
+      .eq('id', id)
+      .single()
+
+    const imageUrl = product?.image_url
+
     // Delete product template (cascades to inventory)
     const { error } = await supabase
       .from('product_templates')
@@ -324,6 +363,14 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
     if (error) {
       console.error('Error deleting product:', error)
       return { success: false, error: error.message }
+    }
+
+    // Delete associated image from storage if it's a Supabase Storage URL
+    if (imageUrl && imageUrl.includes('supabase.co/storage/v1/object/public/')) {
+      // Fire and forget - don't fail the deletion if image cleanup fails
+      deleteStorageFile(imageUrl).catch((err) => {
+        console.error('Failed to delete product image:', err)
+      })
     }
 
     revalidatePath('/products')
