@@ -6,6 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getProduct } from '@/lib/actions/products'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,28 +20,26 @@ interface EditProductPageProps {
 export default async function EditProductPage({ params }: EditProductPageProps) {
   const { id, locale: _locale } = await params
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, store_id')
-    .eq('id', user!.id)
-    .single()
+  if (!user) {
+    redirect('/login')
+  }
 
   // Only admin and manager can edit products
   if (!['admin', 'manager'].includes(profile?.role || '')) {
     redirect('/dashboard')
   }
 
-  // Fetch product
+  // Fetch product (uses parallel queries internally)
   const productResult = await getProduct(id)
   if (!productResult.success || !productResult.data) {
     notFound()
   }
 
   const product = productResult.data
+  const supabase = await createClient()
 
   // Fetch categories
   const { data: categories } = await supabase

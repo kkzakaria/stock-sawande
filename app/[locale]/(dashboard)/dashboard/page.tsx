@@ -1,24 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { DashboardClient } from '@/components/dashboard'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Get user profile with store info
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, stores(*)')
-    .eq('id', user!.id)
-    .single()
+  // Use cached profile (deduplicated with layout)
+  const { profile } = await getAuthenticatedProfile()
 
   // Determine store context based on role
   const storeId = profile?.role === 'admin' ? undefined : (profile?.store_id ?? undefined)
   const storeName = profile?.role === 'admin'
     ? undefined
-    : (profile?.stores as { name: string } | null)?.name ?? undefined
+    : profile?.stores?.name ?? undefined
 
   return (
     <DashboardClient

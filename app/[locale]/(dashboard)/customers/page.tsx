@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { CustomersDataTable } from '@/components/customers/customers-data-table'
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,27 +15,20 @@ export default async function CustomersPage({ params }: CustomersPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('Customers')
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
 
   if (!user) {
     redirect('/login')
   }
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
   // All authenticated users can view customers page
   if (!profile) {
     redirect('/dashboard')
   }
+
+  const supabase = await createClient()
 
   // Get all customers
   const { data: customers } = await supabase

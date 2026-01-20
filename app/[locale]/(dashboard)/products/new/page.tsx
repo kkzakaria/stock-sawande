@@ -5,6 +5,7 @@ import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,20 +17,20 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('Products.form')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, store_id')
-    .eq('id', user!.id)
-    .single()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
+
+  if (!user) {
+    redirect('/login')
+  }
 
   // Only admin and manager can create products
   if (!['admin', 'manager'].includes(profile?.role || '')) {
     redirect('/dashboard')
   }
+
+  const supabase = await createClient()
 
   // Fetch categories
   const { data: categories } = await supabase
