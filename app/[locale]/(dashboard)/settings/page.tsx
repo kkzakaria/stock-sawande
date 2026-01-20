@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SettingsTabs } from '@/components/settings/settings-tabs'
 import { Settings } from 'lucide-react'
-
-export const dynamic = 'force-dynamic'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 interface SettingsPageProps {
   params: Promise<{ locale: string }>
@@ -15,21 +14,12 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   setRequestLocale(locale)
   const t = await getTranslations('Settings')
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Use cached profile for auth and role check
+  const { user, profile } = await getAuthenticatedProfile()
 
   if (!user) {
     redirect('/auth/login')
   }
-
-  // Get user profile with stores
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, stores(*)')
-    .eq('id', user.id)
-    .single()
 
   if (!profile) {
     redirect('/auth/login')
@@ -37,6 +27,8 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
   const isAdmin = profile.role === 'admin'
   const isManager = ['admin', 'manager'].includes(profile.role)
+
+  const supabase = await createClient()
 
   // Only admins and managers can access settings
   if (!isManager) {

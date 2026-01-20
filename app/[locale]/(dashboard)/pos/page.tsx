@@ -129,11 +129,10 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }
   }
 
-  // Fetch customers for proforma creation
-  const { data: customers } = await supabase
-    .from('customers')
-    .select('id, name, email, phone')
-    .order('name')
+  // Customers are loaded on-demand in the client component to reduce initial payload
+
+  // Limit products to optimize initial page load
+  const PRODUCT_LIMIT = 200
 
   // Type for the product query result
   type ProductQueryResult = {
@@ -154,14 +153,16 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }>
   }
 
-  // Fetch products with ALL inventory (not just current store) for multi-store visibility
+  // Fetch products with inventory for the current store (optimized with inner join and limit)
   const { data: products, error: productsError } = await supabase
     .from('product_templates')
     .select(
-      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!product_inventory_product_id_fkey(id, quantity, store_id, stores:store_id(name))'
+      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
     )
     .eq('is_active', true)
+    .eq('product_inventory.store_id', activeStoreId)
     .order('name')
+    .limit(PRODUCT_LIMIT)
     .returns<ProductQueryResult[]>()
 
   if (productsError) {
@@ -225,7 +226,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     <div className="h-full overflow-hidden">
       <POSClient
         products={productsWithInventory}
-        customers={customers || []}
+        customers={[]}
         storeId={activeStoreId}
         cashierId={user.id}
         cashierName={profile.full_name || 'User'}

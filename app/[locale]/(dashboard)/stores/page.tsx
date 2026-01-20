@@ -3,9 +3,7 @@ import { redirect } from 'next/navigation'
 import { StoresClient } from '@/components/stores/stores-client'
 import { AddStoreDialog } from '@/components/stores/add-store-dialog'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-
-// Disable caching for role checks
-export const dynamic = 'force-dynamic'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 interface StoresPageProps {
   params: Promise<{ locale: string }>
@@ -15,22 +13,20 @@ export default async function StoresPage({ params }: StoresPageProps) {
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('Stores')
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single()
+  // Use cached profile for role check
+  const { user, profile } = await getAuthenticatedProfile()
+
+  if (!user) {
+    redirect('/auth/login')
+  }
 
   // Only admins can access stores page
   if (profile?.role !== 'admin') {
     redirect('/dashboard')
   }
+
+  const supabase = await createClient()
 
   // Get all stores
   const { data: stores } = await supabase

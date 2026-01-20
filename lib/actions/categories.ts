@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { invalidateCategoriesCache } from '@/lib/server/cached-queries'
 
 // Validation schema for category
 const categorySchema = z.object({
@@ -106,6 +107,7 @@ export async function createCategory(data: CategoryInput): Promise<ActionResult>
 
     revalidatePath('/settings')
     revalidatePath('/products')
+    invalidateCategoriesCache()
     return { success: true, data: category }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -171,6 +173,7 @@ export async function updateCategory(id: string, data: Partial<CategoryInput>): 
 
     revalidatePath('/settings')
     revalidatePath('/products')
+    invalidateCategoriesCache()
     return { success: true, data: category }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -236,6 +239,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 
     revalidatePath('/settings')
     revalidatePath('/products')
+    invalidateCategoriesCache()
     return { success: true }
   } catch (error) {
     console.error('Error deleting category:', error)

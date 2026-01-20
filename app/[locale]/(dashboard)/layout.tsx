@@ -1,15 +1,11 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard/dashboard-nav'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { buildLoginUrl } from '@/lib/auth/redirect'
-
-// Force dynamic rendering to always fetch fresh profile data
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -22,10 +18,9 @@ export default async function DashboardLayout({
 }: DashboardLayoutProps) {
   const { locale } = await params
   setRequestLocale(locale)
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+
+  // Use cached profile to deduplicate queries across the request
+  const { user, profile } = await getAuthenticatedProfile()
 
   if (!user) {
     // Get the current URL to redirect back after login
@@ -38,13 +33,6 @@ export default async function DashboardLayout({
     const loginUrl = buildLoginUrl(currentUrl)
     redirect(loginUrl)
   }
-
-  // Get user profile with role (no cache to reflect role changes immediately)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*, stores(*)')
-    .eq('id', user.id)
-    .single()
 
   // Get navigation translations for client component
   const t = await getTranslations('Navigation')
