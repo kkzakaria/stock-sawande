@@ -601,88 +601,87 @@ export async function getProduct(id: string) {
       return { success: false, error: 'Not authenticated', data: null }
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
+    // Parallel queries: profile + product with all relations in a single joined query
+    const [profileResult, productResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('role, store_id')
+        .eq('id', user.id)
+        .single(),
+      supabase
+        .from('product_templates')
+        .select(`
+          *,
+          categories(id, name),
+          product_inventory(
+            id, product_id, quantity, store_id, created_at, updated_at,
+            stores(id, name)
+          )
+        `)
+        .eq('id', id)
+        .single()
+    ])
 
+    const profile = profileResult.data
     if (!profile) {
       return { success: false, error: 'Profile not found', data: null }
     }
 
-    // Get product template
-    const { data: template, error: templateError } = await supabase
-      .from('product_templates')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (templateError || !template) {
-      console.error('Error fetching product template:', templateError)
+    const template = productResult.data
+    if (productResult.error || !template) {
+      console.error('Error fetching product template:', productResult.error)
       return { success: false, error: 'Product not found', data: null }
     }
 
-    // Get inventory for user's store (or all stores for admin)
-    let inventoryQuery = supabase
-      .from('product_inventory')
-      .select('*')
-      .eq('product_id', id)
+    // Extract and filter inventories based on role
+    type InventoryWithStore = {
+      id: string
+      product_id: string
+      quantity: number
+      store_id: string
+      created_at: string
+      updated_at: string
+      stores: { id: string; name: string } | null
+    }
 
+    let inventories = (template.product_inventory || []) as InventoryWithStore[]
     if (profile.role !== 'admin' && profile.store_id) {
-      inventoryQuery = inventoryQuery.eq('store_id', profile.store_id)
+      inventories = inventories.filter(inv => inv.store_id === profile.store_id)
     }
 
-    const { data: inventories } = await inventoryQuery
-
-    // Get category
-    let category = null
-    if (template.category_id) {
-      const { data: categoryData } = await supabase
-        .from('categories')
-        .select('id, name')
-        .eq('id', template.category_id)
-        .single()
-      category = categoryData
-    }
-
-    // Get store info for inventory
-    const storeIds = inventories?.map(inv => inv.store_id) || []
-    let stores: Array<{ id: string; name: string }> = []
-    if (storeIds.length > 0) {
-      const { data: storesData } = await supabase
-        .from('stores')
-        .select('id, name')
-        .in('id', storeIds)
-      stores = storesData || []
-    }
+    // Extract category from joined data
+    const category = template.categories as { id: string; name: string } | null
 
     // For non-admin users, get primary inventory (their store)
-    const primaryInventory = inventories && inventories.length > 0 ? inventories[0] : null
-    const primaryStore = primaryInventory ? stores.find(s => s.id === primaryInventory.store_id) : null
+    const primaryInventory = inventories.length > 0 ? inventories[0] : null
+    const primaryStore = primaryInventory?.stores || null
 
-    // Enrich inventories with store information
-    const inventoriesWithStores = inventories?.map(inv => {
-      const store = stores.find(s => s.id === inv.store_id)
-      return {
-        ...inv,
-        store_name: store?.name || null,
-        store: store || null,
-      }
-    }) || []
+    // Enrich inventories with store information (flatten the structure)
+    const inventoriesWithStores = inventories.map(inv => ({
+      id: inv.id,
+      product_id: inv.product_id,
+      quantity: inv.quantity,
+      store_id: inv.store_id,
+      created_at: inv.created_at,
+      updated_at: inv.updated_at,
+      store_name: inv.stores?.name || null,
+      store: inv.stores || null,
+    }))
 
     // Combine data in both old and new format for compatibility
     const productWithRelations = {
       ...template,
-      template_id: template.id, // New format
+      template_id: template.id,
       quantity: primaryInventory?.quantity || 0,
       store_id: primaryInventory?.store_id || null,
       inventory_id: primaryInventory?.id || null,
-      category_name: category?.name || null, // New format
-      store_name: primaryStore?.name || null, // New format
-      categories: category, // Old format for compatibility
-      stores: primaryStore, // Old format for compatibility
-      all_inventories: inventoriesWithStores, // Include all inventories with store info
+      category_name: category?.name || null,
+      store_name: primaryStore?.name || null,
+      categories: category,
+      stores: primaryStore,
+      all_inventories: inventoriesWithStores,
+      // Remove the nested objects from the spread
+      product_inventory: undefined,
     }
 
     return { success: true, data: productWithRelations }
