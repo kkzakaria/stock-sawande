@@ -11,12 +11,36 @@ const productTemplateSchema = z.object({
   description: z.string().optional(),
   category_id: z.string().uuid('Invalid category').nullable(),
   price: z.number().min(0, 'Price must be positive'),
+  min_price: z.number().min(0, 'Min price must be positive').nullable().optional(),
+  max_price: z.number().min(0, 'Max price must be positive').nullable().optional(),
   cost: z.number().min(0, 'Cost must be positive').optional(),
   min_stock_level: z.number().int().min(0, 'Min stock level must be non-negative').default(10),
   image_url: z.string().url().optional().or(z.literal('')),
   barcode: z.string().optional(),
   is_active: z.boolean().default(true),
-})
+}).refine(
+  (data) => {
+    // Validate: min_price <= price <= max_price
+    if (data.min_price !== null && data.min_price !== undefined && data.min_price > data.price) {
+      return false
+    }
+    if (data.max_price !== null && data.max_price !== undefined && data.max_price < data.price) {
+      return false
+    }
+    if (
+      data.min_price !== null && data.min_price !== undefined &&
+      data.max_price !== null && data.max_price !== undefined &&
+      data.min_price > data.max_price
+    ) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Price range is invalid: min_price <= price <= max_price',
+    path: ['price'],
+  }
+)
 
 // Combined schema for product creation (single store - for managers)
 const productSchema = productTemplateSchema.extend({

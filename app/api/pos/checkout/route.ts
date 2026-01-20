@@ -82,27 +82,68 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate inventory availability for all items
-    const inventoryChecks = await Promise.all(
+    // Validate inventory availability and price ranges for all items
+    const validationChecks = await Promise.all(
       body.items.map(async (item) => {
+        // Get inventory with product info for price range
+        type InventoryWithProduct = {
+          quantity: number
+          product_id: string
+          store_id: string
+          product: { price: number; min_price: number | null; max_price: number | null } | null
+        }
+
         const { data: inventory } = await supabase
           .from('product_inventory')
-          .select('quantity, product_id, store_id')
+          .select('quantity, product_id, store_id, product:product_templates(price, min_price, max_price)')
           .eq('id', item.inventoryId)
           .eq('store_id', body.storeId)
           .single()
+          .returns<InventoryWithProduct>()
+
+        const product = inventory?.product
+
+        // Validate price is within allowed range
+        let priceValid = true
+        let priceError: string | null = null
+
+        if (product) {
+          const { price: defaultPrice, min_price, max_price } = product
+
+          // If no min/max is set, price must match default price
+          if (min_price === null && max_price === null) {
+            priceValid = item.price === defaultPrice
+            if (!priceValid) {
+              priceError = `Price must be ${defaultPrice}`
+            }
+          } else {
+            // Validate against min/max range
+            if (min_price !== null && item.price < min_price) {
+              priceValid = false
+              priceError = `Price cannot be below ${min_price}`
+            }
+            if (max_price !== null && item.price > max_price) {
+              priceValid = false
+              priceError = `Price cannot exceed ${max_price}`
+            }
+          }
+        }
 
         return {
+          productId: item.productId,
           inventoryId: item.inventoryId,
           available: inventory?.quantity || 0,
           requested: item.quantity,
-          valid: inventory && inventory.quantity >= item.quantity,
+          stockValid: inventory && inventory.quantity >= item.quantity,
+          priceValid,
+          priceError,
+          submittedPrice: item.price,
         }
       })
     )
 
     // Check for insufficient stock
-    const insufficientStock = inventoryChecks.filter((check) => !check.valid)
+    const insufficientStock = validationChecks.filter((check) => !check.stockValid)
     if (insufficientStock.length > 0) {
       return NextResponse.json(
         {
@@ -111,6 +152,22 @@ export async function POST(request: Request) {
             inventoryId: check.inventoryId,
             available: check.available,
             requested: check.requested,
+          })),
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check for invalid prices
+    const invalidPrices = validationChecks.filter((check) => !check.priceValid)
+    if (invalidPrices.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Invalid price',
+          details: invalidPrices.map((check) => ({
+            productId: check.productId,
+            submittedPrice: check.submittedPrice,
+            error: check.priceError,
           })),
         },
         { status: 400 }

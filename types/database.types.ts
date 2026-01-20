@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -383,6 +378,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean | null
+          max_price: number | null
+          min_price: number | null
           min_stock_level: number | null
           name: string
           price: number
@@ -398,6 +395,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          max_price?: number | null
+          min_price?: number | null
           min_stock_level?: number | null
           name: string
           price: number
@@ -413,6 +412,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          max_price?: number | null
+          min_price?: number | null
           min_stock_level?: number | null
           name?: string
           price?: number
@@ -1254,6 +1255,8 @@ export type Database = {
           description: string | null
           image_url: string | null
           is_active: boolean | null
+          max_price: number | null
+          min_price: number | null
           min_stock_level: number | null
           name: string | null
           price: number | null
@@ -1286,6 +1289,8 @@ export type Database = {
           inventory_id: string | null
           inventory_updated_at: string | null
           is_active: boolean | null
+          max_price: number | null
+          min_price: number | null
           min_stock_level: number | null
           name: string | null
           price: number | null
@@ -1476,6 +1481,8 @@ export type Database = {
           image_url: string
           inventory_id: string
           is_active: boolean
+          max_price: number
+          min_price: number
           min_stock_level: number
           name: string
           price: number
@@ -1751,3 +1758,4 @@ export const Constants = {
     },
   },
 } as const
+

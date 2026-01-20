@@ -46,6 +46,8 @@ interface Product {
   sku: string
   name: string
   price: number
+  minPrice: number | null
+  maxPrice: number | null
   barcode: string | null
   imageUrl: string | null
   category: { id: string; name: string } | null
@@ -336,13 +338,15 @@ export function POSClient({
   // - Via syncProducts() after transaction sync (with clearReservations=true)
   const displayProducts: Product[] = (cacheIsInitialized && cachedProducts.length > 0)
     ? cachedProducts.map((cp) => {
-        // Find the original product to get multi-store info
+        // Find the original product to get multi-store info and price range
         const originalProduct = products.find(p => p.id === cp.id)
         return {
           id: cp.id,
           sku: cp.sku,
           name: cp.name,
           price: cp.price,
+          minPrice: originalProduct?.minPrice ?? null,
+          maxPrice: originalProduct?.maxPrice ?? null,
           barcode: cp.barcode,
           imageUrl: cp.imageUrl,
           category: cp.category,

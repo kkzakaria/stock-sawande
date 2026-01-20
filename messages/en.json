@@ -244,6 +244,10 @@
         "barcodePlaceholder": "123456789",
         "price": "Sale Price",
         "pricePlaceholder": "0.00",
+        "minPrice": "Min Price",
+        "minPricePlaceholder": "0.00",
+        "maxPrice": "Max Price",
+        "maxPricePlaceholder": "0.00",
         "cost": "Cost",
         "costPlaceholder": "0.00",
         "quantity": "Quantity",
@@ -258,6 +262,8 @@
       "descriptions": {
         "sku": "Unique product identifier",
         "price": "Customer-facing price",
+        "minPrice": "Leave empty for fixed pricing",
+        "maxPrice": "Leave empty for fixed pricing",
         "cost": "Internal cost",
         "quantity": "Current stock level",
         "minStock": "Low stock alert threshold",
@@ -593,6 +599,7 @@
       "totalTTC": "Total incl. Tax",
       "checkout": "Checkout",
       "editQuantity": "Click to edit quantity",
+      "clickToEditPrice": "Click to edit price",
       "selectCustomer": "Select a customer",
       "searchCustomer": "Search customer...",
       "noCustomerFound": "No customer found",
@@ -787,6 +794,7 @@
       "placeholder": "Search product...",
       "noResults": "No products found"
     },
+    "flexiblePrice": "Flexible price",
     "stock": {
       "availableElsewhere": "Available in other stores",
       "totalOther": "Total elsewhere"
