@@ -126,7 +126,7 @@
 - [x] Page POS - inventaire correct (quantités affichées)
 - [x] Création de store invalide le cache ("Test Store (Cache Check)" visible immédiatement)
 - [x] Création de catégorie invalide le cache ("Test Category (Cache Check)" visible immédiatement)
-- [ ] Changement de rôle utilisateur reflété après ~5min max (non testé)
+- [x] Changement de rôle utilisateur reflété immédiatement (testé avec Cashier Brooklyn → Manager → Cashier)
 
 ---
 
