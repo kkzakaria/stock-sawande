@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-// Validation schema for product template
-const productTemplateSchema = z.object({
+// Base validation schema for product template (without refine, so it can be extended)
+const productTemplateBaseSchema = z.object({
   sku: z.string().min(1, 'SKU is required'),
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
@@ -18,35 +18,40 @@ const productTemplateSchema = z.object({
   image_url: z.string().url().optional().or(z.literal('')),
   barcode: z.string().optional(),
   is_active: z.boolean().default(true),
-}).refine(
-  (data) => {
-    // Validate: min_price <= price <= max_price
-    if (data.min_price !== null && data.min_price !== undefined && data.min_price > data.price) {
-      return false
-    }
-    if (data.max_price !== null && data.max_price !== undefined && data.max_price < data.price) {
-      return false
-    }
-    if (
-      data.min_price !== null && data.min_price !== undefined &&
-      data.max_price !== null && data.max_price !== undefined &&
-      data.min_price > data.max_price
-    ) {
-      return false
-    }
-    return true
-  },
-  {
-    message: 'Price range is invalid: min_price <= price <= max_price',
-    path: ['price'],
+})
+
+// Price range validation refinement
+const priceRangeRefinement = <T extends { price: number; min_price?: number | null; max_price?: number | null }>(data: T) => {
+  // Validate: min_price <= price <= max_price
+  if (data.min_price !== null && data.min_price !== undefined && data.min_price > data.price) {
+    return false
   }
-)
+  if (data.max_price !== null && data.max_price !== undefined && data.max_price < data.price) {
+    return false
+  }
+  if (
+    data.min_price !== null && data.min_price !== undefined &&
+    data.max_price !== null && data.max_price !== undefined &&
+    data.min_price > data.max_price
+  ) {
+    return false
+  }
+  return true
+}
+
+const priceRangeRefinementOptions = {
+  message: 'Price range is invalid: min_price <= price <= max_price',
+  path: ['price'],
+}
+
+// Full product template schema with refinement (for direct validation)
+const productTemplateSchema = productTemplateBaseSchema.refine(priceRangeRefinement, priceRangeRefinementOptions)
 
 // Combined schema for product creation (single store - for managers)
-const productSchema = productTemplateSchema.extend({
+const productSchema = productTemplateBaseSchema.extend({
   store_id: z.string().uuid('Invalid store'),
   quantity: z.number().int().min(0, 'Quantity must be non-negative'),
-})
+}).refine(priceRangeRefinement, priceRangeRefinementOptions)
 
 // Schema for multi-store inventory (for admins)
 const storeInventorySchema = z.object({
@@ -55,11 +60,11 @@ const storeInventorySchema = z.object({
 })
 
 // Extended schema for multi-store product creation
-const productMultiStoreSchema = productTemplateSchema.extend({
+const productMultiStoreSchema = productTemplateBaseSchema.extend({
   store_id: z.string().uuid('Invalid store').optional(),
   quantity: z.number().int().min(0, 'Quantity must be non-negative').optional(),
   storeInventories: z.array(storeInventorySchema).optional(),
-})
+}).refine(priceRangeRefinement, priceRangeRefinementOptions)
 
 type ProductInput = z.infer<typeof productSchema>
 type ProductMultiStoreInput = z.infer<typeof productMultiStoreSchema>
