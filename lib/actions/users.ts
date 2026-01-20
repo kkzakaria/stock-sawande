@@ -14,13 +14,13 @@ const userUpdateSchema = z.object({
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Validation schema for store assignments (simple version - normalization done before validation)
-const storeAssignmentSchema = z.object({
+const _storeAssignmentSchema = z.object({
   store_ids: z.array(z.string().regex(uuidRegex, 'Invalid UUID')),
   default_store_id: z.string().regex(uuidRegex, 'Invalid UUID').optional(),
 })
 
 type UserUpdateInput = z.infer<typeof userUpdateSchema>
-type StoreAssignmentInput = z.infer<typeof storeAssignmentSchema>
+type StoreAssignmentInput = z.infer<typeof _storeAssignmentSchema>
 
 interface ActionResult<T = unknown> {
   success: boolean

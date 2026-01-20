@@ -60,11 +60,6 @@ export function StoreInventorySection({
     return storeId === userStoreId
   }
 
-  const canAddToStore = (storeId: string) => {
-    if (isAdmin) return true
-    return storeId === userStoreId
-  }
-
   const getStockStatus = (quantity: number) => {
     if (quantity === 0) {
       return <Badge variant="destructive">{t('outOfStock')}</Badge>

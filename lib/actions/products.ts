@@ -46,10 +46,10 @@ const priceRangeRefinementOptions = {
 }
 
 // Full product template schema with refinement (for direct validation)
-const productTemplateSchema = productTemplateBaseSchema.refine(priceRangeRefinement, priceRangeRefinementOptions)
+const _productTemplateSchema = productTemplateBaseSchema.refine(priceRangeRefinement, priceRangeRefinementOptions)
 
 // Combined schema for product creation (single store - for managers)
-const productSchema = productTemplateBaseSchema.extend({
+const _productSchema = productTemplateBaseSchema.extend({
   store_id: z.string().uuid('Invalid store'),
   quantity: z.number().int().min(0, 'Quantity must be non-negative'),
 }).refine(priceRangeRefinement, priceRangeRefinementOptions)
@@ -67,7 +67,7 @@ const productMultiStoreSchema = productTemplateBaseSchema.extend({
   storeInventories: z.array(storeInventorySchema).optional(),
 }).refine(priceRangeRefinement, priceRangeRefinementOptions)
 
-type ProductInput = z.infer<typeof productSchema>
+type ProductInput = z.infer<typeof _productSchema>
 type ProductMultiStoreInput = z.infer<typeof productMultiStoreSchema>
 
 interface ActionResult<T = unknown> {

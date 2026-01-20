@@ -44,9 +44,9 @@ function isLocalUrl(src: string | undefined | null): boolean {
  * Image component that automatically disables optimization for local URLs.
  * This prevents Next.js from blocking private IP addresses during development.
  */
-export function OptimizedImage({ src, unoptimized, ...props }: ImageProps) {
+export function OptimizedImage({ src, unoptimized, alt, ...props }: ImageProps) {
   const srcString = typeof src === 'string' ? src : undefined
   const shouldSkipOptimization = unoptimized || isLocalUrl(srcString)
 
-  return <Image src={src} unoptimized={shouldSkipOptimization} {...props} />
+  return <Image src={src} alt={alt} unoptimized={shouldSkipOptimization} {...props} />
 }
