@@ -138,7 +138,10 @@ const nextConfig: NextConfig = {
     // Security for SVG images
     dangerouslyAllowSVG: false,
   },
-  turbopack: {},
+  turbopack: {
+    // Set the root directory to avoid lockfile detection issues
+    root: __dirname,
+  },
 
   // Security headers for routes not covered by proxy
   async headers() {
