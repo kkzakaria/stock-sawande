@@ -98,8 +98,9 @@ export function POSClient({
   const ensureStoreMatch = useCartStore((state) => state.ensureStoreMatch)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Local customers state (allows adding new customers without page refresh)
-  const [customers, setCustomers] = useState(initialCustomers)
+  // Lazy-loaded customers state (loads on-demand to reduce initial payload)
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers)
+  const [customersLoaded, setCustomersLoaded] = useState(initialCustomers.length > 0)
 
   // Cash session state
   const [activeSession, setActiveSession] = useState<CashSession | null>(null)
@@ -116,6 +117,31 @@ export function POSClient({
   const handleCustomerAdded = (newCustomer: Customer) => {
     setCustomers((prev) => [...prev, newCustomer].sort((a, b) => a.name.localeCompare(b.name)))
   }
+
+  // Lazy-load customers on demand
+  const fetchCustomers = useCallback(async () => {
+    if (customersLoaded) return
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('customers')
+      .select('id, name, email, phone')
+      .order('name')
+      .limit(100)
+    setCustomers(data ?? [])
+    setCustomersLoaded(true)
+  }, [customersLoaded])
+
+  // Load customers after initial render (deferred to not block first paint)
+  useEffect(() => {
+    // Only fetch if not already loaded from server
+    if (!customersLoaded) {
+      // Small delay to let the initial render complete
+      const timer = setTimeout(() => {
+        fetchCustomers()
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [customersLoaded, fetchCustomers])
 
   // Offline mode hooks - use both polling and SSE for fast detection
   const { isOnline } = useNetworkStatus()

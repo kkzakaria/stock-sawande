@@ -1,23 +1,18 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getProducts } from '@/lib/actions/products'
 import { ProductsClient } from '@/components/products/products-client'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
 export default async function ProductsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, store_id')
-    .eq('id', user!.id)
-    .single()
+  if (!user) {
+    redirect('/login')
+  }
 
   // Only admin and manager can access products
   if (!['admin', 'manager'].includes(profile?.role || '')) {

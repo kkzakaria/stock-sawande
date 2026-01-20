@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getStores } from '@/lib/actions/products'
 import { ReportsClient } from '@/components/reports/reports-client'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
@@ -16,17 +16,13 @@ export default async function ReportsPage({ params, searchParams }: ReportsPageP
   const { locale } = await params
   setRequestLocale(locale)
   const t = await getTranslations('Reports')
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
+
+  if (!user) {
+    redirect('/login')
+  }
 
   // Only admin and manager can access reports
   if (!['admin', 'manager'].includes(profile?.role || '')) {

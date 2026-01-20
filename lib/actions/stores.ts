@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { invalidateStoresCache } from '@/lib/server/cached-queries'
 
 // Validation schema for store
 const storeSchema = z.object({
@@ -61,6 +62,7 @@ export async function createStore(data: StoreInput): Promise<ActionResult> {
     }
 
     revalidatePath('/stores')
+    invalidateStoresCache()
     return { success: true, data: store }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -111,6 +113,7 @@ export async function updateStore(id: string, data: Partial<StoreInput>): Promis
     }
 
     revalidatePath('/stores')
+    invalidateStoresCache()
     return { success: true, data: store }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -169,6 +172,7 @@ export async function deleteStore(id: string): Promise<ActionResult> {
     }
 
     revalidatePath('/stores')
+    invalidateStoresCache()
     return { success: true }
   } catch (error) {
     console.error('Error deleting store:', error)

@@ -5,32 +5,26 @@ import { FileText, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { ProformaForm } from '@/components/proformas/proforma-form'
 import { Button } from '@/components/ui/button'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
 export default async function NewProformaPage() {
   const t = await getTranslations('Proformas')
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
 
   if (!user) {
     redirect('/login')
   }
 
-  // Get user profile to check role and store
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, store_id')
-    .eq('id', user.id)
-    .single()
-
   if (!profile) {
     redirect('/login')
   }
+
+  const supabase = await createClient()
 
   // Fetch required data in parallel
   const [productsResult, customersResult, storesResult] = await Promise.all([

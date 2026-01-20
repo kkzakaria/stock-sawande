@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCachedUser, getCachedProfile } from '@/lib/server/cached-queries'
 
 // Types
 interface ActionResult<T = unknown> {
@@ -55,6 +56,29 @@ export interface LowStockAlert {
   stockStatus: 'out_of_stock' | 'low_stock'
 }
 
+// Helper for server actions - gets authenticated user and profile with effective store ID
+async function getActionContext(requestedStoreId?: string) {
+  const user = await getCachedUser()
+  if (!user) {
+    return { error: 'Not authenticated', profile: null, effectiveStoreId: undefined }
+  }
+
+  const profile = await getCachedProfile(user.id)
+  if (!profile) {
+    return { error: 'Profile not found', profile: null, effectiveStoreId: undefined }
+  }
+
+  // Determine effective store ID based on role
+  let effectiveStoreId = requestedStoreId
+  if (profile.role === 'manager' && profile.store_id) {
+    effectiveStoreId = profile.store_id
+  } else if (profile.role === 'cashier') {
+    effectiveStoreId = profile.store_id ?? undefined
+  }
+
+  return { error: null, profile, effectiveStoreId }
+}
+
 /**
  * Get dashboard metrics for a store or all stores
  */
@@ -62,29 +86,10 @@ export async function getDashboardMetrics(storeId?: string): Promise<ActionResul
   try {
     const supabase = await createClient()
 
-    // Verify user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
-    }
-
-    // Get user profile and role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
-      return { success: false, error: 'Profile not found' }
-    }
-
-    // Determine effective store ID based on role
-    let effectiveStoreId = storeId
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
-    } else if (profile.role === 'cashier') {
-      effectiveStoreId = profile.store_id || undefined
+    // Get authenticated user and effective store ID
+    const { error: authError, effectiveStoreId } = await getActionContext(storeId)
+    if (authError) {
+      return { success: false, error: authError }
     }
 
     // Call the database function
@@ -155,29 +160,10 @@ export async function getRevenueTrend(
   try {
     const supabase = await createClient()
 
-    // Verify user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
-    }
-
-    // Get user profile and role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
-      return { success: false, error: 'Profile not found' }
-    }
-
-    // Determine effective store ID based on role
-    let effectiveStoreId = storeId
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
-    } else if (profile.role === 'cashier') {
-      effectiveStoreId = profile.store_id || undefined
+    // Get authenticated user and effective store ID
+    const { error: authError, effectiveStoreId } = await getActionContext(storeId)
+    if (authError) {
+      return { success: false, error: authError }
     }
 
     // Calculate date range
@@ -233,29 +219,10 @@ export async function getTopProducts(
   try {
     const supabase = await createClient()
 
-    // Verify user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
-    }
-
-    // Get user profile and role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
-      return { success: false, error: 'Profile not found' }
-    }
-
-    // Determine effective store ID based on role
-    let effectiveStoreId = storeId
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
-    } else if (profile.role === 'cashier') {
-      effectiveStoreId = profile.store_id || undefined
+    // Get authenticated user and effective store ID
+    const { error: authError, effectiveStoreId } = await getActionContext(storeId)
+    if (authError) {
+      return { success: false, error: authError }
     }
 
     // Calculate date range
@@ -309,29 +276,10 @@ export async function getLowStockAlerts(storeId?: string): Promise<ActionResult<
   try {
     const supabase = await createClient()
 
-    // Verify user is authenticated
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
-    }
-
-    // Get user profile and role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
-      return { success: false, error: 'Profile not found' }
-    }
-
-    // Determine effective store ID based on role
-    let effectiveStoreId = storeId
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
-    } else if (profile.role === 'cashier') {
-      effectiveStoreId = profile.store_id || undefined
+    // Get authenticated user and effective store ID
+    const { error: authError, effectiveStoreId } = await getActionContext(storeId)
+    if (authError) {
+      return { success: false, error: authError }
     }
 
     // Call the database function

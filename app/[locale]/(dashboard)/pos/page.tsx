@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation'
 import { POSClient } from '@/components/pos/pos-client'
 import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -29,25 +30,36 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
   setRequestLocale(locale)
   const t = await getTranslations('POS')
 
-  const supabase = await createClient()
-
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Use cached profile for auth check (deduplicated with layout)
+  const { user, profile: cachedProfile } = await getAuthenticatedProfile()
 
   if (!user) {
     redirect('/auth/login')
   }
 
-  // Get user profile with store information (including address/phone for offline receipts)
-  const { data: profile, error: profileError } = await supabase
+  if (!cachedProfile) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">{t('errors.profileError')}</h2>
+          <p className="mt-2 text-gray-600">
+            {t('errors.contactAdmin')}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const supabase = await createClient()
+
+  // Get extended profile with store details for POS (address/phone for receipts)
+  const { data: profile } = await supabase
     .from('profiles')
     .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
     .eq('id', user.id)
     .single()
 
-  if (profileError || !profile) {
+  if (!profile) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="text-center">
@@ -129,11 +141,10 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }
   }
 
-  // Fetch customers for proforma creation
-  const { data: customers } = await supabase
-    .from('customers')
-    .select('id, name, email, phone')
-    .order('name')
+  // Customers are loaded on-demand in the client component to reduce initial payload
+
+  // Limit products to optimize initial page load
+  const PRODUCT_LIMIT = 200
 
   // Type for the product query result
   type ProductQueryResult = {
@@ -154,14 +165,16 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }>
   }
 
-  // Fetch products with ALL inventory (not just current store) for multi-store visibility
+  // Fetch products with inventory for the current store (optimized with inner join and limit)
   const { data: products, error: productsError } = await supabase
     .from('product_templates')
     .select(
-      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!product_inventory_product_id_fkey(id, quantity, store_id, stores:store_id(name))'
+      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
     )
     .eq('is_active', true)
+    .eq('product_inventory.store_id', activeStoreId)
     .order('name')
+    .limit(PRODUCT_LIMIT)
     .returns<ProductQueryResult[]>()
 
   if (productsError) {
@@ -225,7 +238,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     <div className="h-full overflow-hidden">
       <POSClient
         products={productsWithInventory}
-        customers={customers || []}
+        customers={[]}
         storeId={activeStoreId}
         cashierId={user.id}
         cashierName={profile.full_name || 'User'}

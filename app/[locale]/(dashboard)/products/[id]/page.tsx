@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { OptimizedImage } from '@/components/ui/optimized-image'
-import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +9,7 @@ import { ChevronLeft, Pencil, Package } from 'lucide-react'
 import { getProduct } from '@/lib/actions/products'
 import { ProductStatsComponent } from '@/components/products/product-stats'
 import { StockMovementsHistory } from '@/components/products/stock-movements-history'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,22 +23,19 @@ interface ProductDetailPageProps {
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const { id } = await params
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Use cached profile (deduplicated with layout)
+  const { user, profile } = await getAuthenticatedProfile()
 
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, store_id')
-    .eq('id', user!.id)
-    .single()
+  if (!user) {
+    redirect('/login')
+  }
 
   // Only admin and manager can view product details
   if (!['admin', 'manager'].includes(profile?.role || '')) {
     redirect('/dashboard')
   }
 
-  // Fetch product
+  // Fetch product (uses parallel queries internally)
   const productResult = await getProduct(id)
   if (!productResult.success || !productResult.data) {
     notFound()
