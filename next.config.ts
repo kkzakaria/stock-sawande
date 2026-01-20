@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 import withPWAInit from "next-pwa";
 import createNextIntlPlugin from 'next-intl/plugin';
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 // next-pwa is not yet fully compatible with Turbopack
 // Disable in build for now - PWA will work with webpack in dev
@@ -181,6 +186,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Compose plugins: withNextIntl wraps withPWA wraps nextConfig
-const config = withNextIntl(withPWA(nextConfig));
+// Compose plugins: withAnalyzer wraps withNextIntl wraps withPWA wraps nextConfig
+const config = withAnalyzer(withNextIntl(withPWA(nextConfig)));
 export default config;

@@ -16,7 +16,7 @@ interface BarChartData {
   [key: string]: string | number
 }
 
-interface BarChartWrapperProps {
+export interface BarChartWrapperProps {
   title: string
   description?: string
   data: BarChartData[]

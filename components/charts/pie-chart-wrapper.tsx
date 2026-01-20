@@ -20,7 +20,7 @@ interface PieChartData {
   fill?: string
 }
 
-interface PieChartWrapperProps {
+export interface PieChartWrapperProps {
   title: string
   description?: string
   data: PieChartData[]

@@ -16,7 +16,7 @@ interface AreaChartData {
   [key: string]: string | number
 }
 
-interface AreaChartWrapperProps {
+export interface AreaChartWrapperProps {
   title: string
   description?: string
   data: AreaChartData[]
