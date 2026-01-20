@@ -1,9 +1,10 @@
 # Checklist d'Optimisation des Performances
 
-## Statut Global: Terminé
+## Statut Global: Terminé et Validé
 
 **Date de début:** 2026-01-20
 **Date de fin:** 2026-01-20
+**Tests validés:** 2026-01-20
 **Objectif:** Réduire le temps de rendu des pages de ~50%
 
 ---
@@ -101,8 +102,8 @@
 - [x] Retirer `force-dynamic` de `settings/page.tsx`
 - [x] Vérifier que les pages avec `force-dynamic` le gardent:
   - [x] `pos/page.tsx` (GARDÉ)
-  - [ ] `sales/page.tsx` (à vérifier)
-  - [ ] `products/page.tsx` (à vérifier)
+  - [x] `sales/page.tsx` (GARDÉ - données temps réel)
+  - [x] `products/page.tsx` (GARDÉ - contrôle de rôle)
 
 **Fichiers:**
 - `app/[locale]/(dashboard)/stores/page.tsx`
@@ -114,18 +115,18 @@
 
 ### Tests Automatiques
 - [x] `pnpm tsc --noEmit` - Pas d'erreurs TypeScript
-- [ ] `pnpm lint` - Pas d'erreurs ESLint
+- [x] `pnpm lint` - Pas d'erreurs ESLint
 - [x] `pnpm build` - Build réussi
 
-### Tests Manuels
-- [ ] Connexion utilisateur fonctionne
-- [ ] Déconnexion fonctionne
-- [ ] Navigation dashboard fluide
-- [ ] Page POS affiche les produits du store actif
-- [ ] Page POS - inventaire correct
-- [ ] Création de store invalide le cache
-- [ ] Création de catégorie invalide le cache
-- [ ] Changement de rôle utilisateur reflété après ~5min max
+### Tests Manuels (Playwright - 2026-01-20)
+- [x] Connexion utilisateur fonctionne (admin@test.nextstock.com)
+- [x] Déconnexion fonctionne (redirect vers /login)
+- [x] Navigation dashboard fluide (Products, POS, Stores, Settings)
+- [x] Page POS affiche les produits du store actif (5 produits pour Downtown Store)
+- [x] Page POS - inventaire correct (quantités affichées)
+- [x] Création de store invalide le cache ("Test Store (Cache Check)" visible immédiatement)
+- [x] Création de catégorie invalide le cache ("Test Category (Cache Check)" visible immédiatement)
+- [ ] Changement de rôle utilisateur reflété après ~5min max (non testé)
 
 ---
 
@@ -146,6 +147,8 @@
 - **Attention:** Tester l'authentification après chaque modification du layout
 - **Rollback:** Si problème, remettre `force-dynamic` dans le layout
 
+---
+
 ## Changements Effectués (2026-01-20)
 
 ### Nouveau fichier
@@ -160,3 +163,28 @@
 - `lib/actions/categories.ts` - Invalidation cache après mutations
 - `app/[locale]/(dashboard)/stores/page.tsx` - Supprimé force-dynamic
 - `app/[locale]/(dashboard)/settings/page.tsx` - Supprimé force-dynamic
+
+---
+
+## Résultats des Tests Playwright (2026-01-20)
+
+### Scénarios testés
+
+| Test | Résultat | Détails |
+|------|----------|---------|
+| Login admin | ✅ PASS | `admin@test.nextstock.com` / `password123` |
+| Logout | ✅ PASS | Redirect vers `/login` |
+| Navigation Products | ✅ PASS | 9 produits affichés |
+| Navigation POS | ✅ PASS | Sélecteur de store avec 4 stores |
+| POS Downtown Store | ✅ PASS | 5 produits avec quantités correctes |
+| Création Store | ✅ PASS | "Test Store (Cache Check)" créé et visible |
+| Cache Store invalidé | ✅ PASS | Nouveau store visible sur /pos immédiatement |
+| Création Catégorie | ✅ PASS | "Test Category (Cache Check)" créé et visible |
+| Cache Catégorie invalidé | ✅ PASS | Nouvelle catégorie visible immédiatement |
+
+### Données de test créées
+- **Store:** "Test Store (Cache Check)" - 999 Test Avenue, Test City
+- **Catégorie:** "Test Category (Cache Check)" - Testing cache invalidation
+
+### Conclusion
+Toutes les optimisations de performance sont fonctionnelles. L'invalidation de cache fonctionne correctement pour les stores et les catégories.
