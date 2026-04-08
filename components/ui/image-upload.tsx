@@ -16,7 +16,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ImageIcon, Upload, X, Loader2, ZoomIn } from 'lucide-react'
+import { ImageIcon, Upload, X, Loader2, ZoomIn, Camera } from 'lucide-react'
 import { OptimizedImage } from '@/components/ui/optimized-image'
 
 const DEFAULT_MAX_SIZE = 5 * 1024 * 1024 // 5MB
@@ -53,6 +53,7 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
   ) => {
     const t = useTranslations('ImageUpload')
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const cameraInputRef = useRef<HTMLInputElement>(null)
     const [file, setFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [isDragging, setIsDragging] = useState(false)
@@ -155,9 +156,7 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
         const selectedFile = e.target.files?.[0] || null
         handleFile(selectedFile)
         // Reset input so the same file can be selected again
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''
-        }
+        e.target.value = ''
       },
       [handleFile]
     )
@@ -167,6 +166,16 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
         fileInputRef.current?.click()
       }
     }, [disabled])
+
+    const handleCameraClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!disabled) {
+          cameraInputRef.current?.click()
+        }
+      },
+      [disabled]
+    )
 
     const handleRemove = useCallback(
       (e: React.MouseEvent) => {
@@ -263,6 +272,15 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
               disabled={disabled || isUploading}
               className="hidden"
             />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleInputChange}
+              disabled={disabled || isUploading}
+              className="hidden"
+            />
 
             {isUploading ? (
               <div className="flex flex-col items-center gap-2 py-4">
@@ -300,6 +318,18 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
                         type="button"
                         variant="outline"
                         size="sm"
+                        className="h-8 md:hidden"
+                        onClick={handleCameraClick}
+                      >
+                        <Camera className="mr-1.5 h-3.5 w-3.5" />
+                        {t('retake')}
+                      </Button>
+                    )}
+                    {!disabled && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         className="h-8 border-destructive/50 text-destructive hover:bg-destructive hover:text-white hover:border-destructive"
                         onClick={handleRemove}
                       >
@@ -330,9 +360,35 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
                   )}
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-medium">{t('dragDrop')}</p>
-                  <p className="text-xs text-muted-foreground">{t('or')}</p>
-                  <p className="text-xs text-primary underline">{t('clickToSelect')}</p>
+                  <p className="text-sm font-medium hidden md:block">{t('dragDrop')}</p>
+                  <p className="text-xs text-muted-foreground hidden md:block">{t('or')}</p>
+                  <p className="text-xs text-primary underline hidden md:block">{t('clickToSelect')}</p>
+                  <p className="text-sm font-medium md:hidden">{t('chooseSource')}</p>
+                </div>
+                <div className="flex gap-2 md:hidden">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCameraClick}
+                    disabled={disabled}
+                  >
+                    <Camera className="mr-1.5 h-4 w-4" />
+                    {t('takePhoto')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleClick()
+                    }}
+                    disabled={disabled}
+                  >
+                    <ImageIcon className="mr-1.5 h-4 w-4" />
+                    {t('gallery')}
+                  </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {t('maxSize', { maxSize: Math.round(maxSize / 1024 / 1024) })}
