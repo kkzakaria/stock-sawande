@@ -161,11 +161,16 @@ export const ImageUpload = forwardRef<ImageUploadRef, ImageUploadProps>(
       [handleFile]
     )
 
-    const handleClick = useCallback(() => {
-      if (!disabled) {
-        fileInputRef.current?.click()
-      }
-    }, [disabled])
+    const handleClick = useCallback(
+      (e?: React.MouseEvent) => {
+        // Ignore clicks that originate from a button inside the drop zone
+        if (e && (e.target as HTMLElement).closest('button')) return
+        if (!disabled) {
+          fileInputRef.current?.click()
+        }
+      },
+      [disabled]
+    )
 
     const handleCameraClick = useCallback(
       (e: React.MouseEvent) => {
