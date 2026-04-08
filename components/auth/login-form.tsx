@@ -3,7 +3,6 @@
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/src/i18n/navigation'
-import Image from 'next/image'
 import { login } from '@/app/[locale]/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Package } from 'lucide-react'
 
 interface LoginFormProps extends React.ComponentProps<'div'> {
   redirectUrl?: string
@@ -47,15 +46,11 @@ export function LoginForm({
           <form action={handleSubmit} className="p-6 md:p-8">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
-                <Image
-                  src="/qgk-logo.png"
-                  alt="QGK Logo"
-                  width={80}
-                  height={80}
-                  priority
-                />
-                <h1 className="text-xl font-bold text-[#0f0fea]">
-                  Quincaillerie Générale Katana
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+                  <Package className="h-10 w-10" />
+                </div>
+                <h1 className="text-xl font-bold">
+                  stock-sawande
                 </h1>
                 <p className="text-muted-foreground text-balance">
                   Connectez-vous à votre compte

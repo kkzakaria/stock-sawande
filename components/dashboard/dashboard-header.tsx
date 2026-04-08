@@ -76,7 +76,7 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card px-6 flex-shrink-0">
       <div>
         <h1 className="text-lg font-semibold">
-          {profile?.stores ? profile.stores.name : 'Next Stock'}
+          {profile?.stores ? profile.stores.name : 'stock-sawande'}
         </h1>
       </div>
 

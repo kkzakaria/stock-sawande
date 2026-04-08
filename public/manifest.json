@@ -1,6 +1,6 @@
 {
-  "name": "Next-Stock POS",
-  "short_name": "POS",
+  "name": "stock-sawande",
+  "short_name": "stock-sawande",
   "description": "Point of Sale System with Offline Support",
   "start_url": "/pos",
   "display": "standalone",

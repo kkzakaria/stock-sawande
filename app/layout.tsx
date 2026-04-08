@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Next-Stock POS",
+  title: "stock-sawande",
   description: "Point of Sale System with Offline Support",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Next-Stock POS",
+    title: "stock-sawande",
   },
   formatDetection: {
     telephone: false,
