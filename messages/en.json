@@ -1386,7 +1386,15 @@
       "success": "Successfully imported {count} rows",
       "error": "Import failed: {message}",
       "failed": "Failed to import file"
-    }
+    },
+    "actions": "Actions",
+    "rowsSelectedShort": "{count} selected",
+    "clearSelection": "Clear selection",
+    "filters": "Filters",
+    "sortBy": "Sort by",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "apply": "Apply"
   },
 
   "Landing": {

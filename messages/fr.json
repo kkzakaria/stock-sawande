@@ -1386,7 +1386,15 @@
       "success": "{count} lignes importées avec succès",
       "error": "Échec de l'import : {message}",
       "failed": "Échec de l'import du fichier"
-    }
+    },
+    "actions": "Actions",
+    "rowsSelectedShort": "{count} sélectionné(s)",
+    "clearSelection": "Tout désélectionner",
+    "filters": "Filtres",
+    "sortBy": "Trier par",
+    "ascending": "Croissant",
+    "descending": "Décroissant",
+    "apply": "Appliquer"
   },
 
   "Landing": {
