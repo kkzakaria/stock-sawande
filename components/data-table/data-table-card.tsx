@@ -135,9 +135,9 @@ export function DataTableCard({
           )}
         </div>
 
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-1 shrink-0">
           {content.rightValue && (
-            <div className="text-sm font-semibold tabular-nums">{content.rightValue}</div>
+            <div className="text-xs font-semibold tabular-nums whitespace-nowrap">{content.rightValue}</div>
           )}
           {content.badge && (
             <span
