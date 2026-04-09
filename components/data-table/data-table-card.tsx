@@ -110,6 +110,7 @@ export function DataTableCard({
           "touch-manipulation select-none",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           "hover:bg-muted/40 active:bg-muted/60",
+          !selectionMode && content.menuItems && content.menuItems.length > 0 && "pr-11",
         )}
       >
         {selectionMode && (
