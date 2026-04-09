@@ -145,7 +145,7 @@ export function ProductForm({
       startTransition(async () => {
         // Build product data (without image_url initially - it will be set after upload)
         const baseProductData = {
-          sku: value.sku,
+          sku: value.sku || undefined,
           name: value.name,
           description: value.description,
           price: parseFloat(value.price),
@@ -264,39 +264,7 @@ export function ProductForm({
           <CardTitle>{t('sections.basicInfo')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <form.Field
-              name="sku"
-              validators={{
-                onChange: ({ value }) => {
-                  if (!value || value.length === 0) {
-                    return t('errors.skuRequired')
-                  }
-                  return undefined
-                },
-              }}
-            >
-              {(field) => (
-                <div className="space-y-2">
-                  <label htmlFor={field.name} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    {t('fields.sku')} *
-                  </label>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder={t('fields.skuPlaceholder')}
-                  />
-                  <p className="text-sm text-muted-foreground">{t('descriptions.sku')}</p>
-                  {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm font-medium text-destructive">{field.state.meta.errors[0]}</p>
-                  )}
-                </div>
-              )}
-            </form.Field>
-
+          <div className="grid gap-4">
             <form.Field
               name="name"
               validators={{

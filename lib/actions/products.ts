@@ -7,7 +7,7 @@ import { deleteStorageFile } from './storage'
 
 // Base validation schema for product template (without refine, so it can be extended)
 const productTemplateBaseSchema = z.object({
-  sku: z.string().min(1, 'SKU is required'),
+  sku: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   category_id: z.string().uuid('Invalid category').nullable(),
@@ -82,6 +82,37 @@ interface CreatedProductData {
 }
 
 /**
+ * Generate a unique SKU with format PRD-YYYYMMDD-XXXX (4 random alphanumeric chars).
+ * Retries on collision up to 10 times.
+ */
+async function generateUniqueSku(
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<string> {
+  const today = new Date()
+  const datePart = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    let random = ''
+    for (let i = 0; i < 4; i++) {
+      random += chars[Math.floor(Math.random() * chars.length)]
+    }
+    const candidate = `PRD-${datePart}-${random}`
+
+    const { data: existing } = await supabase
+      .from('product_templates')
+      .select('id')
+      .eq('sku', candidate)
+      .maybeSingle()
+
+    if (!existing) return candidate
+  }
+
+  // Fallback: timestamp-based guaranteed unique
+  return `PRD-${datePart}-${Date.now().toString(36).toUpperCase()}`
+}
+
+/**
  * Create a new product (template + inventory)
  * Supports two modes:
  * - Single store: store_id + quantity (for managers)
@@ -129,19 +160,24 @@ export async function createProduct(data: ProductMultiStoreInput): Promise<Actio
       }
     }
 
-    // Check for duplicate SKU
-    const { data: existing } = await supabase
-      .from('product_templates')
-      .select('id')
-      .eq('sku', validated.sku)
-      .maybeSingle()
+    // Auto-generate SKU if not provided, otherwise check uniqueness
+    if (!validated.sku || validated.sku.trim() === '') {
+      validated.sku = await generateUniqueSku(supabase)
+    } else {
+      const { data: existing } = await supabase
+        .from('product_templates')
+        .select('id')
+        .eq('sku', validated.sku)
+        .maybeSingle()
 
-    if (existing) {
-      return { success: false, error: 'Product with this SKU already exists' }
+      if (existing) {
+        return { success: false, error: 'Product with this SKU already exists' }
+      }
     }
 
     // Extract template data (remove inventory fields)
-    const { store_id, quantity, storeInventories, ...templateData } = validated
+    const { store_id, quantity, storeInventories, ...rest } = validated
+    const templateData = { ...rest, sku: validated.sku as string }
 
     // Create product template
     const { data: template, error: templateError } = await supabase
