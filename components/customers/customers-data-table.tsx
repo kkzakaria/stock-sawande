@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, type Row } from '@tanstack/react-table'
+import type { MobileCardConfig, BulkAction } from '@/types/data-table'
 import { MoreHorizontal, Pencil, Trash2, Mail, Phone } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
@@ -258,6 +259,49 @@ export function CustomersDataTable({
       : []),
   ]
 
+  const mobileCard: MobileCardConfig<Customer> = (row: Row<Customer>) => {
+    const c = row.original;
+    const spent = c.total_spent ?? 0;
+    const formatted = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(spent);
+    const subtitleParts = [c.phone, c.email].filter(Boolean);
+
+    return {
+      title: c.name ?? '—',
+      subtitle: subtitleParts.length > 0 ? subtitleParts.join(' · ') : '—',
+      rightValue: `${formatted}\u00A0${CURRENCY_CONFIG.symbol}`,
+      badge: {
+        label: t('mobileCard.purchasesCount', { count: c.total_purchases ?? 0 }),
+        variant: 'default',
+      },
+      onClick: () => openEditDialog(c),
+      menuItems: [
+        {
+          label: t('actions.edit'),
+          icon: Pencil,
+          onClick: () => openEditDialog(c),
+        },
+        {
+          label: t('actions.delete'),
+          icon: Trash2,
+          onClick: () => confirmDelete(c.id),
+          variant: 'destructive',
+        },
+      ],
+    };
+  };
+
+  const bulkActions: BulkAction<Customer>[] = [
+    {
+      label: t('actions.delete'),
+      icon: Trash2,
+      variant: 'destructive',
+      onClick: (rows) => rows.forEach((c) => confirmDelete(c.id)),
+    },
+  ];
+
   return (
     <>
       <DataTable
@@ -274,6 +318,8 @@ export function CustomersDataTable({
         pageSize={10}
         pageSizeOptions={[10, 20, 50, 100]}
         emptyMessage={t('empty')}
+        mobileCard={mobileCard}
+        bulkActions={bulkActions}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

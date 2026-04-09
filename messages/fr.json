@@ -1306,6 +1306,9 @@
       "edit": "Modifier",
       "delete": "Supprimer"
     },
+    "mobileCard": {
+      "purchasesCount": "{count} achat(s)"
+    },
     "delete": {
       "title": "Supprimer le client",
       "description": "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.",

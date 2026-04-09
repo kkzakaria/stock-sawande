@@ -1306,6 +1306,9 @@
       "edit": "Edit",
       "delete": "Delete"
     },
+    "mobileCard": {
+      "purchasesCount": "{count} purchase(s)"
+    },
     "delete": {
       "title": "Delete Customer",
       "description": "Are you sure you want to delete this customer? This action cannot be undone.",
