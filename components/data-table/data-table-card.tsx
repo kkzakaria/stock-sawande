@@ -123,7 +123,7 @@ export function DataTableCard({
         )}
 
         {content.thumbnail && (
-          <div className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+          <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
             {content.thumbnail}
           </div>
         )}
