@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, type Row } from '@tanstack/react-table'
+import type { MobileCardConfig } from '@/types/data-table'
 import { MoreHorizontal, Pencil, Trash2, Mail, Phone, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { DataTable } from '@/components/data-table'
@@ -197,12 +198,36 @@ export function StoresDataTable({ stores, onAddStore }: StoresDataTableProps) {
     },
   ]
 
+  const mobileCard: MobileCardConfig<Store> = (row: Row<Store>) => {
+    const s = row.original;
+    return {
+      title: s.name ?? "—",
+      subtitle: s.address ?? "—",
+      rightValue: s.phone ?? undefined,
+      onClick: () => openEditDialog(s),
+      menuItems: [
+        {
+          label: t("actions.edit"),
+          icon: Pencil,
+          onClick: () => openEditDialog(s),
+        },
+        {
+          label: t("actions.delete"),
+          icon: Trash2,
+          onClick: () => confirmDelete(s.id),
+          variant: "destructive",
+        },
+      ],
+    };
+  };
+
   return (
     <>
       <DataTable
         columns={columns}
         data={stores}
         enableRowSelection
+        mobileCard={mobileCard}
         toolbar={{
           searchKey: 'name',
           searchPlaceholder: t('searchPlaceholder'),
