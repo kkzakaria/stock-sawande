@@ -4,12 +4,13 @@ import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import Link from "next/link";
-import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
+import { ColumnDef, type ColumnFiltersState, type SortingState, type Row } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
 import { StockQuantityPopover } from "./stock-quantity-popover";
 import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
+import type { MobileCardConfig, BulkAction } from "@/types/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -175,6 +176,15 @@ export function ProductsDataTable({
   const confirmDelete = (id: string) => {
     setProductToDelete(id);
     setDeleteDialogOpen(true);
+  };
+
+  const getStockBadgeVariant = (
+    quantity: number,
+    minLevel: number | null,
+  ): "success" | "warning" | "danger" => {
+    if (quantity === 0) return "danger";
+    if (minLevel !== null && quantity < minLevel) return "warning";
+    return "success";
   };
 
   const getStockColor = (quantity: number, minLevel: number | null) => {
@@ -411,6 +421,83 @@ export function ProductsDataTable({
     },
   ];
 
+  const mobileCard: MobileCardConfig<Product> = (row: Row<Product>) => {
+    const p = row.original;
+    const quantity = (isAdmin
+      ? p.quantity
+      : (p.my_quantity ?? p.quantity)) ?? 0;
+    const price = p.price ?? 0;
+    const formattedPrice = new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+
+    return {
+      title: p.name ?? "—",
+      subtitle: [p.sku, p.category_name ?? t("categories.uncategorized")]
+        .filter(Boolean)
+        .join(" · "),
+      rightValue: `${formattedPrice}\u00A0${CURRENCY_CONFIG.symbol}`,
+      badge: {
+        label: String(quantity),
+        variant: getStockBadgeVariant(quantity, p.min_stock_level),
+      },
+      thumbnail: p.image_url ? (
+        <OptimizedImage
+          src={p.image_url}
+          alt={p.name ?? ""}
+          fill
+          className="object-cover"
+          sizes="44px"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
+          N/A
+        </div>
+      ),
+      onClick: () => router.push(`/products/${p.template_id}`),
+      menuItems: [
+        {
+          label: t("actions.viewDetails"),
+          icon: Eye,
+          onClick: () => router.push(`/products/${p.template_id}`),
+        },
+        {
+          label: t("actions.edit"),
+          icon: Pencil,
+          onClick: () => router.push(`/products/${p.template_id}/edit`),
+        },
+        {
+          label: p.is_active ? t("actions.deactivate") : t("actions.activate"),
+          icon: p.is_active ? XCircle : CheckCircle2,
+          onClick: () =>
+            handleToggleStatus(p.template_id!, p.is_active ?? false),
+          disabled: isPending,
+        },
+        {
+          label: t("actions.delete"),
+          icon: Trash2,
+          onClick: () => confirmDelete(p.template_id!),
+          variant: "destructive",
+          disabled: isPending,
+        },
+      ],
+    };
+  };
+
+  const bulkActions: BulkAction<Product>[] = [
+    {
+      label: t("actions.delete"),
+      icon: Trash2,
+      variant: "destructive",
+      onClick: (rows) => {
+        rows.forEach((r) => {
+          if (r.template_id) confirmDelete(r.template_id);
+        });
+      },
+    },
+  ];
+
   // Collect unique categories for filters
   const categories = Array.from(
     new Set(products.map((p) => p.category_name).filter(Boolean))
@@ -431,6 +518,8 @@ export function ProductsDataTable({
         columns={columns}
         data={products}
         enableRowSelection
+        mobileCard={mobileCard}
+        bulkActions={bulkActions}
         toolbar={{
           searchKey: "name",
           searchPlaceholder: t("searchPlaceholder"),
