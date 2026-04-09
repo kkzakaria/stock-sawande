@@ -85,7 +85,7 @@ export function DataTableMobileToolbar<TData>({
         </SheetTrigger>
         <SheetContent
           side="bottom"
-          className="max-h-[85vh] overflow-y-auto overscroll-contain"
+          className="max-h-[85vh] overflow-y-auto overscroll-contain px-4 pb-[env(safe-area-inset-bottom)]"
         >
           <SheetHeader>
             <SheetTitle>{t("filters")}</SheetTitle>
