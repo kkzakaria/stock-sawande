@@ -19,6 +19,9 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { DataTableToolbar } from "@/components/data-table/data-table-toolbar";
+import { DataTableMobileList } from "@/components/data-table/data-table-mobile-list";
+import { DataTableMobileToolbar } from "@/components/data-table/data-table-mobile-toolbar";
+import { DataTableMobilePagination } from "@/components/data-table/data-table-mobile-pagination";
 import type { DataTableProps } from "@/types/data-table";
 
 export function DataTable<TData, TValue>({
@@ -46,6 +49,8 @@ export function DataTable<TData, TValue>({
   onSortingChange,
   onColumnVisibilityChange,
   onPaginationChange,
+  mobileCard,
+  bulkActions,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations("DataTable");
 
@@ -191,9 +196,28 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {toolbar && <DataTableToolbar table={table} config={toolbar} />}
-      <div className="rounded-md border flex-1 min-h-0">
-        <div className="relative h-full overflow-auto">
+      {/* Desktop toolbar */}
+      {toolbar && (
+        <div className="hidden md:block">
+          <DataTableToolbar table={table} config={toolbar} />
+        </div>
+      )}
+
+      {/* Mobile toolbar — only shown when mobileCard is provided */}
+      {mobileCard && (
+        <div className="md:hidden">
+          <DataTableMobileToolbar table={table} config={toolbar} />
+        </div>
+      )}
+
+      {/* Desktop table */}
+      <div
+        className={cn(
+          "rounded-md border flex-1 min-h-0",
+          mobileCard && "hidden md:block",
+        )}
+      >
+        <div className="relative h-full overflow-auto overscroll-x-contain">
           <table className="w-full caption-bottom text-sm">
             <thead className="[&_tr]:border-b sticky top-0 z-10 bg-card shadow-sm">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -204,41 +228,29 @@ export function DataTable<TData, TValue>({
                     "bg-card hover:bg-card border-b-2"
                   )}
                 >
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <th
-                        key={header.id}
-                        colSpan={header.colSpan}
-                        className={cn(
-                          "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-                          "!font-bold"
-                        )}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </th>
-                    );
-                  })}
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={cn(
+                        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+                        "!font-bold"
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
                 </tr>
               ))}
             </thead>
             <tbody className={cn("[&_tr:last-child]:border-0")}>
               {isLoading ? (
-                <tr
-                  className={cn(
-                    "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
-                  )}
-                >
+                <tr className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
                   <td
                     colSpan={columns.length}
-                    className={cn(
-                      "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-                      "h-24 text-center"
-                    )}
+                    className="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] h-24 text-center"
                   >
                     {t("loading")}
                   </td>
@@ -248,37 +260,23 @@ export function DataTable<TData, TValue>({
                   <tr
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={cn(
-                      "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
-                    )}
+                    className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className={cn(
-                          "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-                        )}
+                        className="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>
                 ))
               ) : (
-                <tr
-                  className={cn(
-                    "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors"
-                  )}
-                >
+                <tr className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
                   <td
                     colSpan={columns.length}
-                    className={cn(
-                      "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-                      "h-24 text-center"
-                    )}
+                    className="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] h-24 text-center"
                   >
                     {emptyMessage ?? t("noResults")}
                   </td>
@@ -288,9 +286,30 @@ export function DataTable<TData, TValue>({
           </table>
         </div>
       </div>
+
+      {/* Mobile card list */}
+      {mobileCard && (
+        <div className="md:hidden flex-1 min-h-0 overflow-y-auto">
+          <DataTableMobileList
+            table={table}
+            mobileCard={mobileCard}
+            bulkActions={bulkActions}
+            isLoading={isLoading}
+            emptyMessage={emptyMessage}
+          />
+        </div>
+      )}
+
       {enablePagination && (
         <div className="flex-shrink-0">
-          <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+          <div className="hidden md:block">
+            <DataTablePagination table={table} pageSizeOptions={pageSizeOptions} />
+          </div>
+          {mobileCard && (
+            <div className="md:hidden">
+              <DataTableMobilePagination table={table} />
+            </div>
+          )}
         </div>
       )}
     </div>
