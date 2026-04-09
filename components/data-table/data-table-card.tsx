@@ -133,6 +133,11 @@ export function DataTableCard({
           {content.subtitle && (
             <div className="truncate text-xs text-muted-foreground">{content.subtitle}</div>
           )}
+          {content.details && (
+            <div className="mt-0.5 truncate text-[clamp(10px,2.8vw,12px)] font-semibold tabular-nums">
+              {content.details}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-1 shrink-0">

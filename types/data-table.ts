@@ -146,6 +146,7 @@ export interface MobileCardMenuItem {
 export interface MobileCardContent {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  details?: React.ReactNode;
   rightValue?: React.ReactNode;
   badge?: MobileCardBadge;
   thumbnail?: React.ReactNode;

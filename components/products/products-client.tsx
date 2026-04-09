@@ -19,6 +19,8 @@ interface Product {
   category_id: string | null;
   category_name: string | null;
   price: number | null;
+  min_price: number | null;
+  max_price: number | null;
   cost: number | null;
   quantity: number | null;
   min_stock_level: number | null;

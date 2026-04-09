@@ -51,6 +51,8 @@ interface Product {
   category_id: string | null;
   category_name: string | null;
   price: number | null;
+  min_price: number | null;
+  max_price: number | null;
   cost: number | null;
   quantity: number | null;
   min_stock_level: number | null;
@@ -426,18 +428,26 @@ export function ProductsDataTable({
     const quantity = (isAdmin
       ? p.quantity
       : (p.my_quantity ?? p.quantity)) ?? 0;
-    const price = p.price ?? 0;
-    const formattedPrice = new Intl.NumberFormat("fr-FR", {
+    const priceFormatter = new Intl.NumberFormat("fr-FR", {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+    });
+    const formatPrice = (n: number) =>
+      `${priceFormatter.format(n)}\u00A0${CURRENCY_CONFIG.symbol}`;
+    const hasRange =
+      p.min_price != null &&
+      p.max_price != null &&
+      p.min_price !== p.max_price;
+    const priceDetails = hasRange
+      ? `${formatPrice(p.min_price!)} – ${formatPrice(p.max_price!)}`
+      : formatPrice(p.price ?? 0);
 
     return {
       title: p.name ?? "—",
       subtitle: [p.sku, p.category_name ?? t("categories.uncategorized")]
         .filter(Boolean)
         .join(" · "),
-      rightValue: `${formattedPrice}\u00A0${CURRENCY_CONFIG.symbol}`,
+      details: priceDetails,
       badge: {
         label: String(quantity),
         variant: getStockBadgeVariant(quantity, p.min_stock_level),
