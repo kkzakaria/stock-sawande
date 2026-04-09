@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { type Row, ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, Eye, RotateCcw, Receipt, CreditCard, Banknote, Smartphone } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr, enUS } from 'date-fns/locale'
@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { SaleWithDetails } from '@/lib/actions/sales'
+import type { MobileCardConfig } from '@/types/data-table'
+import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import { SaleDetailDialog } from './sale-detail-dialog'
 import { RefundDialog } from './refund-dialog'
 
@@ -108,6 +110,21 @@ export function SalesDataTable({
     }).format(amount)
     return `${formatted} CFA`
   }
+
+  const getSaleStatusVariant = (status: string | null | undefined): "success" | "warning" | "danger" | "default" => {
+    switch (status) {
+      case "completed":
+      case "paid":
+        return "success";
+      case "pending":
+        return "warning";
+      case "cancelled":
+      case "refunded":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
 
   const columns: ColumnDef<SaleWithDetails>[] = [
     {
@@ -243,11 +260,58 @@ export function SalesDataTable({
     },
   ]
 
+  const mobileCard: MobileCardConfig<SaleWithDetails> = (row: Row<SaleWithDetails>) => {
+    const s = row.original;
+    const total = s.total ?? 0;
+    const formatted = new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(total);
+    const date = s.created_at
+      ? new Intl.DateTimeFormat("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(s.created_at))
+      : "—";
+
+    return {
+      title: s.sale_number ?? "—",
+      subtitle: `${date} · ${s.customer?.name ?? t("customer.walkIn")}`,
+      rightValue: `${formatted}\u00A0${CURRENCY_CONFIG.symbol}`,
+      badge: {
+        label: s.status ? t(`status.${s.status}`) : "—",
+        variant: getSaleStatusVariant(s.status),
+      },
+      onClick: () => handleViewDetail(s),
+      menuItems: [
+        {
+          label: t("actions.viewDetail"),
+          icon: Eye,
+          onClick: () => handleViewDetail(s),
+        },
+        ...(s.status === "completed" && ["admin", "manager"].includes(userRole)
+          ? [
+              {
+                label: t("actions.refund"),
+                icon: RotateCcw,
+                onClick: () => handleRefund(s),
+                variant: "destructive" as const,
+              },
+            ]
+          : []),
+      ],
+    };
+  };
+
   return (
     <>
       <DataTable
         columns={columns}
         data={sales}
+        mobileCard={mobileCard}
         isLoading={isLoading}
         toolbar={{
           searchKey: 'sale_number',
