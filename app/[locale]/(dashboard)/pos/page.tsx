@@ -52,13 +52,27 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
 
   const supabase = await createClient()
 
-  // Get extended profile with store details for POS (address/phone for receipts)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
-    .eq('id', user.id)
-    .single()
+  const isAdmin = cachedProfile.role === 'admin'
+  const isManagerOrAdmin = cachedProfile.role === 'admin' || cachedProfile.role === 'manager'
 
+  // Run extended profile + store count queries in parallel
+  const [profileResult, storeCountResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
+      .eq('id', user.id)
+      .single(),
+    isAdmin
+      ? supabase.from('stores').select('*', { count: 'exact', head: true })
+      : cachedProfile.role === 'manager'
+        ? supabase
+            .from('user_stores')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+        : Promise.resolve({ count: 0 } as { count: number }),
+  ])
+
+  const profile = profileResult.data
   if (!profile) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -72,27 +86,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
-  // Check if user can select store (admin or manager with multiple stores)
-  const isAdmin = profile.role === 'admin'
-  const isManagerOrAdmin = profile.role === 'admin' || profile.role === 'manager'
-
-  // Count available stores to determine if store switching makes sense
-  let availableStoresCount = 0
-  if (isAdmin) {
-    // Admins can access all stores
-    const { count } = await supabase
-      .from('stores')
-      .select('*', { count: 'exact', head: true })
-    availableStoresCount = count || 0
-  } else if (profile.role === 'manager') {
-    // Managers can only access assigned stores
-    const { count } = await supabase
-      .from('user_stores')
-      .select('*', { count: 'exact', head: true })
-    availableStoresCount = count || 0
-  }
-
-  // Only show store selector if user has role permission AND multiple stores available
+  const availableStoresCount = storeCountResult.count || 0
   const canSelectStore = isManagerOrAdmin && availableStoresCount > 1
 
   // For admins: use store from URL param (session-based, not persisted)
@@ -127,20 +121,6 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
-  // Fetch the store info for admins (since they use URL param, not profile.store)
-  let storeInfo = profile.store
-  if (isAdmin && storeFromUrl) {
-    const { data: storeData } = await supabase
-      .from('stores')
-      .select('id, name, address, phone')
-      .eq('id', storeFromUrl)
-      .single()
-
-    if (storeData) {
-      storeInfo = storeData
-    }
-  }
-
   // Customers are loaded on-demand in the client component to reduce initial payload
 
   // Limit products to optimize initial page load
@@ -165,17 +145,30 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }>
   }
 
-  // Fetch products with inventory for the current store (optimized with inner join and limit)
-  const { data: products, error: productsError } = await supabase
-    .from('product_templates')
-    .select(
-      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
-    )
-    .eq('is_active', true)
-    .eq('product_inventory.store_id', activeStoreId)
-    .order('name')
-    .limit(PRODUCT_LIMIT)
-    .returns<ProductQueryResult[]>()
+  // Fetch products and optional admin store info in parallel
+  const [productsQueryResult, storeInfoResult] = await Promise.all([
+    supabase
+      .from('product_templates')
+      .select(
+        'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
+      )
+      .eq('is_active', true)
+      .eq('product_inventory.store_id', activeStoreId)
+      .order('name')
+      .limit(PRODUCT_LIMIT)
+      .returns<ProductQueryResult[]>(),
+    isAdmin && storeFromUrl
+      ? supabase.from('stores').select('id, name, address, phone').eq('id', storeFromUrl).single()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+
+  const { data: products, error: productsError } = productsQueryResult
+
+  // Update storeInfo from parallel result
+  let storeInfo = profile.store
+  if (storeInfoResult.data) {
+    storeInfo = storeInfoResult.data
+  }
 
   if (productsError) {
     console.error('Error fetching products:', productsError)
