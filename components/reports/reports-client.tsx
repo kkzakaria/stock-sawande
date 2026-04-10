@@ -2,9 +2,20 @@
 
 import { ReportsFilters } from './reports-filters'
 import { useReportFilters } from '@/lib/hooks/use-report-filters'
-import { SalesReport } from './sales'
-import { InventoryReport } from './inventory'
-import { PerformanceReport } from './performance'
+import dynamic from 'next/dynamic'
+
+const SalesReport = dynamic(
+  () => import('./sales').then(m => m.SalesReport),
+  { loading: () => <div className="space-y-4"><div className="h-32 bg-muted rounded animate-pulse" /><div className="h-64 bg-muted rounded animate-pulse" /></div> }
+)
+const InventoryReport = dynamic(
+  () => import('./inventory').then(m => m.InventoryReport),
+  { loading: () => <div className="space-y-4"><div className="h-32 bg-muted rounded animate-pulse" /><div className="h-64 bg-muted rounded animate-pulse" /></div> }
+)
+const PerformanceReport = dynamic(
+  () => import('./performance').then(m => m.PerformanceReport),
+  { loading: () => <div className="space-y-4"><div className="h-32 bg-muted rounded animate-pulse" /><div className="h-64 bg-muted rounded animate-pulse" /></div> }
+)
 import type { ReportFilters } from '@/lib/types/filters'
 
 interface Store {
