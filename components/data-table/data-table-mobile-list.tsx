@@ -48,6 +48,7 @@ export function DataTableMobileList<TData>({
       table.resetRowSelection();
       setSelectionMode(false);
     }
+    // Only reset when filters/page actually change, not when selectionMode or table ref changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterState, pageIndex]);
 
@@ -86,7 +87,7 @@ export function DataTableMobileList<TData>({
 
   return (
     <>
-      <div role="list" className="space-y-2 pb-24">
+      <div role="list" className={cn("space-y-2", selectionMode && "pb-24")}>
         {rows.map((row) => {
           const content = mobileCard(row);
           return (

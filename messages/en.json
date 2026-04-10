@@ -195,6 +195,8 @@
     "deleteDialog": {
       "title": "Are you sure?",
       "description": "This action cannot be undone. This will permanently delete the product and all associated stock movements.",
+      "bulkTitle": "Delete {count} product(s)?",
+      "bulkDescription": "This action cannot be undone. The {count} selected product(s) and their stock movements will be permanently deleted.",
       "confirm": "Delete",
       "deleting": "Deleting..."
     },
@@ -202,6 +204,7 @@
       "created": "Product created successfully",
       "updated": "Product updated successfully",
       "deleted": "Product deleted successfully",
+      "deletedCount": "{count} product(s) deleted",
       "activated": "Product activated",
       "deactivated": "Product deactivated",
       "imported": "{count} products imported",
@@ -211,6 +214,7 @@
       "createFailed": "Failed to create product",
       "updateFailed": "Failed to update product",
       "deleteFailed": "Failed to delete product",
+      "deleteFailedCount": "Failed to delete {count} product(s)",
       "notFound": "Product not found",
       "skuExists": "Product with this SKU already exists",
       "skuRequired": "SKU is required",
@@ -1312,6 +1316,8 @@
     "delete": {
       "title": "Delete Customer",
       "description": "Are you sure you want to delete this customer? This action cannot be undone.",
+      "bulkTitle": "Delete {count} customer(s)?",
+      "bulkDescription": "This action cannot be undone. The {count} selected customer(s) will be permanently deleted.",
       "confirm": "Delete",
       "deleting": "Deleting..."
     },
@@ -1348,12 +1354,14 @@
     "messages": {
       "created": "Customer created successfully",
       "updated": "Customer updated successfully",
-      "deleted": "Customer deleted successfully"
+      "deleted": "Customer deleted successfully",
+      "deletedCount": "{count} customer(s) deleted"
     },
     "errors": {
       "createFailed": "Failed to create customer",
       "updateFailed": "Failed to update customer",
       "deleteFailed": "Failed to delete customer",
+      "deleteFailedCount": "Failed to delete {count} customer(s)",
       "hasSales": "Cannot delete customer with existing sales",
       "hasProformas": "Cannot delete customer with existing proformas"
     }

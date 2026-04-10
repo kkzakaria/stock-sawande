@@ -104,6 +104,7 @@ export function ProductsDataTable({
   const [isPending, startTransition] = useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
 
   // nuqs state for URL synchronization (write-only, we use initialValues for reading)
   const [, setUrlState] = useQueryStates({
@@ -148,8 +149,30 @@ export function ProductsDataTable({
   }, [setUrlState, onPaginationChange]);
 
   const handleDelete = async () => {
-    if (!productToDelete) return;
+    // Bulk delete: process all IDs in the queue
+    if (bulkDeleteIds.length > 0) {
+      startTransition(async () => {
+        let successCount = 0;
+        let failCount = 0;
+        for (const id of bulkDeleteIds) {
+          const result = await deleteProduct(id);
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        }
+        setDeleteDialogOpen(false);
+        setBulkDeleteIds([]);
+        if (successCount > 0) toast.success(t("messages.deletedCount", { count: successCount }));
+        if (failCount > 0) toast.error(t("errors.deleteFailedCount", { count: failCount }));
+        router.refresh();
+      });
+      return;
+    }
 
+    // Single delete
+    if (!productToDelete) return;
     startTransition(async () => {
       const result = await deleteProduct(productToDelete);
       if (result.success) {
@@ -501,9 +524,10 @@ export function ProductsDataTable({
       icon: Trash2,
       variant: "destructive",
       onClick: (rows) => {
-        rows.forEach((r) => {
-          if (r.template_id) confirmDelete(r.template_id);
-        });
+        const ids = rows.map((r) => r.template_id).filter(Boolean) as string[];
+        if (ids.length === 0) return;
+        setBulkDeleteIds(ids);
+        setDeleteDialogOpen(true);
       },
     },
   ];
@@ -574,9 +598,15 @@ export function ProductsDataTable({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteDialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {bulkDeleteIds.length > 0
+                ? t("deleteDialog.bulkTitle", { count: bulkDeleteIds.length })
+                : t("deleteDialog.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteDialog.description")}
+              {bulkDeleteIds.length > 0
+                ? t("deleteDialog.bulkDescription", { count: bulkDeleteIds.length })
+                : t("deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

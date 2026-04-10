@@ -63,6 +63,7 @@ export function CustomersDataTable({
   const [isPending, startTransition] = useTransition()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null)
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([])
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null)
 
@@ -70,8 +71,27 @@ export function CustomersDataTable({
   const canDelete = ['admin', 'manager'].includes(userRole)
 
   const handleDelete = async () => {
-    if (!customerToDelete) return
+    // Bulk delete
+    if (bulkDeleteIds.length > 0) {
+      startTransition(async () => {
+        let successCount = 0
+        let failCount = 0
+        for (const id of bulkDeleteIds) {
+          const result = await deleteCustomer(id)
+          if (result.success) successCount++
+          else failCount++
+        }
+        setDeleteDialogOpen(false)
+        setBulkDeleteIds([])
+        if (successCount > 0) toast.success(t('messages.deletedCount', { count: successCount }))
+        if (failCount > 0) toast.error(t('errors.deleteFailedCount', { count: failCount }))
+        router.refresh()
+      })
+      return
+    }
 
+    // Single delete
+    if (!customerToDelete) return
     startTransition(async () => {
       const result = await deleteCustomer(customerToDelete)
       if (result.success) {
@@ -276,31 +296,36 @@ export function CustomersDataTable({
         label: t('mobileCard.purchasesCount', { count: c.total_purchases ?? 0 }),
         variant: 'default',
       },
-      onClick: () => openEditDialog(c),
+      onClick: canEdit ? () => openEditDialog(c) : undefined,
       menuItems: [
-        {
+        ...(canEdit ? [{
           label: t('actions.edit'),
           icon: Pencil,
           onClick: () => openEditDialog(c),
-        },
-        {
+        }] : []),
+        ...(canDelete ? [{
           label: t('actions.delete'),
           icon: Trash2,
           onClick: () => confirmDelete(c.id),
-          variant: 'destructive',
-        },
+          variant: 'destructive' as const,
+        }] : []),
       ],
     };
   };
 
-  const bulkActions: BulkAction<Customer>[] = [
+  const bulkActions: BulkAction<Customer>[] = canDelete ? [
     {
       label: t('actions.delete'),
       icon: Trash2,
       variant: 'destructive',
-      onClick: (rows) => rows.forEach((c) => confirmDelete(c.id)),
+      onClick: (rows) => {
+        const ids = rows.map((c) => c.id).filter(Boolean)
+        if (ids.length === 0) return
+        setBulkDeleteIds(ids)
+        setDeleteDialogOpen(true)
+      },
     },
-  ];
+  ] : [];
 
   return (
     <>
@@ -325,9 +350,15 @@ export function CustomersDataTable({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('delete.title')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {bulkDeleteIds.length > 0
+                ? t('delete.bulkTitle', { count: bulkDeleteIds.length })
+                : t('delete.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('delete.description')}
+              {bulkDeleteIds.length > 0
+                ? t('delete.bulkDescription', { count: bulkDeleteIds.length })
+                : t('delete.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

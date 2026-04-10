@@ -52,6 +52,11 @@ export function DataTableCard({
     }
   }, []);
 
+  // Clean up timer on unmount to prevent stale callback
+  React.useEffect(() => {
+    return () => clearTimer();
+  }, [clearTimer]);
+
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (selectionMode) return;
     longPressFiredRef.current = false;

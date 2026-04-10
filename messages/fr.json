@@ -192,6 +192,8 @@
     "deleteDialog": {
       "title": "Êtes-vous sûr ?",
       "description": "Cette action est irréversible. Ce produit et tous les mouvements de stock associés seront définitivement supprimés.",
+      "bulkTitle": "Supprimer {count} produit(s) ?",
+      "bulkDescription": "Cette action est irréversible. Les {count} produit(s) sélectionné(s) et leurs mouvements de stock seront définitivement supprimés.",
       "confirm": "Supprimer",
       "deleting": "Suppression..."
     },
@@ -199,6 +201,7 @@
       "created": "Produit créé avec succès",
       "updated": "Produit mis à jour avec succès",
       "deleted": "Produit supprimé avec succès",
+      "deletedCount": "{count} produit(s) supprimé(s)",
       "activated": "Produit activé",
       "deactivated": "Produit désactivé",
       "imported": "{count} produits importés",
@@ -208,6 +211,7 @@
       "createFailed": "Échec de la création du produit",
       "updateFailed": "Échec de la mise à jour du produit",
       "deleteFailed": "Échec de la suppression du produit",
+      "deleteFailedCount": "{count} produit(s) n'ont pas pu être supprimé(s)",
       "notFound": "Produit non trouvé",
       "skuExists": "Un produit avec ce SKU existe déjà",
       "skuRequired": "Le SKU est requis",
@@ -1312,6 +1316,8 @@
     "delete": {
       "title": "Supprimer le client",
       "description": "Êtes-vous sûr de vouloir supprimer ce client ? Cette action est irréversible.",
+      "bulkTitle": "Supprimer {count} client(s) ?",
+      "bulkDescription": "Cette action est irréversible. Les {count} client(s) sélectionné(s) seront définitivement supprimés.",
       "confirm": "Supprimer",
       "deleting": "Suppression..."
     },
@@ -1348,12 +1354,14 @@
     "messages": {
       "created": "Client créé avec succès",
       "updated": "Client mis à jour avec succès",
-      "deleted": "Client supprimé avec succès"
+      "deleted": "Client supprimé avec succès",
+      "deletedCount": "{count} client(s) supprimé(s)"
     },
     "errors": {
       "createFailed": "Échec de la création du client",
       "updateFailed": "Échec de la mise à jour du client",
       "deleteFailed": "Échec de la suppression du client",
+      "deleteFailedCount": "{count} client(s) n'ont pas pu être supprimé(s)",
       "hasSales": "Impossible de supprimer un client avec des ventes existantes",
       "hasProformas": "Impossible de supprimer un client avec des proformas existants"
     }
