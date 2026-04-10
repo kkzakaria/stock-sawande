@@ -256,39 +256,56 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
       return { success: false, error: 'Profile not found' }
     }
 
-    // Fetch proforma with relations
-    const { data: proforma, error: proformaError } = await supabase
-      .from('proformas')
-      .select(`
-        id,
-        proforma_number,
-        created_at,
-        subtotal,
-        tax,
-        discount,
-        total,
-        status,
-        notes,
-        terms,
-        valid_until,
-        converted_sale_id,
-        converted_at,
-        sent_at,
-        accepted_at,
-        rejected_at,
-        rejection_reason,
-        store_id,
-        created_by:profiles!proformas_created_by_fkey(id, full_name, email),
-        customer:customers(id, name, email, phone),
-        store:stores(id, name)
-      `)
-      .eq('id', proformaId)
-      .single()
+    // Fetch proforma and items in parallel (both use known proformaId)
+    const [proformaResult, itemsResult] = await Promise.all([
+      supabase
+        .from('proformas')
+        .select(`
+          id,
+          proforma_number,
+          created_at,
+          subtotal,
+          tax,
+          discount,
+          total,
+          status,
+          notes,
+          terms,
+          valid_until,
+          converted_sale_id,
+          converted_at,
+          sent_at,
+          accepted_at,
+          rejected_at,
+          rejection_reason,
+          store_id,
+          created_by:profiles!proformas_created_by_fkey(id, full_name, email),
+          customer:customers(id, name, email, phone),
+          store:stores(id, name)
+        `)
+        .eq('id', proformaId)
+        .single(),
+      supabase
+        .from('proforma_items')
+        .select(`
+          id,
+          quantity,
+          unit_price,
+          discount,
+          subtotal,
+          notes,
+          product:product_templates(id, name, sku, price)
+        `)
+        .eq('proforma_id', proformaId)
+        .order('created_at', { ascending: true }),
+    ])
 
-    if (proformaError) {
-      console.error('Error fetching proforma:', proformaError)
+    if (proformaResult.error) {
+      console.error('Error fetching proforma:', proformaResult.error)
       return { success: false, error: 'Proforma not found' }
     }
+
+    const proforma = proformaResult.data
 
     // Access control based on role
     if (profile.role === 'cashier') {
@@ -302,23 +319,8 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
       return { success: false, error: 'Access denied' }
     }
 
-    // Fetch proforma items with product details
-    const { data: items, error: itemsError } = await supabase
-      .from('proforma_items')
-      .select(`
-        id,
-        quantity,
-        unit_price,
-        discount,
-        subtotal,
-        notes,
-        product:product_templates(id, name, sku, price)
-      `)
-      .eq('proforma_id', proformaId)
-      .order('created_at', { ascending: true })
-
-    if (itemsError) {
-      console.error('Error fetching proforma items:', itemsError)
+    if (itemsResult.error) {
+      console.error('Error fetching proforma items:', itemsResult.error)
       return { success: false, error: 'Failed to fetch proforma items' }
     }
 
@@ -326,7 +328,7 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
       success: true,
       data: {
         proforma: proforma as unknown as ProformaWithDetails,
-        items: (items || []) as unknown as ProformaItemWithProduct[],
+        items: (itemsResult.data || []) as unknown as ProformaItemWithProduct[],
       },
     }
   } catch (error) {
