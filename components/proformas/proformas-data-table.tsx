@@ -30,8 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { MobileCardConfig } from '@/types/data-table'
-import { CURRENCY_CONFIG } from '@/lib/config/currency'
-import { formatCurrency, formatNumber } from '@/lib/utils/format-currency'
+import { formatCurrency } from '@/lib/utils/format-currency'
 import type { ProformaWithDetails } from '@/lib/actions/proformas'
 import { ProformaDetailDialog } from './proforma-detail-dialog'
 import { ConvertToSaleDialog } from './convert-to-sale-dialog'
@@ -353,7 +352,7 @@ export function ProformasDataTable({
     return {
       title: p.proforma_number ?? "—",
       subtitle: `${date} · ${p.customer?.name ?? t('customer.notSpecified')}`,
-      rightValue: `${formatNumber(total)}\u00A0${CURRENCY_CONFIG.symbol}`,
+      rightValue: formatCurrency(total),
       badge: {
         label: isExpired ? t("status.expired") : t(`status.${p.status}`),
         variant: getProformaStatusVariant(p.status, p.valid_until),

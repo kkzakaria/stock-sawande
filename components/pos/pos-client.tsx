@@ -508,21 +508,25 @@ export function POSClient({
       />
 
       {/* Open Session Dialog */}
-      <OpenSessionDialog
-        open={openSessionDialogOpen}
-        onOpenChange={setOpenSessionDialogOpen}
-        storeId={storeId}
-        onSessionOpened={handleSessionOpened}
-      />
+      {openSessionDialogOpen && (
+        <OpenSessionDialog
+          open={openSessionDialogOpen}
+          onOpenChange={setOpenSessionDialogOpen}
+          storeId={storeId}
+          onSessionOpened={handleSessionOpened}
+        />
+      )}
 
       {/* Close Session Dialog */}
-      <CloseSessionDialog
-        open={closeSessionDialogOpen}
-        onOpenChange={setCloseSessionDialogOpen}
-        session={activeSession}
-        storeId={storeId}
-        onSessionClosed={handleSessionClosed}
-      />
+      {closeSessionDialogOpen && (
+        <CloseSessionDialog
+          open={closeSessionDialogOpen}
+          onOpenChange={setCloseSessionDialogOpen}
+          session={activeSession}
+          storeId={storeId}
+          onSessionClosed={handleSessionClosed}
+        />
+      )}
 
       {/* Lock Session Dialog */}
       {activeSession && (
@@ -546,23 +550,27 @@ export function POSClient({
       )}
 
       {/* Sync Conflict Dialog */}
-      <SyncConflictDialog
-        open={conflictDialogOpen}
-        onOpenChange={setConflictDialogOpen}
-        userId={cashierId}
-      />
+      {conflictDialogOpen && (
+        <SyncConflictDialog
+          open={conflictDialogOpen}
+          onOpenChange={setConflictDialogOpen}
+          userId={cashierId}
+        />
+      )}
 
       {/* Store Selector Dialog */}
-      <StoreSelectorDialog
-        open={storeSelectorOpen}
-        onOpenChange={setStoreSelectorOpen}
-        currentStoreId={storeId}
-        userRole={userRole}
-        onStoreSelected={() => {
-          // Cart will be cleared automatically when page refreshes with new store
-          toast.info(t('storeSelector.cartCleared'))
-        }}
-      />
+      {storeSelectorOpen && (
+        <StoreSelectorDialog
+          open={storeSelectorOpen}
+          onOpenChange={setStoreSelectorOpen}
+          currentStoreId={storeId}
+          userRole={userRole}
+          onStoreSelected={() => {
+            // Cart will be cleared automatically when page refreshes with new store
+            toast.info(t('storeSelector.cartCleared'))
+          }}
+        />
+      )}
     </div>
   )
 }

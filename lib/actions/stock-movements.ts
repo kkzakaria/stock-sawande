@@ -121,12 +121,16 @@ export async function getStockMovements(
 
     // Batch fetch all profiles at once
     const userIds = [...new Set((data || []).map(m => m.user_id).filter(Boolean))]
-    const { data: profiles } = userIds.length > 0
+    const { data: profiles, error: profilesError } = userIds.length > 0
       ? await supabase
           .from('profiles')
           .select('id, full_name, email')
           .in('id', userIds)
-      : { data: [] }
+      : { data: [], error: null }
+
+    if (profilesError) {
+      console.error('Error fetching profiles for stock movements:', profilesError)
+    }
 
     const profileMap = new Map(
       (profiles || []).map(p => [p.id, { full_name: p.full_name, email: p.email }])
