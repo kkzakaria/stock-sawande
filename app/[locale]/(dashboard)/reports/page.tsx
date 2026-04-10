@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getStores } from '@/lib/actions/products'
+import { createClient } from '@/lib/supabase/server'
 import { ReportsClient } from '@/components/reports/reports-client'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
@@ -33,7 +33,11 @@ export default async function ReportsPage({ params, searchParams }: ReportsPageP
   await searchParams
 
   // Fetch stores for filter dropdown
-  const { data: stores } = await getStores()
+  const supabase = await createClient()
+  const { data: stores } = await supabase
+    .from('stores')
+    .select('id, name, address, phone')
+    .order('name')
 
   return (
     <div className="space-y-6">

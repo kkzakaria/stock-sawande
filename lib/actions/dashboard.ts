@@ -321,3 +321,32 @@ export async function getLowStockAlerts(storeId?: string): Promise<ActionResult<
     return { success: false, error: 'Failed to fetch low stock alerts' }
   }
 }
+
+/**
+ * Fetch all dashboard data in a single request context
+ * Uses React.cache() deduplication for auth — one getUser() call total
+ */
+export async function getAllDashboardData(
+  storeId?: string,
+  days: number = 30,
+  groupBy: 'daily' | 'weekly' | 'monthly' = 'daily'
+): Promise<{
+  metrics: DashboardMetrics | null
+  revenueTrend: RevenueTrend[]
+  topProducts: TopProduct[]
+  lowStockAlerts: LowStockAlert[]
+}> {
+  const [metricsResult, trendResult, productsResult, alertsResult] = await Promise.all([
+    getDashboardMetrics(storeId),
+    getRevenueTrend(storeId, days, groupBy),
+    getTopProducts(storeId, 5, days),
+    getLowStockAlerts(storeId),
+  ])
+
+  return {
+    metrics: metricsResult.success ? metricsResult.data ?? null : null,
+    revenueTrend: trendResult.success ? trendResult.data ?? [] : [],
+    topProducts: productsResult.success ? productsResult.data ?? [] : [],
+    lowStockAlerts: alertsResult.success ? alertsResult.data ?? [] : [],
+  }
+}

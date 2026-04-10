@@ -16,20 +16,33 @@ import { formatCurrency } from '@/lib/utils/format-currency'
 interface DashboardClientProps {
   storeId?: string
   storeName?: string
+  initialData: {
+    metrics: DashboardMetrics | null
+    revenueTrend: RevenueTrend[]
+    topProducts: TopProduct[]
+    lowStockAlerts: LowStockAlert[]
+  }
 }
 
-export function DashboardClient({ storeId, storeName }: DashboardClientProps) {
+export function DashboardClient({ storeId, storeName, initialData }: DashboardClientProps) {
   const t = useTranslations('Dashboard')
   const [period, setPeriod] = useState<Period>('30d')
-  const [loading, setLoading] = useState(true)
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
-  const [revenueTrend, setRevenueTrend] = useState<RevenueTrend[]>([])
-  const [topProducts, setTopProducts] = useState<TopProduct[]>([])
-  const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([])
+  const [loading, setLoading] = useState(false)
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(initialData.metrics)
+  const [revenueTrend, setRevenueTrend] = useState<RevenueTrend[]>(initialData.revenueTrend)
+  const [topProducts, setTopProducts] = useState<TopProduct[]>(initialData.topProducts)
+  const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>(initialData.lowStockAlerts)
 
+  const isInitialPeriod = useRef(true)
   const fetchDataRef = useRef<() => void>(() => {})
 
   useEffect(() => {
+    // Skip initial fetch — data already loaded server-side
+    if (isInitialPeriod.current) {
+      isInitialPeriod.current = false
+      return
+    }
+
     let cancelled = false
 
     const loadData = async () => {

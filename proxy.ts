@@ -1,8 +1,6 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './src/i18n/routing';
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-
 const intlMiddleware = createIntlMiddleware(routing);
 
 /**
@@ -122,28 +120,11 @@ export async function proxy(request: NextRequest) {
   response.headers.set('x-pathname', request.nextUrl.pathname);
   response.headers.set('x-search-params', request.nextUrl.searchParams.toString());
 
-  // Refresh Supabase session
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  await supabase.auth.getUser();
+  // Forward Supabase session cookies to the response
+  // Auth verification is handled by getAuthenticatedProfile() in dashboard layout
+  // via React.cache() deduplication — no need to call getUser() here.
+  // The previous getUser() call added 1-4.5s of blocking latency per request
+  // and caused cookie refresh loops triggering repeated page reloads.
 
   return response;
 }

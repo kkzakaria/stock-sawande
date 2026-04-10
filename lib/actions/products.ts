@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCachedUser, getCachedProfile } from '@/lib/server/cached-queries'
 import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 import { z } from 'zod'
@@ -442,22 +443,18 @@ interface ProductFilters {
  */
 export async function getProducts(filters: ProductFilters = {}) {
   try {
-    const supabase = await createClient()
-
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCachedUser()
     if (!user) {
       return { success: false, error: 'Not authenticated', data: [], totalCount: 0, userRole: null }
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, store_id')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile) {
+    const cachedProfile = await getCachedProfile(user.id)
+    if (!cachedProfile) {
       return { success: false, error: 'Profile not found', data: [], totalCount: 0, userRole: null }
     }
+
+    const profile = { role: cachedProfile.role, store_id: cachedProfile.store_id }
+    const supabase = await createClient()
 
     const isAdmin = profile.role === 'admin'
     const userRole = profile.role
@@ -632,20 +629,16 @@ export async function getProducts(filters: ProductFilters = {}) {
  */
 export async function getProduct(id: string) {
   try {
-    const supabase = await createClient()
-
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCachedUser()
     if (!user) {
       return { success: false, error: 'Not authenticated', data: null }
     }
 
-    // Parallel queries: profile + product with all relations in a single joined query
-    const [profileResult, productResult] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('role, store_id')
-        .eq('id', user.id)
-        .single(),
+    const supabase = await createClient()
+
+    // Parallel queries: cached profile + product with all relations
+    const [cachedProfile, productResult] = await Promise.all([
+      getCachedProfile(user.id),
       supabase
         .from('product_templates')
         .select(`
@@ -660,7 +653,7 @@ export async function getProduct(id: string) {
         .single()
     ])
 
-    const profile = profileResult.data
+    const profile = cachedProfile ? { role: cachedProfile.role, store_id: cachedProfile.store_id } : null
     if (!profile) {
       return { success: false, error: 'Profile not found', data: null }
     }
