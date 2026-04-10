@@ -5,7 +5,7 @@
  * Main POS interface with product grid and shopping cart
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart-store'
@@ -93,6 +93,7 @@ export function POSClient({
   const router = useRouter()
   const t = useTranslations('POS')
   const [searchQuery, setSearchQuery] = useState('')
+  const productMap = useMemo(() => new Map(products.map(p => [p.id, p])), [products])
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
   const ensureStoreMatch = useCartStore((state) => state.ensureStoreMatch)
@@ -365,7 +366,7 @@ export function POSClient({
   const displayProducts: Product[] = (cacheIsInitialized && cachedProducts.length > 0)
     ? cachedProducts.map((cp) => {
         // Find the original product to get multi-store info and price range
-        const originalProduct = products.find(p => p.id === cp.id)
+        const originalProduct = productMap.get(cp.id)
         return {
           id: cp.id,
           sku: cp.sku,

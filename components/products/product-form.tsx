@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from '@tanstack/react-form'
 import { Button } from '@/components/ui/button'
@@ -84,6 +84,8 @@ export function ProductForm({
   const isEditing = !!initialData
   const isAdmin = userRole === 'admin'
 
+  const storeMap = useMemo(() => new Map(stores.map(s => [s.id, s])), [stores])
+
   // State for multi-store inventory creation (admin only, creation mode)
   const [storeQuantities, setStoreQuantities] = useState<StoreQuantity[]>(() => {
     return stores.map((store) => ({
@@ -96,7 +98,7 @@ export function ProductForm({
 
   // Prepare inventories for edit mode display
   const existingInventories = initialData?.all_inventories?.map((inv) => {
-    const store = stores.find((s) => s.id === inv.store_id)
+    const store = storeMap.get(inv.store_id)
     return {
       inventory_id: inv.id,
       store_id: inv.store_id,

@@ -5,7 +5,7 @@
  * Displays shopping cart with totals and checkout button
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
 import { useOfflineStore } from '@/lib/store/offline-store'
@@ -267,6 +267,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
 
   const isOnline = useOfflineStore((state) => state.isOnline)
 
+  const customerMap = useMemo(() => new Map(customers.map(c => [c.id, c])), [customers])
+
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [receiptOpen, setReceiptOpen] = useState(false)
   const [currentSaleId, setCurrentSaleId] = useState<string>('')
@@ -286,7 +288,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const [proformaReceiptData, setProformaReceiptData] = useState<POSProformaResult | null>(null)
 
   // Find selected customer
-  const selectedCustomer = customers.find((c) => c.id === customerId)
+  const selectedCustomer = customerId ? customerMap.get(customerId) : undefined
 
   // Handle new customer created from dialog
   const handleCustomerCreated = (customer: Customer) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useForm } from '@tanstack/react-form'
 import {
@@ -62,6 +62,8 @@ export function UserFormDialog({
 
   const isEditing = !!user
 
+  const storeMap = useMemo(() => new Map(stores.map(s => [s.id, s])), [stores])
+
   // Compute initial store values
   const getInitialStoreIds = () => user?.user_stores?.map((us) => us.store_id) || []
   const getInitialDefaultStore = () => {
@@ -116,7 +118,7 @@ export function UserFormDialog({
               id: '',
               store_id: storeId,
               is_default: storeId === selectedDefaultStore,
-              stores: stores.find((s) => s.id === storeId) || null,
+              stores: storeMap.get(storeId) || null,
             })),
           }
 
@@ -375,7 +377,7 @@ export function UserFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {selectedStores.map((storeId) => {
-                    const store = stores.find((s) => s.id === storeId)
+                    const store = storeMap.get(storeId)
                     return (
                       <SelectItem key={storeId} value={storeId}>
                         {store?.name}
