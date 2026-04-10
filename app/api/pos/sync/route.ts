@@ -300,26 +300,36 @@ async function processTransaction(
 
   // Update inventory (deduct stock) - batch fetch then parallel update
   const inventoryIds = adjustedItems.map(item => item.inventoryId)
-  const { data: currentInventories } = await supabase
+  const { data: currentInventories, error: invFetchError } = await supabase
     .from('product_inventory')
     .select('id, quantity')
     .in('id', inventoryIds)
+
+  if (invFetchError) {
+    console.error('Failed to fetch inventory for stock deduction:', invFetchError)
+  }
 
   const invMap = new Map(
     (currentInventories || []).map(inv => [inv.id, inv.quantity])
   )
 
+  // Group items by inventoryId and sum quantities to handle duplicates
+  const groupedItems = new Map<string, number>()
+  for (const item of adjustedItems) {
+    groupedItems.set(item.inventoryId, (groupedItems.get(item.inventoryId) || 0) + item.quantity)
+  }
+
   await Promise.all(
-    adjustedItems.map(async (item) => {
-      const currentQty = invMap.get(item.inventoryId)
+    Array.from(groupedItems.entries()).map(async ([inventoryId, totalQuantity]) => {
+      const currentQty = invMap.get(inventoryId)
       if (currentQty != null) {
         const { error: updateError } = await supabase
           .from('product_inventory')
-          .update({ quantity: Math.max(0, currentQty - item.quantity) })
-          .eq('id', item.inventoryId)
+          .update({ quantity: Math.max(0, currentQty - totalQuantity) })
+          .eq('id', inventoryId)
 
         if (updateError) {
-          console.error(`Failed to update inventory for ${item.productId}:`, updateError)
+          console.error(`Failed to update inventory for ${inventoryId}:`, updateError)
         }
       }
     })

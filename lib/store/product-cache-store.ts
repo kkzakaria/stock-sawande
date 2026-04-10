@@ -267,8 +267,7 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
     }))
 
     // Also update IndexedDB
-    const { byId } = getProductMaps(get().products)
-    const product = byId.get(productId)
+    const product = get().products.find((p) => p.id === productId)
     if (product) {
       updateProductLocalStock(productId, product.localStock, product.reservedStock)
     }
@@ -293,8 +292,7 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
     }))
 
     // Also update IndexedDB
-    const { byId } = getProductMaps(get().products)
-    const product = byId.get(productId)
+    const product = get().products.find((p) => p.id === productId)
     if (product) {
       updateProductLocalStock(productId, product.localStock, product.reservedStock)
     }
