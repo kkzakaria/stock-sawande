@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import { DashboardRevenueChart } from './dashboard-revenue-chart'
 import { DashboardTopProducts } from './dashboard-top-products'
 import { DashboardLowStockAlerts } from './dashboard-low-stock-alerts'
 import { PeriodSelector, type Period, getGroupByFromPeriod, getPeriodDays } from '@/components/charts/period-selector'
+import { formatCurrency } from '@/lib/utils/format-currency'
 
 interface DashboardClientProps {
   storeId?: string
@@ -26,46 +27,52 @@ export function DashboardClient({ storeId, storeName }: DashboardClientProps) {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
   const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([])
 
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const days = getPeriodDays(period)
-      const groupBy = getGroupByFromPeriod(period)
-
-      const [metricsResult, trendResult, productsResult, alertsResult] = await Promise.all([
-        getDashboardMetrics(storeId),
-        getRevenueTrend(storeId, days, groupBy),
-        getTopProducts(storeId, 5, days),
-        getLowStockAlerts(storeId),
-      ])
-
-      if (metricsResult.success && metricsResult.data) {
-        setMetrics(metricsResult.data)
-      }
-      if (trendResult.success && trendResult.data) {
-        setRevenueTrend(trendResult.data)
-      }
-      if (productsResult.success && productsResult.data) {
-        setTopProducts(productsResult.data)
-      }
-      if (alertsResult.success && alertsResult.data) {
-        setLowStockAlerts(alertsResult.data)
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [storeId, period])
+  const fetchDataRef = useRef<() => void>(() => {})
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    let cancelled = false
 
-  const formatCurrency = (value: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
-    return `${formatted} CFA`
-  }
+    const loadData = async () => {
+      setLoading(true)
+      try {
+        const days = getPeriodDays(period)
+        const groupBy = getGroupByFromPeriod(period)
+
+        const [metricsResult, trendResult, productsResult, alertsResult] = await Promise.all([
+          getDashboardMetrics(storeId),
+          getRevenueTrend(storeId, days, groupBy),
+          getTopProducts(storeId, 5, days),
+          getLowStockAlerts(storeId),
+        ])
+
+        if (cancelled) return
+
+        if (metricsResult.success && metricsResult.data) {
+          setMetrics(metricsResult.data)
+        }
+        if (trendResult.success && trendResult.data) {
+          setRevenueTrend(trendResult.data)
+        }
+        if (productsResult.success && productsResult.data) {
+          setTopProducts(productsResult.data)
+        }
+        if (alertsResult.success && alertsResult.data) {
+          setLowStockAlerts(alertsResult.data)
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    fetchDataRef.current = loadData
+    loadData()
+
+    return () => { cancelled = true }
+  }, [storeId, period])
+
+  const fetchData = () => fetchDataRef.current()
 
   return (
     <div className="space-y-6">

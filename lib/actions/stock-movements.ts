@@ -119,21 +119,27 @@ export async function getStockMovements(
       return { success: false, error: error.message }
     }
 
-    // Fetch user profiles separately for each movement
-    const movementsWithProfiles = await Promise.all(
-      (data || []).map(async (movement) => {
-        const { data: profile } = await supabase
+    // Batch fetch all profiles at once
+    const userIds = [...new Set((data || []).map(m => m.user_id).filter(Boolean))]
+    const { data: profiles, error: profilesError } = userIds.length > 0
+      ? await supabase
           .from('profiles')
-          .select('full_name, email')
-          .eq('id', movement.user_id)
-          .single()
+          .select('id, full_name, email')
+          .in('id', userIds)
+      : { data: [], error: null }
 
-        return {
-          ...movement,
-          profiles: profile || undefined
-        } as StockMovement
-      })
+    if (profilesError) {
+      console.error('Error fetching profiles for stock movements:', profilesError)
+    }
+
+    const profileMap = new Map(
+      (profiles || []).map(p => [p.id, { full_name: p.full_name, email: p.email }])
     )
+
+    const movementsWithProfiles = (data || []).map((movement) => ({
+      ...movement,
+      profiles: profileMap.get(movement.user_id) || undefined,
+    })) as StockMovement[]
 
     return {
       success: true,

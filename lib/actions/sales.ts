@@ -364,50 +364,79 @@ export async function refundSale(
       return { success: false, error: 'Failed to update sale status' }
     }
 
-    // Restore inventory and create stock movements for each item
+    // Batch fetch all current inventory quantities
+    const inventoryIds = (saleItems || []).map(item => item.inventory_id).filter(Boolean)
+    const { data: inventories, error: invFetchError } = inventoryIds.length > 0
+      ? await supabase
+          .from('product_inventory')
+          .select('id, quantity')
+          .in('id', inventoryIds)
+      : { data: [], error: null }
+
+    if (invFetchError) {
+      console.error('Error fetching inventories for refund:', invFetchError)
+      return { success: false, error: 'Failed to restore inventory. Please try again.' }
+    }
+
+    const inventoryMap = new Map(
+      (inventories || []).map(inv => [inv.id, inv.quantity])
+    )
+
+    // Group items by inventory_id and sum quantities to handle duplicates
+    const groupedByInventory = new Map<string, { totalQuantity: number; items: typeof saleItems }>()
     for (const item of saleItems || []) {
-      // Get current inventory quantity
-      const { data: inventory } = await supabase
-        .from('product_inventory')
-        .select('quantity')
-        .eq('id', item.inventory_id)
-        .single()
-
-      const previousQuantity = inventory?.quantity || 0
-      const newQuantity = previousQuantity + item.quantity
-
-      // Update inventory
-      const { error: inventoryError } = await supabase
-        .from('product_inventory')
-        .update({ quantity: newQuantity })
-        .eq('id', item.inventory_id)
-
-      if (inventoryError) {
-        console.error('Error restoring inventory:', inventoryError)
-        // Continue with other items even if one fails
-      }
-
-      // Create stock movement record
-      const { error: movementError } = await supabase
-        .from('stock_movements')
-        .insert({
-          product_id: item.product_id,
-          store_id: sale.store_id,
-          inventory_id: item.inventory_id,
-          type: 'return',
-          quantity: item.quantity,
-          previous_quantity: previousQuantity,
-          new_quantity: newQuantity,
-          reference: `Refund: ${validated.saleId}`,
-          notes: validated.reason,
-          user_id: user.id,
+      const existing = groupedByInventory.get(item.inventory_id)
+      if (existing) {
+        existing.totalQuantity += item.quantity
+        existing.items.push(item)
+      } else {
+        groupedByInventory.set(item.inventory_id, {
+          totalQuantity: item.quantity,
+          items: [item],
         })
-
-      if (movementError) {
-        console.error('Error creating stock movement:', movementError)
-        // Continue with other items even if one fails
       }
     }
+
+    // Restore inventory and create stock movements (parallel across inventory IDs, sequential within)
+    await Promise.all(
+      Array.from(groupedByInventory.entries()).map(async ([inventoryId, group]) => {
+        const previousQuantity = inventoryMap.get(inventoryId) ?? 0
+        const newQuantity = previousQuantity + group.totalQuantity
+
+        // Update inventory first
+        const { error: inventoryError } = await supabase
+          .from('product_inventory')
+          .update({ quantity: newQuantity })
+          .eq('id', inventoryId)
+
+        if (inventoryError) {
+          console.error('Error restoring inventory:', inventoryError)
+          return // Don't record movements for failed updates
+        }
+
+        // Then create stock movement records for each item
+        for (const item of group.items) {
+          const { error: movementError } = await supabase
+            .from('stock_movements')
+            .insert({
+              product_id: item.product_id,
+              store_id: sale.store_id,
+              inventory_id: item.inventory_id,
+              type: 'return',
+              quantity: item.quantity,
+              previous_quantity: previousQuantity,
+              new_quantity: newQuantity,
+              reference: `Refund: ${validated.saleId}`,
+              notes: validated.reason,
+              user_id: user.id,
+            })
+
+          if (movementError) {
+            console.error('Error creating stock movement:', movementError)
+          }
+        }
+      })
+    )
 
     revalidatePath('/sales')
     revalidatePath('/pos')

@@ -6,6 +6,7 @@ import type { MobileCardConfig, BulkAction } from '@/types/data-table'
 import { MoreHorizontal, Pencil, Trash2, Mail, Phone } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
+import { formatNumber } from '@/lib/utils/format-currency'
 import { DataTable } from '@/components/data-table'
 import { DataTableColumnHeader } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
@@ -117,11 +118,7 @@ export function CustomersDataTable({
 
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return '-'
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `${formatted} ${CURRENCY_CONFIG.symbol}`
+    return `${formatNumber(amount)} ${CURRENCY_CONFIG.symbol}`
   }
 
   const formatDate = (dateString: string) => {
@@ -282,16 +279,12 @@ export function CustomersDataTable({
   const mobileCard: MobileCardConfig<Customer> = (row: Row<Customer>) => {
     const c = row.original;
     const spent = c.total_spent ?? 0;
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(spent);
     const subtitleParts = [c.phone, c.email].filter(Boolean);
 
     return {
       title: c.name ?? '—',
       subtitle: subtitleParts.length > 0 ? subtitleParts.join(' · ') : '—',
-      rightValue: `${formatted}\u00A0${CURRENCY_CONFIG.symbol}`,
+      rightValue: `${formatNumber(spent)}\u00A0${CURRENCY_CONFIG.symbol}`,
       badge: {
         label: t('mobileCard.purchasesCount', { count: c.total_purchases ?? 0 }),
         variant: 'default',

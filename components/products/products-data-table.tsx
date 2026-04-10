@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
+import { formatNumber } from '@/lib/utils/format-currency'
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import Link from "next/link";
 import { ColumnDef, type ColumnFiltersState, type SortingState, type Row } from "@tanstack/react-table";
@@ -304,11 +305,7 @@ export function ProductsDataTable({
       ),
       cell: ({ row }) => {
         const price = parseFloat(row.getValue("price"));
-        const formatted = new Intl.NumberFormat("fr-FR", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(price);
-        return `${formatted} ${CURRENCY_CONFIG.symbol}`;
+        return `${formatNumber(price)} ${CURRENCY_CONFIG.symbol}`;
       },
     },
     // Quantity column - displays differently for admin vs manager/cashier
@@ -451,12 +448,8 @@ export function ProductsDataTable({
     const quantity = (isAdmin
       ? p.quantity
       : (p.my_quantity ?? p.quantity)) ?? 0;
-    const priceFormatter = new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
     const formatPrice = (n: number) =>
-      `${priceFormatter.format(n)}\u00A0${CURRENCY_CONFIG.symbol}`;
+      `${formatNumber(n)}\u00A0${CURRENCY_CONFIG.symbol}`;
     const hasRange =
       p.min_price != null &&
       p.max_price != null &&

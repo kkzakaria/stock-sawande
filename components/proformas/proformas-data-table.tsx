@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { MobileCardConfig } from '@/types/data-table'
-import { CURRENCY_CONFIG } from '@/lib/config/currency'
+import { formatCurrency } from '@/lib/utils/format-currency'
 import type { ProformaWithDetails } from '@/lib/actions/proformas'
 import { ProformaDetailDialog } from './proforma-detail-dialog'
 import { ConvertToSaleDialog } from './convert-to-sale-dialog'
@@ -117,14 +117,6 @@ export function ProformasDataTable({
       default:
         return <Badge variant="outline">{status}</Badge>
     }
-  }
-
-  const formatCurrency = (amount: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `${formatted} CFA`
   }
 
   const getProformaStatusVariant = (
@@ -340,10 +332,6 @@ export function ProformasDataTable({
   const mobileCard: MobileCardConfig<ProformaWithDetails> = (row: Row<ProformaWithDetails>) => {
     const p = row.original;
     const total = p.total ?? 0;
-    const formatted = new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(total);
     const date = p.created_at
       ? new Intl.DateTimeFormat("fr-FR", {
           day: "2-digit",
@@ -364,7 +352,7 @@ export function ProformasDataTable({
     return {
       title: p.proforma_number ?? "—",
       subtitle: `${date} · ${p.customer?.name ?? t('customer.notSpecified')}`,
-      rightValue: `${formatted}\u00A0${CURRENCY_CONFIG.symbol}`,
+      rightValue: formatCurrency(total),
       badge: {
         label: isExpired ? t("status.expired") : t(`status.${p.status}`),
         variant: getProformaStatusVariant(p.status, p.valid_until),

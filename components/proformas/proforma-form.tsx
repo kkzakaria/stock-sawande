@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from '@tanstack/react-form'
 import { format } from 'date-fns'
@@ -102,6 +102,8 @@ export function ProformaForm({
   const t = useTranslations('Proformas.form')
 
   const isEditing = !!initialData
+
+  const customerMap = useMemo(() => new Map(customers.map(c => [c.id, c])), [customers])
 
   const [selectedProducts, setSelectedProducts] = useState<ProformaItem[]>(
     initialData?.items || []
@@ -234,9 +236,7 @@ export function ProformaForm({
     return `${formatted} CFA`
   }
 
-  const selectedCustomer = customers.find(
-    (c) => c.id === form.state.values.customer_id
-  )
+  const selectedCustomer = customerMap.get(form.state.values.customer_id)
 
   // Determine available stores based on user role
   const availableStores =

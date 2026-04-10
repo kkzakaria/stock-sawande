@@ -42,37 +42,33 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
   let integrationsSettings = null
 
   if (isAdmin) {
-    // Admin: fetch all users with store assignments
-    const { data: usersData } = await supabase
-      .from('profiles')
-      .select(`
-        *,
-        user_stores (
-          id,
-          store_id,
-          is_default,
-          stores (
+    const [usersResult, storesResult, settingsResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select(`
+          *,
+          user_stores (
             id,
-            name
+            store_id,
+            is_default,
+            stores (
+              id,
+              name
+            )
           )
-        )
-      `)
-      .order('created_at', { ascending: false })
+        `)
+        .order('created_at', { ascending: false }),
+      supabase.from('stores').select('*').order('name'),
+      supabase.from('business_settings').select('key, value'),
+    ])
 
-    users = usersData
+    if (usersResult.error) console.error('Failed to fetch users:', usersResult.error)
+    if (storesResult.error) console.error('Failed to fetch stores:', storesResult.error)
+    if (settingsResult.error) console.error('Failed to fetch settings:', settingsResult.error)
 
-    // Fetch all stores
-    const { data: storesData } = await supabase
-      .from('stores')
-      .select('*')
-      .order('name')
-
-    stores = storesData
-
-    // Fetch business settings
-    const { data: settingsData } = await supabase
-      .from('business_settings')
-      .select('key, value')
+    users = usersResult.data
+    stores = storesResult.data
+    const settingsData = settingsResult.data
 
     if (settingsData) {
       const settingsMap: Record<string, unknown> = {}

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { deleteStorageFile } from './storage'
 
@@ -403,9 +404,12 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 
     // Delete associated image from storage if it's a Supabase Storage URL
     if (imageUrl && imageUrl.includes('supabase.co/storage/v1/object/public/')) {
-      // Fire and forget - don't fail the deletion if image cleanup fails
-      deleteStorageFile(imageUrl).catch((err) => {
-        console.error('Failed to delete product image:', err)
+      after(async () => {
+        try {
+          await deleteStorageFile(imageUrl)
+        } catch (err) {
+          console.error('Failed to delete product image:', err)
+        }
       })
     }
 
@@ -461,25 +465,23 @@ export async function getProducts(filters: ProductFilters = {}) {
     // For non-admin users with a store, fetch products with both their store's quantity and totals
     // RLS now allows reading all inventory, so we can see true totals
     if (!isAdmin && profile.store_id) {
-      // Get aggregated totals from the view (now accessible thanks to updated RLS)
-      const { data: aggregatedProducts, error: aggError } = await (supabase.from as (table: string) => ReturnType<typeof supabase.from>)('products_aggregated')
-        .select('*')
+      // Get aggregated totals and store inventory concurrently
+      const [aggResult, invResult] = await Promise.all([
+        (supabase.from as (table: string) => ReturnType<typeof supabase.from>)('products_aggregated').select('*'),
+        supabase.from('product_inventory').select('product_id, quantity').eq('store_id', profile.store_id),
+      ])
 
-      if (aggError) {
-        console.error('Error fetching aggregated products:', aggError)
-        return { success: false, error: aggError.message, data: [], totalCount: 0, userRole }
+      if (aggResult.error) {
+        console.error('Error fetching aggregated products:', aggResult.error)
+        return { success: false, error: aggResult.error.message, data: [], totalCount: 0, userRole }
+      }
+      if (invResult.error) {
+        console.error('Error fetching store inventory:', invResult.error)
+        return { success: false, error: invResult.error.message, data: [], totalCount: 0, userRole }
       }
 
-      // Get this store's inventory
-      const { data: storeInventory, error: invError } = await supabase
-        .from('product_inventory')
-        .select('product_id, quantity')
-        .eq('store_id', profile.store_id)
-
-      if (invError) {
-        console.error('Error fetching store inventory:', invError)
-        return { success: false, error: invError.message, data: [], totalCount: 0, userRole }
-      }
+      const aggregatedProducts = aggResult.data
+      const storeInventory = invResult.data
 
       // Create a map of product_id -> my_quantity
       const myInventoryMap = new Map<string, number>()
@@ -1165,19 +1167,18 @@ export async function updateMultiStoreInventory(
       }
     }
 
-    // Update each inventory record
-    const errors: string[] = []
-    for (const inv of inventories) {
-      const { error } = await supabase
-        .from('product_inventory')
-        .update({ quantity: inv.quantity })
-        .eq('product_id', productId)
-        .eq('store_id', inv.storeId)
-
-      if (error) {
-        errors.push(`Store ${inv.storeId}: ${error.message}`)
-      }
-    }
+    // Update each inventory record in parallel
+    const results = await Promise.all(
+      inventories.map(async (inv) => {
+        const { error } = await supabase
+          .from('product_inventory')
+          .update({ quantity: inv.quantity })
+          .eq('product_id', productId)
+          .eq('store_id', inv.storeId)
+        return error ? `Store ${inv.storeId}: ${error.message}` : null
+      })
+    )
+    const errors = results.filter((e): e is string => e !== null)
 
     if (errors.length > 0) {
       console.error('Errors updating inventories:', errors)

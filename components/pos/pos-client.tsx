@@ -5,7 +5,7 @@
  * Main POS interface with product grid and shopping cart
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore } from '@/lib/store/cart-store'
@@ -18,15 +18,17 @@ import { POSProductGrid } from './pos-product-grid'
 import { POSCart } from './pos-cart'
 import { MobileCartSheet } from './mobile-cart-sheet'
 import { CashSessionStatus } from './cash-session-status'
-import { OpenSessionDialog } from './open-session-dialog'
-import { CloseSessionDialog } from './close-session-dialog'
-import { LockSessionDialog } from './lock-session-dialog'
-import { UnlockSessionDialog } from './unlock-session-dialog'
+import dynamic from 'next/dynamic'
 import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
 import { NetworkBanner } from './network-banner'
-import { SyncConflictDialog } from './sync-conflict-dialog'
-import { StoreSelectorDialog } from './store-selector-dialog'
+
+const OpenSessionDialog = dynamic(() => import('./open-session-dialog').then(m => m.OpenSessionDialog), { loading: () => null })
+const CloseSessionDialog = dynamic(() => import('./close-session-dialog').then(m => m.CloseSessionDialog), { loading: () => null })
+const LockSessionDialog = dynamic(() => import('./lock-session-dialog').then(m => m.LockSessionDialog), { loading: () => null })
+const UnlockSessionDialog = dynamic(() => import('./unlock-session-dialog').then(m => m.UnlockSessionDialog), { loading: () => null })
+const SyncConflictDialog = dynamic(() => import('./sync-conflict-dialog').then(m => m.SyncConflictDialog), { loading: () => null })
+const StoreSelectorDialog = dynamic(() => import('./store-selector-dialog').then(m => m.StoreSelectorDialog), { loading: () => null })
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2, Store } from 'lucide-react'
 import { toast } from 'sonner'
@@ -93,6 +95,7 @@ export function POSClient({
   const router = useRouter()
   const t = useTranslations('POS')
   const [searchQuery, setSearchQuery] = useState('')
+  const productMap = useMemo(() => new Map(products.map(p => [p.id, p])), [products])
   const hydrated = useHydrated()
   const storeItemCount = useCartStore((state) => state.getItemCount())
   const ensureStoreMatch = useCartStore((state) => state.ensureStoreMatch)
@@ -365,7 +368,7 @@ export function POSClient({
   const displayProducts: Product[] = (cacheIsInitialized && cachedProducts.length > 0)
     ? cachedProducts.map((cp) => {
         // Find the original product to get multi-store info and price range
-        const originalProduct = products.find(p => p.id === cp.id)
+        const originalProduct = productMap.get(cp.id)
         return {
           id: cp.id,
           sku: cp.sku,
@@ -505,21 +508,25 @@ export function POSClient({
       />
 
       {/* Open Session Dialog */}
-      <OpenSessionDialog
-        open={openSessionDialogOpen}
-        onOpenChange={setOpenSessionDialogOpen}
-        storeId={storeId}
-        onSessionOpened={handleSessionOpened}
-      />
+      {openSessionDialogOpen && (
+        <OpenSessionDialog
+          open={openSessionDialogOpen}
+          onOpenChange={setOpenSessionDialogOpen}
+          storeId={storeId}
+          onSessionOpened={handleSessionOpened}
+        />
+      )}
 
       {/* Close Session Dialog */}
-      <CloseSessionDialog
-        open={closeSessionDialogOpen}
-        onOpenChange={setCloseSessionDialogOpen}
-        session={activeSession}
-        storeId={storeId}
-        onSessionClosed={handleSessionClosed}
-      />
+      {closeSessionDialogOpen && (
+        <CloseSessionDialog
+          open={closeSessionDialogOpen}
+          onOpenChange={setCloseSessionDialogOpen}
+          session={activeSession}
+          storeId={storeId}
+          onSessionClosed={handleSessionClosed}
+        />
+      )}
 
       {/* Lock Session Dialog */}
       {activeSession && (
@@ -543,23 +550,27 @@ export function POSClient({
       )}
 
       {/* Sync Conflict Dialog */}
-      <SyncConflictDialog
-        open={conflictDialogOpen}
-        onOpenChange={setConflictDialogOpen}
-        userId={cashierId}
-      />
+      {conflictDialogOpen && (
+        <SyncConflictDialog
+          open={conflictDialogOpen}
+          onOpenChange={setConflictDialogOpen}
+          userId={cashierId}
+        />
+      )}
 
       {/* Store Selector Dialog */}
-      <StoreSelectorDialog
-        open={storeSelectorOpen}
-        onOpenChange={setStoreSelectorOpen}
-        currentStoreId={storeId}
-        userRole={userRole}
-        onStoreSelected={() => {
-          // Cart will be cleared automatically when page refreshes with new store
-          toast.info(t('storeSelector.cartCleared'))
-        }}
-      />
+      {storeSelectorOpen && (
+        <StoreSelectorDialog
+          open={storeSelectorOpen}
+          onOpenChange={setStoreSelectorOpen}
+          currentStoreId={storeId}
+          userRole={userRole}
+          onStoreSelected={() => {
+            // Cart will be cleared automatically when page refreshes with new store
+            toast.info(t('storeSelector.cartCleared'))
+          }}
+        />
+      )}
     </div>
   )
 }

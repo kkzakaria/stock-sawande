@@ -37,6 +37,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getProformaDetail, type ProformaWithDetails, type ProformaItemWithProduct } from '@/lib/actions/proformas'
+import { formatCurrency } from '@/lib/utils/format-currency'
 
 interface ProformaDetailDialogProps {
   proforma: ProformaWithDetails | null
@@ -81,14 +82,6 @@ export function ProformaDetailDialog({
   }, [proforma, open])
 
   if (!proforma) return null
-
-  const formatCurrency = (amount: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `${formatted} CFA`
-  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {

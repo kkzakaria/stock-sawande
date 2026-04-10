@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useForm } from '@tanstack/react-form'
 import {
@@ -25,6 +25,8 @@ import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateUser, updateUserStores } from '@/lib/actions/users'
 import type { Database } from '@/types/database.types'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Store = Database['public']['Tables']['stores']['Row']
@@ -61,6 +63,8 @@ export function UserFormDialog({
   const [showPassword, setShowPassword] = useState(false)
 
   const isEditing = !!user
+
+  const storeMap = useMemo(() => new Map(stores.map(s => [s.id, s])), [stores])
 
   // Compute initial store values
   const getInitialStoreIds = () => user?.user_stores?.map((us) => us.store_id) || []
@@ -116,7 +120,7 @@ export function UserFormDialog({
               id: '',
               store_id: storeId,
               is_default: storeId === selectedDefaultStore,
-              stores: stores.find((s) => s.id === storeId) || null,
+              stores: storeMap.get(storeId) || null,
             })),
           }
 
@@ -209,7 +213,7 @@ export function UserFormDialog({
                   if (!value || value.trim().length === 0) {
                     return t('errors.emailRequired')
                   }
-                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  if (!EMAIL_REGEX.test(value)) {
                     return t('errors.emailInvalid')
                   }
                 }
@@ -375,7 +379,7 @@ export function UserFormDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {selectedStores.map((storeId) => {
-                    const store = stores.find((s) => s.id === storeId)
+                    const store = storeMap.get(storeId)
                     return (
                       <SelectItem key={storeId} value={storeId}>
                         {store?.name}
