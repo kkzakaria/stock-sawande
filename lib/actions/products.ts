@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { deleteStorageFile } from './storage'
 
@@ -403,9 +404,12 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 
     // Delete associated image from storage if it's a Supabase Storage URL
     if (imageUrl && imageUrl.includes('supabase.co/storage/v1/object/public/')) {
-      // Fire and forget - don't fail the deletion if image cleanup fails
-      deleteStorageFile(imageUrl).catch((err) => {
-        console.error('Failed to delete product image:', err)
+      after(async () => {
+        try {
+          await deleteStorageFile(imageUrl)
+        } catch (err) {
+          console.error('Failed to delete product image:', err)
+        }
       })
     }
 
