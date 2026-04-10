@@ -298,25 +298,32 @@ async function processTransaction(
     }
   }
 
-  // Update inventory (deduct stock)
-  for (const item of adjustedItems) {
-    const { data: currentInv } = await supabase
-      .from('product_inventory')
-      .select('quantity')
-      .eq('id', item.inventoryId)
-      .single()
+  // Update inventory (deduct stock) - batch fetch then parallel update
+  const inventoryIds = adjustedItems.map(item => item.inventoryId)
+  const { data: currentInventories } = await supabase
+    .from('product_inventory')
+    .select('id, quantity')
+    .in('id', inventoryIds)
 
-    if (currentInv) {
-      const { error: updateError } = await supabase
-        .from('product_inventory')
-        .update({ quantity: Math.max(0, currentInv.quantity - item.quantity) })
-        .eq('id', item.inventoryId)
+  const invMap = new Map(
+    (currentInventories || []).map(inv => [inv.id, inv.quantity])
+  )
 
-      if (updateError) {
-        console.error(`Failed to update inventory for ${item.productId}:`, updateError)
+  await Promise.all(
+    adjustedItems.map(async (item) => {
+      const currentQty = invMap.get(item.inventoryId)
+      if (currentQty != null) {
+        const { error: updateError } = await supabase
+          .from('product_inventory')
+          .update({ quantity: Math.max(0, currentQty - item.quantity) })
+          .eq('id', item.inventoryId)
+
+        if (updateError) {
+          console.error(`Failed to update inventory for ${item.productId}:`, updateError)
+        }
       }
-    }
-  }
+    })
+  )
 
   // Update cash session if provided
   if (tx.sessionId) {
