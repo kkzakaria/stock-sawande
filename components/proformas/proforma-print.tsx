@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Download, Printer, Loader2 } from 'lucide-react'
 import { getProformaDetail, type ProformaWithDetails, type ProformaItemWithProduct } from '@/lib/actions/proformas'
+import { formatCurrency } from '@/lib/utils/format-currency'
 
 interface ProformaPrintProps {
   proforma: ProformaWithDetails | null
@@ -101,14 +102,6 @@ export function ProformaPrint({
   }
 
   if (!proforma) return null
-
-  const formatCurrency = (amount: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `${formatted} CFA`
-  }
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd MMMM yyyy', { locale: dateLocale })

@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { convertProformaToSale, type ProformaWithDetails } from '@/lib/actions/proformas'
+import { formatCurrency } from '@/lib/utils/format-currency'
 
 interface ConvertToSaleDialogProps {
   proforma: ProformaWithDetails | null
@@ -39,14 +40,6 @@ export function ConvertToSaleDialog({
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [paymentReference, setPaymentReference] = useState('')
-
-  const formatCurrency = (amount: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `${formatted} CFA`
-  }
 
   const handleConvert = async () => {
     if (!proforma) return

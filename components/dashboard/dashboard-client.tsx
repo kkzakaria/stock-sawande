@@ -11,6 +11,7 @@ import { DashboardRevenueChart } from './dashboard-revenue-chart'
 import { DashboardTopProducts } from './dashboard-top-products'
 import { DashboardLowStockAlerts } from './dashboard-low-stock-alerts'
 import { PeriodSelector, type Period, getGroupByFromPeriod, getPeriodDays } from '@/components/charts/period-selector'
+import { formatCurrency } from '@/lib/utils/format-currency'
 
 interface DashboardClientProps {
   storeId?: string
@@ -61,11 +62,6 @@ export function DashboardClient({ storeId, storeName }: DashboardClientProps) {
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
-  const formatCurrency = (value: number) => {
-    const formatted = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value)
-    return `${formatted} CFA`
-  }
 
   return (
     <div className="space-y-6">
