@@ -26,6 +26,8 @@ import { toast } from 'sonner'
 import { updateUser, updateUserStores } from '@/lib/actions/users'
 import type { Database } from '@/types/database.types'
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Store = Database['public']['Tables']['stores']['Row']
 
@@ -211,7 +213,7 @@ export function UserFormDialog({
                   if (!value || value.trim().length === 0) {
                     return t('errors.emailRequired')
                   }
-                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                  if (!EMAIL_REGEX.test(value)) {
                     return t('errors.emailInvalid')
                   }
                 }
