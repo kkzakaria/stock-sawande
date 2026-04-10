@@ -57,6 +57,29 @@ interface ServerProduct {
 }
 
 // ============================================
+// Map index cache for O(1) product lookups
+// ============================================
+
+let _productMapCache: {
+  products: CachedProduct[]
+  byId: Map<string, CachedProduct>
+  byBarcode: Map<string, CachedProduct>
+} | null = null
+
+function getProductMaps(products: CachedProduct[]) {
+  if (_productMapCache && _productMapCache.products === products) {
+    return _productMapCache
+  }
+  const byId = new Map(products.map((p) => [p.id, p]))
+  const byBarcode = new Map<string, CachedProduct>()
+  for (const p of products) {
+    if (p.barcode) byBarcode.set(p.barcode, p)
+  }
+  _productMapCache = { products, byId, byBarcode }
+  return _productMapCache
+}
+
+// ============================================
 // Store
 // ============================================
 
@@ -193,7 +216,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
    * Get a product by ID (from memory)
    */
   getProduct: (id: string) => {
-    return get().products.find((p) => p.id === id)
+    const { byId } = getProductMaps(get().products)
+    return byId.get(id)
   },
 
   /**
@@ -201,7 +225,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
    */
   getProductByBarcode: async (barcode: string) => {
     // First check memory
-    const memoryProduct = get().products.find((p) => p.barcode === barcode)
+    const { byBarcode } = getProductMaps(get().products)
+    const memoryProduct = byBarcode.get(barcode)
     if (memoryProduct) return memoryProduct
 
     // Fall back to IndexedDB
@@ -242,7 +267,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
     }))
 
     // Also update IndexedDB
-    const product = get().products.find((p) => p.id === productId)
+    const { byId } = getProductMaps(get().products)
+    const product = byId.get(productId)
     if (product) {
       updateProductLocalStock(productId, product.localStock, product.reservedStock)
     }
@@ -267,7 +293,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
     }))
 
     // Also update IndexedDB
-    const product = get().products.find((p) => p.id === productId)
+    const { byId } = getProductMaps(get().products)
+    const product = byId.get(productId)
     if (product) {
       updateProductLocalStock(productId, product.localStock, product.reservedStock)
     }
@@ -277,7 +304,8 @@ export const useProductCacheStore = create<ProductCacheState>()((set, get) => ({
    * Get available stock for a product (server stock - reserved)
    */
   getAvailableStock: (productId: string) => {
-    const product = get().products.find((p) => p.id === productId)
+    const { byId } = getProductMaps(get().products)
+    const product = byId.get(productId)
     return product ? product.localStock : 0
   },
 
