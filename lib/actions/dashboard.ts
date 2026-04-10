@@ -325,6 +325,10 @@ export async function getLowStockAlerts(storeId?: string): Promise<ActionResult<
 /**
  * Fetch all dashboard data in a single request context
  * Uses React.cache() deduplication for auth — one getUser() call total
+ *
+ * Errors from individual queries are logged but not thrown, so the dashboard
+ * still renders partial data instead of a full error page. The client can
+ * recover by clicking the refresh button.
  */
 export async function getAllDashboardData(
   storeId?: string,
@@ -342,6 +346,21 @@ export async function getAllDashboardData(
     getTopProducts(storeId, 5, days),
     getLowStockAlerts(storeId),
   ])
+
+  // Surface failures in server logs instead of flattening them into empty data.
+  // Critical for production debugging — a silent empty dashboard hides real issues.
+  if (!metricsResult.success) {
+    console.error('[getAllDashboardData] metrics failed:', metricsResult.error)
+  }
+  if (!trendResult.success) {
+    console.error('[getAllDashboardData] revenue trend failed:', trendResult.error)
+  }
+  if (!productsResult.success) {
+    console.error('[getAllDashboardData] top products failed:', productsResult.error)
+  }
+  if (!alertsResult.success) {
+    console.error('[getAllDashboardData] low stock alerts failed:', alertsResult.error)
+  }
 
   return {
     metrics: metricsResult.success ? metricsResult.data ?? null : null,

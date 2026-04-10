@@ -65,7 +65,10 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     isAdmin
       ? supabase.from('stores').select('*', { count: 'exact', head: true })
       : cachedProfile.role === 'manager'
-        ? supabase.from('user_stores').select('*', { count: 'exact', head: true })
+        ? supabase
+            .from('user_stores')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
         : Promise.resolve({ count: 0 } as { count: number }),
   ])
 

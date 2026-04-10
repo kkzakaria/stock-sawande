@@ -37,12 +37,6 @@ export function DashboardClient({ storeId, storeName, initialData }: DashboardCl
   const fetchDataRef = useRef<() => void>(() => {})
 
   useEffect(() => {
-    // Skip initial fetch — data already loaded server-side
-    if (isInitialPeriod.current) {
-      isInitialPeriod.current = false
-      return
-    }
-
     let cancelled = false
 
     const loadData = async () => {
@@ -79,7 +73,16 @@ export function DashboardClient({ storeId, storeName, initialData }: DashboardCl
       }
     }
 
+    // Wire the refresh handler before any early return, so the refresh
+    // button works on first render (initial data was loaded server-side)
     fetchDataRef.current = loadData
+
+    // Skip initial fetch — data already loaded server-side
+    if (isInitialPeriod.current) {
+      isInitialPeriod.current = false
+      return () => { cancelled = true }
+    }
+
     loadData()
 
     return () => { cancelled = true }

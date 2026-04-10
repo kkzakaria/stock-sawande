@@ -25,19 +25,33 @@ export default async function ReportsPage({ params, searchParams }: ReportsPageP
   }
 
   // Only admin and manager can access reports
-  if (!['admin', 'manager'].includes(profile?.role || '')) {
+  if (!profile || !['admin', 'manager'].includes(profile.role)) {
     redirect('/dashboard')
   }
 
   // searchParams available for future server-side filtering
   await searchParams
 
-  // Fetch stores for filter dropdown
+  // Fetch stores for filter dropdown, scoped by role
+  // Non-admins only see their assigned store (mirrors previous getStores() behavior)
   const supabase = await createClient()
-  const { data: stores } = await supabase
+  let storesQuery = supabase
     .from('stores')
-    .select('id, name, address, phone')
+    .select('id, name')
     .order('name')
+
+  if (profile.role !== 'admin') {
+    if (!profile.store_id) {
+      redirect('/dashboard')
+    }
+    storesQuery = storesQuery.eq('id', profile.store_id)
+  }
+
+  const { data: stores, error: storesError } = await storesQuery
+  if (storesError) {
+    console.error('Error fetching stores for reports:', storesError)
+    throw storesError
+  }
 
   return (
     <div className="space-y-6">
