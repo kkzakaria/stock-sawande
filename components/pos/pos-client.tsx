@@ -18,15 +18,17 @@ import { POSProductGrid } from './pos-product-grid'
 import { POSCart } from './pos-cart'
 import { MobileCartSheet } from './mobile-cart-sheet'
 import { CashSessionStatus } from './cash-session-status'
-import { OpenSessionDialog } from './open-session-dialog'
-import { CloseSessionDialog } from './close-session-dialog'
-import { LockSessionDialog } from './lock-session-dialog'
-import { UnlockSessionDialog } from './unlock-session-dialog'
+import dynamic from 'next/dynamic'
 import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
 import { NetworkBanner } from './network-banner'
-import { SyncConflictDialog } from './sync-conflict-dialog'
-import { StoreSelectorDialog } from './store-selector-dialog'
+
+const OpenSessionDialog = dynamic(() => import('./open-session-dialog').then(m => m.OpenSessionDialog))
+const CloseSessionDialog = dynamic(() => import('./close-session-dialog').then(m => m.CloseSessionDialog))
+const LockSessionDialog = dynamic(() => import('./lock-session-dialog').then(m => m.LockSessionDialog))
+const UnlockSessionDialog = dynamic(() => import('./unlock-session-dialog').then(m => m.UnlockSessionDialog))
+const SyncConflictDialog = dynamic(() => import('./sync-conflict-dialog').then(m => m.SyncConflictDialog))
+const StoreSelectorDialog = dynamic(() => import('./store-selector-dialog').then(m => m.StoreSelectorDialog))
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2, Store } from 'lucide-react'
 import { toast } from 'sonner'
