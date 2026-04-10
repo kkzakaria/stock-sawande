@@ -1167,19 +1167,18 @@ export async function updateMultiStoreInventory(
       }
     }
 
-    // Update each inventory record
-    const errors: string[] = []
-    for (const inv of inventories) {
-      const { error } = await supabase
-        .from('product_inventory')
-        .update({ quantity: inv.quantity })
-        .eq('product_id', productId)
-        .eq('store_id', inv.storeId)
-
-      if (error) {
-        errors.push(`Store ${inv.storeId}: ${error.message}`)
-      }
-    }
+    // Update each inventory record in parallel
+    const results = await Promise.all(
+      inventories.map(async (inv) => {
+        const { error } = await supabase
+          .from('product_inventory')
+          .update({ quantity: inv.quantity })
+          .eq('product_id', productId)
+          .eq('store_id', inv.storeId)
+        return error ? `Store ${inv.storeId}: ${error.message}` : null
+      })
+    )
+    const errors = results.filter((e): e is string => e !== null)
 
     if (errors.length > 0) {
       console.error('Errors updating inventories:', errors)
