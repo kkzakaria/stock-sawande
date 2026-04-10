@@ -1,16 +1,17 @@
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import dynamic from 'next/dynamic'
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import dynamic from 'next/dynamic'
+import { Toaster } from "@/components/ui/sonner";
+import { routing } from '@/src/i18n/routing';
+import "../globals.css";
+
 const Analytics = dynamic(
   () => import('@vercel/analytics/next').then(m => m.Analytics),
   { ssr: false }
 )
-import { Toaster } from "@/components/ui/sonner";
-import { routing } from '@/src/i18n/routing';
-import "../globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

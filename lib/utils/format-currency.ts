@@ -7,10 +7,6 @@ export function formatCurrency(value: number): string {
   return `${currencyFormatter.format(value)} CFA`
 }
 
-export function formatCurrencyFCFA(value: number): string {
-  return `${currencyFormatter.format(value)} FCFA`
-}
-
 export function formatNumber(value: number): string {
   return currencyFormatter.format(value)
 }
