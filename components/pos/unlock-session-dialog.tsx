@@ -91,10 +91,10 @@ export function UnlockSessionDialog({
 
   // Fetch validators when switching to manager mode
   useEffect(() => {
-    if (mode === 'manager' && validators.length === 0) {
+    if (open && mode === 'manager' && validators.length === 0) {
       fetchValidators()
     }
-  }, [mode, validators.length, fetchValidators])
+  }, [open, mode, validators.length, fetchValidators])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
