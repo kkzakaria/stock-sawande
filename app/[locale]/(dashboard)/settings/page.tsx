@@ -62,6 +62,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
       supabase.from('business_settings').select('key, value'),
     ])
 
+    if (usersResult.error) console.error('Failed to fetch users:', usersResult.error)
+    if (storesResult.error) console.error('Failed to fetch stores:', storesResult.error)
+    if (settingsResult.error) console.error('Failed to fetch settings:', settingsResult.error)
+
     users = usersResult.data
     stores = storesResult.data
     const settingsData = settingsResult.data

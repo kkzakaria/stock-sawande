@@ -78,6 +78,10 @@ export async function updateUserStore(
           .maybeSingle(),
       ])
 
+      if (assignedStoreResult.error) {
+        console.error('Error checking store assignment:', assignedStoreResult.error)
+        return { success: false, error: 'Failed to verify store assignment. Please try again.' }
+      }
       if (!assignedStoreResult.data) {
         return {
           success: false,
@@ -87,6 +91,10 @@ export async function updateUserStore(
       if (storeResult.error || !storeResult.data) {
         return { success: false, error: 'Store not found' }
       }
+      if (openSessionResult.error) {
+        console.error('Error checking open sessions:', openSessionResult.error)
+        return { success: false, error: 'Failed to verify cash session status. Please try again.' }
+      }
       if (openSessionResult.data) {
         return {
           success: false,
@@ -95,7 +103,7 @@ export async function updateUserStore(
         }
       }
     } else {
-      // Admin path: verify store exists and no open session
+      // Admin path (non-manager roles already rejected above): verify store exists and no open session
       const [storeResult, openSessionResult] = await Promise.all([
         supabase.from('stores').select('id, name').eq('id', validated.storeId).single(),
         supabase
@@ -108,6 +116,10 @@ export async function updateUserStore(
 
       if (storeResult.error || !storeResult.data) {
         return { success: false, error: 'Store not found' }
+      }
+      if (openSessionResult.error) {
+        console.error('Error checking open sessions:', openSessionResult.error)
+        return { success: false, error: 'Failed to verify cash session status. Please try again.' }
       }
       if (openSessionResult.data) {
         return {

@@ -23,12 +23,12 @@ import { SessionRequiredOverlay } from './session-required-overlay'
 import { NetworkStatusIndicator } from './network-status-indicator'
 import { NetworkBanner } from './network-banner'
 
-const OpenSessionDialog = dynamic(() => import('./open-session-dialog').then(m => m.OpenSessionDialog))
-const CloseSessionDialog = dynamic(() => import('./close-session-dialog').then(m => m.CloseSessionDialog))
-const LockSessionDialog = dynamic(() => import('./lock-session-dialog').then(m => m.LockSessionDialog))
-const UnlockSessionDialog = dynamic(() => import('./unlock-session-dialog').then(m => m.UnlockSessionDialog))
-const SyncConflictDialog = dynamic(() => import('./sync-conflict-dialog').then(m => m.SyncConflictDialog))
-const StoreSelectorDialog = dynamic(() => import('./store-selector-dialog').then(m => m.StoreSelectorDialog))
+const OpenSessionDialog = dynamic(() => import('./open-session-dialog').then(m => m.OpenSessionDialog), { loading: () => null })
+const CloseSessionDialog = dynamic(() => import('./close-session-dialog').then(m => m.CloseSessionDialog), { loading: () => null })
+const LockSessionDialog = dynamic(() => import('./lock-session-dialog').then(m => m.LockSessionDialog), { loading: () => null })
+const UnlockSessionDialog = dynamic(() => import('./unlock-session-dialog').then(m => m.UnlockSessionDialog), { loading: () => null })
+const SyncConflictDialog = dynamic(() => import('./sync-conflict-dialog').then(m => m.SyncConflictDialog), { loading: () => null })
+const StoreSelectorDialog = dynamic(() => import('./store-selector-dialog').then(m => m.StoreSelectorDialog), { loading: () => null })
 import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2, Store } from 'lucide-react'
 import { toast } from 'sonner'

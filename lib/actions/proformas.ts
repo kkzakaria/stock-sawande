@@ -300,6 +300,10 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
         .order('created_at', { ascending: true }),
     ])
 
+    // Note: items are fetched in parallel with proforma for performance.
+    // RLS on proforma_items provides data-level access control.
+    // The application-level check below is defense-in-depth.
+
     if (proformaResult.error) {
       console.error('Error fetching proforma:', proformaResult.error)
       return { success: false, error: 'Proforma not found' }
