@@ -364,32 +364,59 @@ export async function refundSale(
       return { success: false, error: 'Failed to update sale status' }
     }
 
-    // Restore inventory and create stock movements for each item
     // Batch fetch all current inventory quantities
     const inventoryIds = (saleItems || []).map(item => item.inventory_id).filter(Boolean)
-    const { data: inventories } = inventoryIds.length > 0
+    const { data: inventories, error: invFetchError } = inventoryIds.length > 0
       ? await supabase
           .from('product_inventory')
           .select('id, quantity')
           .in('id', inventoryIds)
-      : { data: [] }
+      : { data: [], error: null }
+
+    if (invFetchError) {
+      console.error('Error fetching inventories for refund:', invFetchError)
+      return { success: false, error: 'Failed to restore inventory. Please try again.' }
+    }
 
     const inventoryMap = new Map(
       (inventories || []).map(inv => [inv.id, inv.quantity])
     )
 
-    // Parallel inventory updates and stock movement inserts
-    await Promise.all(
-      (saleItems || []).map(async (item) => {
-        const previousQuantity = inventoryMap.get(item.inventory_id) ?? 0
-        const newQuantity = previousQuantity + item.quantity
+    // Group items by inventory_id and sum quantities to handle duplicates
+    const groupedByInventory = new Map<string, { totalQuantity: number; items: typeof saleItems }>()
+    for (const item of saleItems || []) {
+      const existing = groupedByInventory.get(item.inventory_id)
+      if (existing) {
+        existing.totalQuantity += item.quantity
+        existing.items.push(item)
+      } else {
+        groupedByInventory.set(item.inventory_id, {
+          totalQuantity: item.quantity,
+          items: [item],
+        })
+      }
+    }
 
-        const [inventoryResult, movementResult] = await Promise.all([
-          supabase
-            .from('product_inventory')
-            .update({ quantity: newQuantity })
-            .eq('id', item.inventory_id),
-          supabase
+    // Restore inventory and create stock movements (parallel across inventory IDs, sequential within)
+    await Promise.all(
+      Array.from(groupedByInventory.entries()).map(async ([inventoryId, group]) => {
+        const previousQuantity = inventoryMap.get(inventoryId) ?? 0
+        const newQuantity = previousQuantity + group.totalQuantity
+
+        // Update inventory first
+        const { error: inventoryError } = await supabase
+          .from('product_inventory')
+          .update({ quantity: newQuantity })
+          .eq('id', inventoryId)
+
+        if (inventoryError) {
+          console.error('Error restoring inventory:', inventoryError)
+          return // Don't record movements for failed updates
+        }
+
+        // Then create stock movement records for each item
+        for (const item of group.items) {
+          const { error: movementError } = await supabase
             .from('stock_movements')
             .insert({
               product_id: item.product_id,
@@ -402,14 +429,11 @@ export async function refundSale(
               reference: `Refund: ${validated.saleId}`,
               notes: validated.reason,
               user_id: user.id,
-            }),
-        ])
+            })
 
-        if (inventoryResult.error) {
-          console.error('Error restoring inventory:', inventoryResult.error)
-        }
-        if (movementResult.error) {
-          console.error('Error creating stock movement:', movementResult.error)
+          if (movementError) {
+            console.error('Error creating stock movement:', movementError)
+          }
         }
       })
     )
