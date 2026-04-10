@@ -73,8 +73,8 @@ export function DataTableToolbar<TData>({
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
         {config?.searchKey && (
           <Input
             placeholder={config.searchPlaceholder ?? t("search")}
@@ -87,7 +87,7 @@ export function DataTableToolbar<TData>({
                 .getColumn(config.searchKey!)
                 ?.setFilterValue(event.target.value)
             }
-            className="h-8 w-[150px] lg:w-[250px]"
+            className="h-8 w-full sm:w-[200px] lg:w-[250px]"
           />
         )}
         {config?.filterableColumns?.map((filterColumn) => {
@@ -112,7 +112,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-wrap items-center gap-2">
         {config?.onAdd && (
           <Button onClick={config.onAdd} size="sm" className="h-8">
             <Plus className="mr-2 h-4 w-4" />

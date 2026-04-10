@@ -32,13 +32,13 @@ export function DataTablePagination<TData>({
   const totalCount = table.getFilteredRowModel().rows.length;
 
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-2">
       <div className="flex-1 text-sm text-muted-foreground">
         {selectedCount > 0 && t("rowsSelected", { count: selectedCount, total: totalCount })}
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex flex-wrap items-center gap-4 lg:gap-6">
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">{t("rowsPerPage")}</p>
+          <p className="hidden text-sm font-medium sm:block">{t("rowsPerPage")}</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {

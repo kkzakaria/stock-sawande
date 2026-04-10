@@ -4,12 +4,13 @@ import { useState, useTransition, useCallback, useEffect, useRef } from "react";
 import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import Link from "next/link";
-import { ColumnDef, type ColumnFiltersState, type SortingState } from "@tanstack/react-table";
+import { ColumnDef, type ColumnFiltersState, type SortingState, type Row } from "@tanstack/react-table";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle2, XCircle } from "lucide-react";
 import { StockQuantityPopover } from "./stock-quantity-popover";
 import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/data-table";
 import { DataTableColumnHeader } from "@/components/data-table";
+import type { MobileCardConfig, BulkAction } from "@/types/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,6 +51,8 @@ interface Product {
   category_id: string | null;
   category_name: string | null;
   price: number | null;
+  min_price: number | null;
+  max_price: number | null;
   cost: number | null;
   quantity: number | null;
   min_stock_level: number | null;
@@ -101,6 +104,7 @@ export function ProductsDataTable({
   const [isPending, startTransition] = useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
 
   // nuqs state for URL synchronization (write-only, we use initialValues for reading)
   const [, setUrlState] = useQueryStates({
@@ -145,8 +149,30 @@ export function ProductsDataTable({
   }, [setUrlState, onPaginationChange]);
 
   const handleDelete = async () => {
-    if (!productToDelete) return;
+    // Bulk delete: process all IDs in the queue
+    if (bulkDeleteIds.length > 0) {
+      startTransition(async () => {
+        let successCount = 0;
+        let failCount = 0;
+        for (const id of bulkDeleteIds) {
+          const result = await deleteProduct(id);
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        }
+        setDeleteDialogOpen(false);
+        setBulkDeleteIds([]);
+        if (successCount > 0) toast.success(t("messages.deletedCount", { count: successCount }));
+        if (failCount > 0) toast.error(t("errors.deleteFailedCount", { count: failCount }));
+        router.refresh();
+      });
+      return;
+    }
 
+    // Single delete
+    if (!productToDelete) return;
     startTransition(async () => {
       const result = await deleteProduct(productToDelete);
       if (result.success) {
@@ -175,6 +201,15 @@ export function ProductsDataTable({
   const confirmDelete = (id: string) => {
     setProductToDelete(id);
     setDeleteDialogOpen(true);
+  };
+
+  const getStockBadgeVariant = (
+    quantity: number,
+    minLevel: number | null,
+  ): "success" | "warning" | "danger" => {
+    if (quantity === 0) return "danger";
+    if (minLevel !== null && quantity < minLevel) return "warning";
+    return "success";
   };
 
   const getStockColor = (quantity: number, minLevel: number | null) => {
@@ -411,6 +446,92 @@ export function ProductsDataTable({
     },
   ];
 
+  const mobileCard: MobileCardConfig<Product> = (row: Row<Product>) => {
+    const p = row.original;
+    const quantity = (isAdmin
+      ? p.quantity
+      : (p.my_quantity ?? p.quantity)) ?? 0;
+    const priceFormatter = new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    const formatPrice = (n: number) =>
+      `${priceFormatter.format(n)}\u00A0${CURRENCY_CONFIG.symbol}`;
+    const hasRange =
+      p.min_price != null &&
+      p.max_price != null &&
+      p.min_price !== p.max_price;
+    const priceDetails = hasRange
+      ? `${formatPrice(p.min_price!)} – ${formatPrice(p.max_price!)}`
+      : formatPrice(p.price ?? 0);
+
+    return {
+      title: p.name ?? "—",
+      subtitle: [p.sku, p.category_name ?? t("categories.uncategorized")]
+        .filter(Boolean)
+        .join(" · "),
+      details: priceDetails,
+      badge: {
+        label: String(quantity),
+        variant: getStockBadgeVariant(quantity, p.min_stock_level),
+      },
+      thumbnail: p.image_url ? (
+        <OptimizedImage
+          src={p.image_url}
+          alt={p.name ?? ""}
+          fill
+          className="object-cover"
+          sizes="44px"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
+          N/A
+        </div>
+      ),
+      onClick: () => router.push(`/products/${p.template_id}`),
+      menuItems: [
+        {
+          label: t("actions.viewDetails"),
+          icon: Eye,
+          onClick: () => router.push(`/products/${p.template_id}`),
+        },
+        {
+          label: t("actions.edit"),
+          icon: Pencil,
+          onClick: () => router.push(`/products/${p.template_id}/edit`),
+        },
+        {
+          label: p.is_active ? t("actions.deactivate") : t("actions.activate"),
+          icon: p.is_active ? XCircle : CheckCircle2,
+          onClick: () =>
+            handleToggleStatus(p.template_id!, p.is_active ?? false),
+          disabled: isPending,
+        },
+        {
+          label: t("actions.delete"),
+          icon: Trash2,
+          onClick: () => confirmDelete(p.template_id!),
+          variant: "destructive",
+          disabled: isPending,
+        },
+      ],
+    };
+  };
+
+  const bulkActions: BulkAction<Product>[] = [
+    {
+      label: t("actions.delete"),
+      icon: Trash2,
+      variant: "destructive",
+      onClick: (rows) => {
+        const ids = rows.map((r) => r.template_id).filter(Boolean) as string[];
+        if (ids.length === 0) return;
+        setBulkDeleteIds(ids);
+        setDeleteDialogOpen(true);
+      },
+    },
+  ];
+
   // Collect unique categories for filters
   const categories = Array.from(
     new Set(products.map((p) => p.category_name).filter(Boolean))
@@ -431,6 +552,8 @@ export function ProductsDataTable({
         columns={columns}
         data={products}
         enableRowSelection
+        mobileCard={mobileCard}
+        bulkActions={bulkActions}
         toolbar={{
           searchKey: "name",
           searchPlaceholder: t("searchPlaceholder"),
@@ -475,9 +598,15 @@ export function ProductsDataTable({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("deleteDialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {bulkDeleteIds.length > 0
+                ? t("deleteDialog.bulkTitle", { count: bulkDeleteIds.length })
+                : t("deleteDialog.title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("deleteDialog.description")}
+              {bulkDeleteIds.length > 0
+                ? t("deleteDialog.bulkDescription", { count: bulkDeleteIds.length })
+                : t("deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

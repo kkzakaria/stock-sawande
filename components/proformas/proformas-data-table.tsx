@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, type Row } from '@tanstack/react-table'
 import {
   MoreHorizontal,
   Eye,
@@ -29,6 +29,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { MobileCardConfig } from '@/types/data-table'
+import { CURRENCY_CONFIG } from '@/lib/config/currency'
 import type { ProformaWithDetails } from '@/lib/actions/proformas'
 import { ProformaDetailDialog } from './proforma-detail-dialog'
 import { ConvertToSaleDialog } from './convert-to-sale-dialog'
@@ -124,6 +126,25 @@ export function ProformasDataTable({
     }).format(amount)
     return `${formatted} CFA`
   }
+
+  const getProformaStatusVariant = (
+    status: string | null | undefined,
+    validUntil: string | null | undefined,
+  ): "success" | "warning" | "danger" | "default" => {
+    if (validUntil && new Date(validUntil) < new Date()) return "danger";
+    switch (status) {
+      case "accepted":
+      case "converted":
+        return "success";
+      case "pending":
+        return "warning";
+      case "rejected":
+      case "expired":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
 
   const columns: ColumnDef<ProformaWithDetails>[] = [
     {
@@ -316,12 +337,104 @@ export function ProformasDataTable({
     },
   ]
 
+  const mobileCard: MobileCardConfig<ProformaWithDetails> = (row: Row<ProformaWithDetails>) => {
+    const p = row.original;
+    const total = p.total ?? 0;
+    const formatted = new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(total);
+    const date = p.created_at
+      ? new Intl.DateTimeFormat("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        }).format(new Date(p.created_at))
+      : "—";
+    const isExpired = p.valid_until
+      ? new Date(p.valid_until) < new Date()
+      : false;
+
+    const canEdit = ['draft', 'sent'].includes(p.status);
+    const canSend = p.status === 'draft';
+    const canAcceptReject = p.status === 'sent';
+    const canConvert = ['draft', 'sent', 'accepted'].includes(p.status);
+    const canDelete = p.status !== 'converted' && ['admin', 'manager'].includes(userRole);
+
+    return {
+      title: p.proforma_number ?? "—",
+      subtitle: `${date} · ${p.customer?.name ?? t('customer.notSpecified')}`,
+      rightValue: `${formatted}\u00A0${CURRENCY_CONFIG.symbol}`,
+      badge: {
+        label: isExpired ? t("status.expired") : t(`status.${p.status}`),
+        variant: getProformaStatusVariant(p.status, p.valid_until),
+      },
+      onClick: () => handleViewDetail(p),
+      menuItems: [
+        {
+          label: t('actions.view'),
+          onClick: () => handleViewDetail(p),
+        },
+        ...(canEdit
+          ? [
+              {
+                label: t('actions.edit'),
+                onClick: () => { window.location.href = `/proformas/${p.id}/edit`; },
+              },
+            ]
+          : []),
+        ...(canSend
+          ? [
+              {
+                label: t('actions.send'),
+                onClick: () => handleStatusChange(p, 'sent'),
+              },
+            ]
+          : []),
+        ...(canAcceptReject
+          ? [
+              {
+                label: t('actions.accept'),
+                onClick: () => handleStatusChange(p, 'accepted'),
+              },
+              {
+                label: t('actions.reject'),
+                onClick: () => handleStatusChange(p, 'rejected'),
+              },
+            ]
+          : []),
+        ...(canConvert
+          ? [
+              {
+                label: t('actions.convertToSale'),
+                onClick: () => handleConvert(p),
+              },
+            ]
+          : []),
+        {
+          label: t('actions.print'),
+          onClick: () => handlePrint(p),
+        },
+        ...(canDelete
+          ? [
+              {
+                label: t('actions.delete'),
+                onClick: () => handleDelete(p),
+                variant: 'destructive' as const,
+              },
+            ]
+          : []),
+      ],
+    };
+  };
+
   return (
     <>
       <DataTable
         columns={columns}
         data={proformas}
         isLoading={isLoading}
+        mobileCard={mobileCard}
         toolbar={{
           searchKey: 'proforma_number',
           searchPlaceholder: t('searchPlaceholder'),
