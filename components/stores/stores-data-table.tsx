@@ -203,7 +203,7 @@ export function StoresDataTable({ stores, onAddStore }: StoresDataTableProps) {
     return {
       title: s.name ?? "—",
       subtitle: s.address ?? "—",
-      rightValue: s.phone ?? undefined,
+      details: s.phone ?? undefined,
       onClick: () => openEditDialog(s),
       menuItems: [
         {
