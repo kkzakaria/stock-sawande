@@ -830,7 +830,10 @@ export async function getStores() {
       .order('name')
 
     // Non-admins only see their accessible stores
-    if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
+    if (profile.role !== 'admin') {
+      if (accessibleStoreIds.length === 0) {
+        return { success: true, data: [] }
+      }
       query = query.in('id', accessibleStoreIds)
     }
 

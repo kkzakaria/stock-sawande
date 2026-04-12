@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { ProformaForm } from '@/components/proformas/proforma-form'
 import { Button } from '@/components/ui/button'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
-import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
+import { getUserAccessibleStoreIds, getUserDefaultStoreId, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
@@ -156,7 +156,7 @@ export default async function EditProformaPage({ params }: EditProformaPageProps
         customers={customers}
         stores={stores}
         userRole={profile.role}
-        userStoreId={accessibleStoreIds[0] ?? profile.store_id}
+        userStoreId={await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)}
       />
     </div>
   )

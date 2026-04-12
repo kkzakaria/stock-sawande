@@ -10,7 +10,7 @@ import { POSClient } from '@/components/pos/pos-client'
 import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
-import { getUserAccessibleStoreIds } from '@/lib/helpers/store-access'
+import { getUserAccessibleStoreIds, getUserDefaultStoreId } from '@/lib/helpers/store-access'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -87,13 +87,17 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
+  if ('error' in storeCountResult && storeCountResult.error) {
+    console.error('[POS] Failed to fetch store count:', storeCountResult.error)
+  }
   const availableStoresCount = storeCountResult.count || 0
   const canSelectStore = isManagerOrAdmin && availableStoresCount > 1
 
   // For admins: use store from URL param (session-based, not persisted)
   // For managers/cashiers: use their assigned store(s)
   const accessibleStoreIds = isAdmin ? [] : await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
-  const activeStoreId = isAdmin ? storeFromUrl : (storeFromUrl && accessibleStoreIds.includes(storeFromUrl) ? storeFromUrl : accessibleStoreIds[0] ?? profile.store_id)
+  const defaultStoreId = isAdmin ? null : await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)
+  const activeStoreId = isAdmin ? storeFromUrl : (storeFromUrl && accessibleStoreIds.includes(storeFromUrl) ? storeFromUrl : defaultStoreId)
 
   // Show store selector if:
   // - Admin without URL store param (free choice each session)
