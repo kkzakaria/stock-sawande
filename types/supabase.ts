@@ -1507,6 +1507,23 @@ export type Database = {
         }[]
       }
       is_user_active: { Args: { check_user_id: string }; Returns: boolean }
+      process_checkout: {
+        Args: {
+          p_store_id: string
+          p_cashier_id: string
+          p_customer_id?: string | null
+          p_cash_session_id?: string | null
+          p_payment_method?: string
+          p_items?: Json
+          p_subtotal?: number
+          p_tax?: number
+          p_discount?: number
+          p_total?: number
+          p_notes?: string
+          p_idempotency_key?: string
+        }
+        Returns: Json
+      }
       restore_deleted_user: { Args: { target_user_id: string }; Returns: Json }
       soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
       update_expired_proformas: { Args: never; Returns: number }
