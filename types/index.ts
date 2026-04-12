@@ -2,7 +2,7 @@
  * Common Application Types
  */
 
-import { Database } from './supabase'
+import { Database } from './database.types'
 
 // Utility type for database tables
 export type Tables<T extends keyof Database['public']['Tables']> =

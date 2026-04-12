@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button'
 import { ShoppingCart, Loader2, Store } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { Tables } from '@/types/supabase'
+import { Tables } from '@/types/database.types'
 
 type CashSession = Tables<'cash_sessions'>
 
