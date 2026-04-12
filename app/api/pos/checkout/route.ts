@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.rpc('process_checkout', {
       p_store_id: body.storeId,
       p_cashier_id: body.cashierId,
-      p_customer_id: body.customerId,
-      p_cash_session_id: body.sessionId ?? null,
+      p_customer_id: body.customerId ?? undefined,
+      p_cash_session_id: body.sessionId ?? undefined,
       p_payment_method: body.paymentMethod,
       p_items: body.items,
       p_subtotal: body.subtotal,
@@ -42,25 +42,29 @@ export async function POST(request: Request) {
     if (error) {
       console.error('Checkout RPC error:', error)
       const status = error.code === '42501' ? 403
-                   : error.code === '23514' ? 400
-                   : error.code === '23503' ? 400
+                   : ['23514', '23503', '22P02', '22003'].includes(error.code ?? '') ? 400
                    : 500
-      return NextResponse.json({ error: error.message }, { status })
+      const message = status === 500 ? 'Internal server error' : error.message
+      return NextResponse.json({ error: message }, { status })
     }
 
     const result = data as unknown as { success: boolean; sale_id: string; sale_number: string; idempotent: boolean }
 
-    // Broadcast inventory update for multi-cashier sync
-    const channel = supabase.channel(`inventory-${body.storeId}`)
-    await channel.send({
-      type: 'broadcast',
-      event: 'inventory_updated',
-      payload: {
-        store_id: body.storeId,
-        sale_id: result.sale_id,
-        updated_at: new Date().toISOString(),
-      },
-    })
+    // Broadcast inventory update for multi-cashier sync (best-effort)
+    try {
+      const channel = supabase.channel(`inventory-${body.storeId}`)
+      await channel.send({
+        type: 'broadcast',
+        event: 'inventory_updated',
+        payload: {
+          store_id: body.storeId,
+          sale_id: result.sale_id,
+          updated_at: new Date().toISOString(),
+        },
+      })
+    } catch (broadcastErr) {
+      console.error('Realtime broadcast failed (sale already committed):', broadcastErr)
+    }
 
     return NextResponse.json({
       success: true,

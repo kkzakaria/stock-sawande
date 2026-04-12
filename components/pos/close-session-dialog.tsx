@@ -25,7 +25,7 @@ import {
   CheckCircle,
   ShieldAlert,
 } from 'lucide-react'
-import { Tables } from '@/types/supabase'
+import { Tables } from '@/types/database.types'
 import { ManagerApprovalDialog } from './manager-approval-dialog'
 
 type CashSession = Tables<'cash_sessions'>

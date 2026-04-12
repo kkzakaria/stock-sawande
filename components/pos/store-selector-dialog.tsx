@@ -15,7 +15,7 @@ import { Loader2, Store, MapPin, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserStore } from '@/lib/actions/profile-actions'
 import { toast } from 'sonner'
-import { Tables } from '@/types/supabase'
+import { Tables } from '@/types/database.types'
 
 type StoreType = Tables<'stores'>
 

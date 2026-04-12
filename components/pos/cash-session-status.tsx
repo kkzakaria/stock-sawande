@@ -16,7 +16,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Wallet, Clock, DoorOpen, Receipt, ShoppingCart, AlertTriangle, Lock } from 'lucide-react'
-import { Tables } from '@/types/supabase'
+import { Tables } from '@/types/database.types'
 
 type CashSession = Tables<'cash_sessions'>
 
