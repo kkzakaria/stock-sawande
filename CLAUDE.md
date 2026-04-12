@@ -25,6 +25,11 @@ npm run seed:users
 
 # Add shadcn/ui components
 npx shadcn@latest add [component]
+
+# Testing
+pnpm test:unit           # Vitest unit tests
+pnpm test:unit:watch     # Vitest watch mode
+supabase test db         # pgTAP database tests
 ```
 
 ## Architecture
@@ -95,16 +100,37 @@ const supabase = await createClient()
 - Product templates shared across stores, inventory per-store
 - User roles: admin, manager, cashier
 
+**6. Multi-Store Access**
+- RLS policies use `user_has_store_access(store_id)` — checks `user_stores` junction table
+- TS helpers in `lib/helpers/store-access.ts`: `hasStoreAccess()`, `getUserAccessibleStoreIds()`, `getUserDefaultStoreId()`
+- Admins can access all stores; managers/cashiers restricted to assigned stores
+- Backward compatible: falls back to `profiles.store_id` when `user_stores` is empty (no rows at all)
+- `profiles.store_id` is the user's "current" store for UI; `user_stores` is the source of truth for access
+
+**7. Security Functions**
+- All SECURITY DEFINER functions use `SET search_path = ''` with schema-qualified identifiers
+- `prevent_role_self_elevation` trigger on profiles prevents non-admin role changes
+- `change_user_role()` moved to `private` schema (not exposed via PostgREST)
+- `manager_pins` INSERT/UPDATE require manager/admin role via RLS
+- POS checkout uses `process_checkout()` RPC for atomic, idempotent transactions
+
 ## Important Files
 
 - `types/database.types.ts` - Auto-generated, never edit manually
 - `middleware.ts` - Session refresh for Supabase auth
 - `lib/supabase/` - Browser and server client factories
 - `components/data-table/` - Reusable table with sorting, filtering, export
+- `lib/helpers/store-access.ts` - Multi-store access helpers (hasStoreAccess, getUserAccessibleStoreIds)
+- `supabase/tests/database/` - pgTAP database tests (run via `supabase test db`)
+- `tests/unit/` - Vitest unit tests (run via `pnpm test:unit`)
+- `vitest.config.ts` - Vitest configuration
 
 ## Pre-commit Hooks
 
 Husky runs TypeScript type checking and ESLint before commits. Ensure `pnpm tsc --noEmit` passes.
+
+Database tests: `supabase test db` (pgTAP) — run manually before pushing schema changes.
+Unit tests: `pnpm test:unit` (Vitest) — run manually before pushing TS changes.
 
 ## Documentation
 

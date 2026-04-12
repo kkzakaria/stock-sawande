@@ -10,12 +10,16 @@ export async function getUserDefaultStoreId(
   accessibleStoreIds: string[],
   profileStoreId?: string | null
 ): Promise<string | null> {
-  const { data: defaultStore } = await supabase
+  const { data: defaultStore, error } = await supabase
     .from('user_stores')
     .select('store_id')
     .eq('user_id', userId)
     .eq('is_default', true)
     .maybeSingle()
+
+  if (error) {
+    console.error('Failed to fetch default store:', error, { userId })
+  }
 
   return defaultStore?.store_id ?? accessibleStoreIds[0] ?? profileStoreId ?? null
 }

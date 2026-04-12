@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(12);
+SELECT plan(14);
 
 -- ============================================================
 -- Setup: create stores, users with different store assignments
@@ -198,6 +198,63 @@ SELECT ok(
 );
 RESET ROLE;
 SELECT tests.clear_authentication();
+
+-- ============================================================
+-- Test 13: Legacy-only user (no user_stores, only profiles.store_id)
+-- Fallback should grant access to their profiles.store_id
+-- ============================================================
+DO $$
+DECLARE
+  v_legacy_user uuid;
+BEGIN
+  v_legacy_user := tests.create_test_user('ms_legacy_user', 'manager');
+  -- Set profiles.store_id but do NOT insert into user_stores
+  UPDATE public.profiles SET store_id = (SELECT store_a FROM _ms_fixtures) WHERE id = v_legacy_user;
+  -- Stash in temp table
+  CREATE TEMP TABLE _ms_legacy (legacy_id uuid);
+  INSERT INTO _ms_legacy VALUES (v_legacy_user);
+  GRANT SELECT ON _ms_legacy TO authenticated;
+END $$;
+
+DO $$ BEGIN PERFORM tests.authenticate_as((SELECT legacy_id FROM _ms_legacy)); END $$;
+SELECT ok(
+  public.user_has_store_access((SELECT store_a FROM _ms_fixtures)),
+  'Test 13: legacy user (no user_stores) gets access via profiles.store_id fallback'
+);
+SELECT ok(
+  NOT public.user_has_store_access((SELECT store_b FROM _ms_fixtures)),
+  'Test 13b: legacy user (no user_stores) denied access to store not in profiles.store_id'
+);
+RESET ROLE;
+SELECT tests.clear_authentication();
+
+-- ============================================================
+-- Test 14: profiles.store_id disagrees with user_stores (no widening)
+-- mgr_multi has user_stores for A+B; profiles.store_id set to C
+-- Fallback must NOT fire because user_stores rows exist
+-- ============================================================
+DO $$
+BEGIN
+  UPDATE public.profiles
+  SET store_id = (SELECT store_c FROM _ms_fixtures)
+  WHERE id = (SELECT mgr_multi FROM _ms_fixtures);
+END $$;
+
+DO $$ BEGIN PERFORM tests.authenticate_as((SELECT mgr_multi FROM _ms_fixtures)); END $$;
+SELECT ok(
+  NOT public.user_has_store_access((SELECT store_c FROM _ms_fixtures)),
+  'Test 14: profiles.store_id widening blocked — fallback does not fire when user_stores rows exist'
+);
+RESET ROLE;
+SELECT tests.clear_authentication();
+
+-- Restore profiles.store_id for mgr_multi back to store_a
+DO $$
+BEGIN
+  UPDATE public.profiles
+  SET store_id = (SELECT store_a FROM _ms_fixtures)
+  WHERE id = (SELECT mgr_multi FROM _ms_fixtures);
+END $$;
 
 SELECT * FROM finish();
 ROLLBACK;

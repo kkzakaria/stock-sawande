@@ -466,6 +466,11 @@ export async function getProducts(filters: ProductFilters = {}) {
 
     const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
+    // Fail-closed: non-admin with no store assignments gets nothing
+    if (!isAdmin && accessibleStoreIds.length === 0) {
+      return { success: false, error: 'No store assigned. Contact your administrator.', data: [], totalCount: 0, userRole }
+    }
+
     // For non-admin users with accessible stores, fetch products with their stores' quantity and totals
     // RLS now allows reading all inventory, so we can see true totals
     if (!isAdmin && accessibleStoreIds.length > 0) {
@@ -683,6 +688,11 @@ export async function getProduct(id: string) {
     }
 
     const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
+    // Fail-closed: non-admin with no store assignments gets nothing
+    if (profile.role !== 'admin' && accessibleStoreIds.length === 0) {
+      return { success: false, error: 'No store assigned. Contact your administrator.', data: null }
+    }
 
     let inventories = (template.product_inventory || []) as InventoryWithStore[]
     if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {

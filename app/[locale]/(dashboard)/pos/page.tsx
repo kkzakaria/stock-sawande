@@ -151,29 +151,30 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }>
   }
 
-  // Fetch products and optional admin store info in parallel
-  const [productsQueryResult, storeInfoResult] = await Promise.all([
-    supabase
-      .from('product_templates')
-      .select(
-        'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
-      )
-      .eq('is_active', true)
-      .eq('product_inventory.store_id', activeStoreId)
-      .order('name')
-      .limit(PRODUCT_LIMIT)
-      .returns<ProductQueryResult[]>(),
-    isAdmin && storeFromUrl
-      ? supabase.from('stores').select('id, name, address, phone').eq('id', storeFromUrl).single()
-      : Promise.resolve({ data: null, error: null }),
-  ])
+  // Fetch products for the active store
+  const productsQueryResult = await supabase
+    .from('product_templates')
+    .select(
+      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
+    )
+    .eq('is_active', true)
+    .eq('product_inventory.store_id', activeStoreId)
+    .order('name')
+    .limit(PRODUCT_LIMIT)
+    .returns<ProductQueryResult[]>()
 
   const { data: products, error: productsError } = productsQueryResult
 
-  // Update storeInfo from parallel result
+  // Fetch store info when the active store differs from the user's default store
+  // (covers both admins selecting a store via URL and managers switching stores)
   let storeInfo = profile.store
-  if (storeInfoResult.data) {
-    storeInfo = storeInfoResult.data
+  if (activeStoreId && activeStoreId !== profile?.store_id) {
+    const { data } = await supabase
+      .from('stores')
+      .select('id, name, address, phone')
+      .eq('id', activeStoreId)
+      .single()
+    if (data) storeInfo = data
   }
 
   if (productsError) {
