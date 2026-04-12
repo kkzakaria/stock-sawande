@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Stock movement types from database enum
 export type StockMovementType =
@@ -197,8 +198,10 @@ export async function createStockMovement(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, userProfile.store_id)
+
     // Verify user has access to this store
-    if (userProfile.role !== 'admin' && userProfile.store_id !== validated.store_id) {
+    if (!hasStoreAccess(userProfile.role, accessibleStoreIds, validated.store_id)) {
       return { success: false, error: 'Access denied to this store' }
     }
 
@@ -273,23 +276,25 @@ export async function getProductStats(
       return { success: false, error: 'Product not found' }
     }
 
-    // Get inventory data for current store (needed for quantity)
+    // Get inventory data for accessible stores (needed for quantity)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('store_id')
+      .select('store_id, role')
       .eq('id', user.id)
       .single()
 
     let currentQuantity = 0
-    if (profile?.store_id) {
-      const { data: inventory } = await supabase
-        .from('product_inventory')
-        .select('quantity')
-        .eq('product_id', productId)
-        .eq('store_id', profile.store_id)
-        .single()
+    if (profile) {
+      const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+      if (accessibleStoreIds.length > 0) {
+        const { data: inventoryRows } = await supabase
+          .from('product_inventory')
+          .select('quantity')
+          .eq('product_id', productId)
+          .in('store_id', accessibleStoreIds)
 
-      currentQuantity = inventory?.quantity || 0
+        currentQuantity = (inventoryRows || []).reduce((sum, row) => sum + (row.quantity || 0), 0)
+      }
     }
 
     // Calculate date range

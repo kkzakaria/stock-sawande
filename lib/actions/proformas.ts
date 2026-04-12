@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { ProformaFilters } from '@/lib/types/filters'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Types
 interface ActionResult<T = unknown> {
@@ -128,6 +129,8 @@ export async function getProformas(filters: ProformaFilters): Promise<ActionResu
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Build query
     let query = supabase
       .from('proformas')
@@ -158,9 +161,9 @@ export async function getProformas(filters: ProformaFilters): Promise<ActionResu
     if (profile.role === 'cashier') {
       // Cashiers can only see their own proformas
       query = query.eq('created_by', user.id)
-    } else if (profile.role === 'manager' && profile.store_id) {
-      // Managers can only see their store's proformas
-      query = query.eq('store_id', profile.store_id)
+    } else if (profile.role !== 'admin') {
+      // Managers see all their accessible stores' proformas
+      query = query.in('store_id', accessibleStoreIds)
     } else if (filters.store) {
       // Admin can filter by store
       query = query.eq('store_id', filters.store)
@@ -256,6 +259,8 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch proforma and items in parallel (both use known proformaId)
     const [proformaResult, itemsResult] = await Promise.all([
       supabase
@@ -318,8 +323,8 @@ export async function getProformaDetail(proformaId: string): Promise<ActionResul
       if (createdBy?.id !== user.id) {
         return { success: false, error: 'Access denied' }
       }
-    } else if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
-      // Managers can only view their store's proformas
+    } else if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
+      // Managers can only view their accessible stores' proformas
       return { success: false, error: 'Access denied' }
     }
 
@@ -370,12 +375,10 @@ export async function createProforma(
       return { success: false, error: 'Profile not found' }
     }
 
-    // Validate store access
-    if (profile.role === 'manager' && profile.store_id && profile.store_id !== validated.store_id) {
-      return { success: false, error: 'Access denied to this store' }
-    }
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
-    if (profile.role === 'cashier' && profile.store_id && profile.store_id !== validated.store_id) {
+    // Validate store access
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, validated.store_id)) {
       return { success: false, error: 'Access denied to this store' }
     }
 
@@ -481,6 +484,8 @@ export async function updateProforma(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch existing proforma
     const { data: proforma, error: fetchError } = await supabase
       .from('proformas')
@@ -502,7 +507,7 @@ export async function updateProforma(
       return { success: false, error: 'Access denied' }
     }
 
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 
@@ -613,6 +618,8 @@ export async function updateProformaStatus(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch existing proforma
     const { data: proforma, error: fetchError } = await supabase
       .from('proformas')
@@ -629,7 +636,7 @@ export async function updateProformaStatus(
       return { success: false, error: 'Access denied' }
     }
 
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 
@@ -711,6 +718,8 @@ export async function deleteProforma(proformaId: string): Promise<ActionResult> 
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch existing proforma
     const { data: proforma, error: fetchError } = await supabase
       .from('proformas')
@@ -723,7 +732,7 @@ export async function deleteProforma(proformaId: string): Promise<ActionResult> 
     }
 
     // Access control
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 
@@ -780,6 +789,8 @@ export async function convertProformaToSale(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch proforma with items
     const { data: proforma, error: proformaError } = await supabase
       .from('proformas')
@@ -807,7 +818,7 @@ export async function convertProformaToSale(
       return { success: false, error: 'Access denied' }
     }
 
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 
@@ -1021,12 +1032,10 @@ export async function createPOSProforma(
       return { success: false, error: 'Profile not found' }
     }
 
-    // Validate store access
-    if (profile.role === 'manager' && profile.store_id && profile.store_id !== validated.store_id) {
-      return { success: false, error: 'Access denied to this store' }
-    }
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
-    if (profile.role === 'cashier' && profile.store_id && profile.store_id !== validated.store_id) {
+    // Validate store access
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, validated.store_id)) {
       return { success: false, error: 'Access denied to this store' }
     }
 
@@ -1179,6 +1188,8 @@ export async function duplicateProforma(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch proforma with items
     const { data: proforma, error: proformaError } = await supabase
       .from('proformas')
@@ -1205,7 +1216,7 @@ export async function duplicateProforma(
       return { success: false, error: 'Access denied' }
     }
 
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 

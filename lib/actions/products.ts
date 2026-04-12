@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { after } from 'next/server'
 import { z } from 'zod'
 import { deleteStorageFile } from './storage'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Base validation schema for product template (without refine, so it can be extended)
 const productTemplateBaseSchema = z.object({
@@ -140,6 +141,8 @@ export async function createProduct(data: ProductMultiStoreInput): Promise<Actio
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Validate input
     const validated = productMultiStoreSchema.parse(data)
 
@@ -156,8 +159,8 @@ export async function createProduct(data: ProductMultiStoreInput): Promise<Actio
       if (!validated.store_id || validated.quantity === undefined) {
         return { success: false, error: 'Store and quantity are required' }
       }
-      // Managers can only create products for their store
-      if (profile.role === 'manager' && validated.store_id !== profile.store_id) {
+      // Managers can only create products for their accessible stores
+      if (!hasStoreAccess(profile.role, accessibleStoreIds, validated.store_id)) {
         return { success: false, error: 'You can only create products for your assigned store' }
       }
     }
@@ -267,6 +270,8 @@ export async function updateProduct(id: string, data: Partial<ProductInput>): Pr
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Separate template and inventory updates
     const { store_id, quantity, ...templateUpdates } = data
 
@@ -332,7 +337,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>): Pr
     // Update inventory if quantity or store_id is provided
     if (quantity !== undefined && store_id) {
       // Check if user has permission for this store
-      if (profile.role === 'manager' && store_id !== profile.store_id) {
+      if (!hasStoreAccess(profile.role, accessibleStoreIds, store_id)) {
         return { success: false, error: 'You can only update inventory in your assigned store' }
       }
 
@@ -459,13 +464,20 @@ export async function getProducts(filters: ProductFilters = {}) {
     const isAdmin = profile.role === 'admin'
     const userRole = profile.role
 
-    // For non-admin users with a store, fetch products with both their store's quantity and totals
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
+    // Fail-closed: non-admin with no store assignments gets nothing
+    if (!isAdmin && accessibleStoreIds.length === 0) {
+      return { success: false, error: 'No store assigned. Contact your administrator.', data: [], totalCount: 0, userRole }
+    }
+
+    // For non-admin users with accessible stores, fetch products with their stores' quantity and totals
     // RLS now allows reading all inventory, so we can see true totals
-    if (!isAdmin && profile.store_id) {
+    if (!isAdmin && accessibleStoreIds.length > 0) {
       // Get aggregated totals and store inventory concurrently
       const [aggResult, invResult] = await Promise.all([
         (supabase.from as (table: string) => ReturnType<typeof supabase.from>)('products_aggregated').select('*'),
-        supabase.from('product_inventory').select('product_id, quantity').eq('store_id', profile.store_id),
+        supabase.from('product_inventory').select('product_id, quantity').in('store_id', accessibleStoreIds),
       ])
 
       if (aggResult.error) {
@@ -480,10 +492,10 @@ export async function getProducts(filters: ProductFilters = {}) {
       const aggregatedProducts = aggResult.data
       const storeInventory = invResult.data
 
-      // Create a map of product_id -> my_quantity
+      // Create a map of product_id -> my_quantity (sum across all accessible stores)
       const myInventoryMap = new Map<string, number>()
       for (const inv of storeInventory || []) {
-        myInventoryMap.set(inv.product_id, inv.quantity)
+        myInventoryMap.set(inv.product_id, (myInventoryMap.get(inv.product_id) ?? 0) + inv.quantity)
       }
 
       // Merge the data: add my_quantity to each aggregated product
@@ -675,9 +687,16 @@ export async function getProduct(id: string) {
       stores: { id: string; name: string } | null
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
+    // Fail-closed: non-admin with no store assignments gets nothing
+    if (profile.role !== 'admin' && accessibleStoreIds.length === 0) {
+      return { success: false, error: 'No store assigned. Contact your administrator.', data: null }
+    }
+
     let inventories = (template.product_inventory || []) as InventoryWithStore[]
-    if (profile.role !== 'admin' && profile.store_id) {
-      inventories = inventories.filter(inv => inv.store_id === profile.store_id)
+    if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
+      inventories = inventories.filter(inv => accessibleStoreIds.includes(inv.store_id))
     }
 
     // Extract category from joined data
@@ -813,14 +832,19 @@ export async function getStores() {
       return { success: false, error: 'Profile not found', data: [] }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     let query = supabase
       .from('stores')
       .select('id, name')
       .order('name')
 
-    // Non-admins only see their assigned store
-    if (profile.role !== 'admin' && profile.store_id) {
-      query = query.eq('id', profile.store_id)
+    // Non-admins only see their accessible stores
+    if (profile.role !== 'admin') {
+      if (accessibleStoreIds.length === 0) {
+        return { success: true, data: [] }
+      }
+      query = query.in('id', accessibleStoreIds)
     }
 
     const { data: stores, error } = await query
@@ -866,6 +890,8 @@ export async function adjustQuantity(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Get current inventory
     const { data: inventory } = await supabase
       .from('product_inventory')
@@ -879,7 +905,7 @@ export async function adjustQuantity(
     }
 
     // Verify access
-    if (profile.role !== 'admin' && storeId !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, storeId)) {
       return { success: false, error: 'Access denied to this store inventory' }
     }
 
@@ -1058,8 +1084,10 @@ export async function addProductToStore(
       return { success: false, error: 'Insufficient permissions' }
     }
 
-    // Managers can only add products to their assigned store
-    if (profile.role === 'manager' && storeId !== profile.store_id) {
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
+    // Managers can only add products to their accessible stores
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, storeId)) {
       return { success: false, error: 'You can only add products to your assigned store' }
     }
 
@@ -1144,6 +1172,8 @@ export async function updateMultiStoreInventory(
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Validate inventories array
     if (!inventories || inventories.length === 0) {
       return { success: false, error: 'At least one inventory update is required' }
@@ -1154,8 +1184,8 @@ export async function updateMultiStoreInventory(
       if (inv.quantity < 0 || !Number.isInteger(inv.quantity)) {
         return { success: false, error: 'All quantities must be non-negative integers' }
       }
-      // Managers can only update their own store
-      if (profile.role === 'manager' && inv.storeId !== profile.store_id) {
+      // Managers can only update their accessible stores
+      if (!hasStoreAccess(profile.role, accessibleStoreIds, inv.storeId)) {
         return { success: false, error: 'You can only update inventory for your assigned store' }
       }
     }

@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { getUserAccessibleStoreIds, hasStoreAccess as checkStoreAccess } from '@/lib/helpers/store-access'
 
 export async function GET(request: Request) {
   try {
@@ -39,13 +40,14 @@ export async function GET(request: Request) {
     }
 
     const isAdmin = profile.role === 'admin'
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
     // Determine which store to query
     let storeId: string | null = null
 
     if (requestedStoreId) {
       // If storeId is provided, verify access
-      if (isAdmin || profile.store_id === requestedStoreId) {
+      if (checkStoreAccess(profile.role, accessibleStoreIds, requestedStoreId)) {
         storeId = requestedStoreId
       } else {
         return NextResponse.json(
@@ -55,13 +57,13 @@ export async function GET(request: Request) {
       }
     } else {
       // No storeId provided - use assigned store for non-admins
-      if (!isAdmin && !profile.store_id) {
+      if (!isAdmin && accessibleStoreIds.length === 0) {
         return NextResponse.json(
           { error: 'User not assigned to a store' },
           { status: 400 }
         )
       }
-      storeId = profile.store_id
+      storeId = accessibleStoreIds[0] ?? null
     }
 
     // Build query for active session
@@ -146,12 +148,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Admins can open sessions in any store
-    // Managers and cashiers can only open sessions in their assigned store
-    const isAdmin = profile.role === 'admin'
-    const hasStoreAccess = profile.store_id === body.storeId
+    // Verify store access (multi-store aware)
+    const accessibleStoreIdsPost = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
-    if (!isAdmin && !hasStoreAccess) {
+    if (!checkStoreAccess(profile.role, accessibleStoreIdsPost, body.storeId)) {
       return NextResponse.json(
         { error: 'You are not authorized to open sessions for this store' },
         { status: 403 }

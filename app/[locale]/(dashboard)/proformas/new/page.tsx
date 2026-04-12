@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ProformaForm } from '@/components/proformas/proforma-form'
 import { Button } from '@/components/ui/button'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
+import { getUserAccessibleStoreIds, getUserDefaultStoreId } from '@/lib/helpers/store-access'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
@@ -52,6 +53,9 @@ export default async function NewProformaPage() {
   const customers = customersResult.data || []
   const stores = storesResult.data || []
 
+  const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+  const defaultStoreId = await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -73,7 +77,7 @@ export default async function NewProformaPage() {
         customers={customers}
         stores={stores}
         userRole={profile.role}
-        userStoreId={profile.store_id}
+        userStoreId={defaultStoreId}
       />
     </div>
   )

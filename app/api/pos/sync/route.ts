@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 import { resolveTransactionConflicts } from '@/lib/offline/conflict-resolver'
 import type { PendingTransactionItem } from '@/lib/offline/db-schema'
 
@@ -86,12 +87,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Fetch profile + accessible stores once for the entire batch
+    const { data: batchProfile } = await supabase
+      .from('profiles')
+      .select('store_id, role')
+      .eq('id', user.id)
+      .single()
+
+    const batchAccessibleStoreIds = batchProfile
+      ? await getUserAccessibleStoreIds(supabase, user.id, batchProfile.store_id)
+      : []
+
     const results: SyncResult[] = []
 
     // Process each transaction
     for (const tx of transactions) {
       try {
-        const result = await processTransaction(supabase, tx, user.id)
+        const result = await processTransaction(supabase, tx, user.id, batchProfile, batchAccessibleStoreIds)
         results.push(result)
       } catch (error) {
         results.push({
@@ -119,15 +131,11 @@ export async function POST(request: NextRequest) {
 async function processTransaction(
   supabase: Awaited<ReturnType<typeof createClient>>,
   tx: SyncTransactionRequest,
-  userId: string
+  userId: string,
+  profile: { store_id: string | null; role: string } | null,
+  accessibleStoreIds: string[]
 ): Promise<SyncResult> {
   // Verify user has access to this store
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('store_id, role')
-    .eq('id', userId)
-    .single()
-
   if (!profile) {
     return {
       localId: tx.localId,
@@ -136,12 +144,7 @@ async function processTransaction(
     }
   }
 
-  // Admins can sync transactions for any store
-  // Managers and cashiers can only sync for their assigned store
-  const isAdmin = profile.role === 'admin'
-  const hasStoreAccess = profile.store_id === tx.storeId
-
-  if (!isAdmin && !hasStoreAccess) {
+  if (!hasStoreAccess(profile.role, accessibleStoreIds, tx.storeId)) {
     return {
       localId: tx.localId,
       status: 'failed',

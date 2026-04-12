@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,12 +46,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Admins can sync products from any store
-    // Managers and cashiers can only sync from their assigned store
-    const isAdmin = profile.role === 'admin'
-    const hasStoreAccess = profile.store_id === storeId
+    // Verify store access (multi-store aware)
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
 
-    if (!isAdmin && !hasStoreAccess) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, storeId)) {
       return NextResponse.json(
         { error: 'Unauthorized: user not assigned to this store' },
         { status: 403 }

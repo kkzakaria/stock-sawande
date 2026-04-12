@@ -10,6 +10,7 @@ import { POSClient } from '@/components/pos/pos-client'
 import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
+import { getUserAccessibleStoreIds, getUserDefaultStoreId } from '@/lib/helpers/store-access'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -86,12 +87,17 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     )
   }
 
+  if ('error' in storeCountResult && storeCountResult.error) {
+    console.error('[POS] Failed to fetch store count:', storeCountResult.error)
+  }
   const availableStoresCount = storeCountResult.count || 0
   const canSelectStore = isManagerOrAdmin && availableStoresCount > 1
 
   // For admins: use store from URL param (session-based, not persisted)
-  // For managers/cashiers: use their assigned store from profile
-  const activeStoreId = isAdmin ? storeFromUrl : profile.store_id
+  // For managers/cashiers: use their assigned store(s)
+  const accessibleStoreIds = isAdmin ? [] : await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+  const defaultStoreId = isAdmin ? null : await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)
+  const activeStoreId = isAdmin ? storeFromUrl : (storeFromUrl && accessibleStoreIds.includes(storeFromUrl) ? storeFromUrl : defaultStoreId)
 
   // Show store selector if:
   // - Admin without URL store param (free choice each session)
@@ -145,29 +151,30 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     }>
   }
 
-  // Fetch products and optional admin store info in parallel
-  const [productsQueryResult, storeInfoResult] = await Promise.all([
-    supabase
-      .from('product_templates')
-      .select(
-        'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
-      )
-      .eq('is_active', true)
-      .eq('product_inventory.store_id', activeStoreId)
-      .order('name')
-      .limit(PRODUCT_LIMIT)
-      .returns<ProductQueryResult[]>(),
-    isAdmin && storeFromUrl
-      ? supabase.from('stores').select('id, name, address, phone').eq('id', storeFromUrl).single()
-      : Promise.resolve({ data: null, error: null }),
-  ])
+  // Fetch products for the active store
+  const productsQueryResult = await supabase
+    .from('product_templates')
+    .select(
+      'id, sku, name, price, min_price, max_price, barcode, image_url, category:categories(id, name), inventory:product_inventory!inner(id, quantity, store_id, stores:store_id(name))'
+    )
+    .eq('is_active', true)
+    .eq('product_inventory.store_id', activeStoreId)
+    .order('name')
+    .limit(PRODUCT_LIMIT)
+    .returns<ProductQueryResult[]>()
 
   const { data: products, error: productsError } = productsQueryResult
 
-  // Update storeInfo from parallel result
+  // Fetch store info when the active store differs from the user's default store
+  // (covers both admins selecting a store via URL and managers switching stores)
   let storeInfo = profile.store
-  if (storeInfoResult.data) {
-    storeInfo = storeInfoResult.data
+  if (activeStoreId && activeStoreId !== profile?.store_id) {
+    const { data } = await supabase
+      .from('stores')
+      .select('id, name, address, phone')
+      .eq('id', activeStoreId)
+      .single()
+    if (data) storeInfo = data
   }
 
   if (productsError) {

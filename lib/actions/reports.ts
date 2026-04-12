@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { ReportFilters } from '@/lib/types/filters'
+import { getUserAccessibleStoreIds } from '@/lib/helpers/store-access'
 
 // Types
 interface ActionResult<T = unknown> {
@@ -147,10 +148,16 @@ export async function getSalesReport(filters: ReportFilters): Promise<ActionResu
       return { success: false, error: 'Access denied' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Calculate date range with defaults
@@ -304,10 +311,16 @@ export async function getInventoryReport(filters: ReportFilters): Promise<Action
       return { success: false, error: 'Access denied' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Get inventory report data
@@ -419,10 +432,16 @@ export async function getPerformanceReport(filters: ReportFilters): Promise<Acti
       return { success: false, error: 'Access denied' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role === 'manager' && profile.store_id) {
-      effectiveStoreId = profile.store_id
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Calculate date range with defaults
