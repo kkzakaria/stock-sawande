@@ -1,3 +1,4 @@
+Connecting to db 5432
 export type Json =
   | string
   | number
@@ -233,6 +234,49 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      checkout_idempotency: {
+        Row: {
+          cashier_id: string
+          created_at: string
+          key: string
+          sale_id: string
+        }
+        Insert: {
+          cashier_id: string
+          created_at?: string
+          key: string
+          sale_id: string
+        }
+        Update: {
+          cashier_id?: string
+          created_at?: string
+          key?: string
+          sale_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkout_idempotency_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "active_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_idempotency_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkout_idempotency_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {
@@ -1510,6 +1554,23 @@ export type Database = {
         }[]
       }
       is_user_active: { Args: { check_user_id: string }; Returns: boolean }
+      process_checkout: {
+        Args: {
+          p_cash_session_id?: string
+          p_cashier_id: string
+          p_customer_id?: string
+          p_discount?: number
+          p_idempotency_key?: string
+          p_items?: Json
+          p_notes?: string
+          p_payment_method?: string
+          p_store_id: string
+          p_subtotal?: number
+          p_tax?: number
+          p_total?: number
+        }
+        Returns: Json
+      }
       restore_deleted_user: { Args: { target_user_id: string }; Returns: Json }
       soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
       update_expired_proformas: { Args: never; Returns: number }
