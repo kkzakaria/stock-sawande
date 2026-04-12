@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Stock movement types from database enum
 export type StockMovementType =
@@ -197,8 +198,10 @@ export async function createStockMovement(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, userProfile.store_id)
+
     // Verify user has access to this store
-    if (userProfile.role !== 'admin' && userProfile.store_id !== validated.store_id) {
+    if (!hasStoreAccess(userProfile.role, accessibleStoreIds, validated.store_id)) {
       return { success: false, error: 'Access denied to this store' }
     }
 

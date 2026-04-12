@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getCachedUser, getCachedProfile } from '@/lib/server/cached-queries'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Types
 interface ActionResult<T = unknown> {
@@ -68,12 +69,13 @@ async function getActionContext(requestedStoreId?: string) {
     return { error: 'Profile not found', profile: null, effectiveStoreId: undefined }
   }
 
+  const supabase = await createClient()
+  const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
   // Determine effective store ID based on role
   let effectiveStoreId = requestedStoreId
-  if (profile.role === 'manager' && profile.store_id) {
-    effectiveStoreId = profile.store_id
-  } else if (profile.role === 'cashier') {
-    effectiveStoreId = profile.store_id ?? undefined
+  if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
+    effectiveStoreId = accessibleStoreIds[0] // default store
   }
 
   return { error: null, profile, effectiveStoreId }

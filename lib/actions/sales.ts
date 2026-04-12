@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import type { SaleFilters } from '@/lib/types/filters'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 // Types
 interface ActionResult<T = unknown> {
@@ -88,6 +89,8 @@ export async function getSales(filters: SaleFilters): Promise<ActionResult<Sales
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Build query
     let query = supabase
       .from('sales')
@@ -113,9 +116,9 @@ export async function getSales(filters: SaleFilters): Promise<ActionResult<Sales
     if (profile.role === 'cashier') {
       // Cashiers can only see their own sales
       query = query.eq('cashier_id', user.id)
-    } else if (profile.role === 'manager' && profile.store_id) {
-      // Managers can only see their store's sales
-      query = query.eq('store_id', profile.store_id)
+    } else if (profile.role !== 'admin') {
+      // Managers see all their accessible stores' sales
+      query = query.in('store_id', accessibleStoreIds)
     } else if (filters.store) {
       // Admin can filter by store
       query = query.eq('store_id', filters.store)
@@ -206,6 +209,8 @@ export async function getSaleDetail(saleId: string): Promise<ActionResult<SaleDe
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch sale with relations
     const { data: sale, error: saleError } = await supabase
       .from('sales')
@@ -242,8 +247,8 @@ export async function getSaleDetail(saleId: string): Promise<ActionResult<SaleDe
       if (sale.cashier_id !== user.id) {
         return { success: false, error: 'Access denied' }
       }
-    } else if (profile.role === 'manager' && profile.store_id && sale.store_id !== profile.store_id) {
-      // Managers can only view their store's sales
+    } else if (!hasStoreAccess(profile.role, accessibleStoreIds, sale.store_id)) {
+      // Managers can only view their accessible stores' sales
       return { success: false, error: 'Access denied' }
     }
 
@@ -312,6 +317,8 @@ export async function refundSale(
       return { success: false, error: 'Insufficient permissions' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch the sale
     const { data: sale, error: saleError } = await supabase
       .from('sales')
@@ -323,8 +330,8 @@ export async function refundSale(
       return { success: false, error: 'Sale not found' }
     }
 
-    // Managers can only refund their store's sales
-    if (profile.role === 'manager' && profile.store_id && sale.store_id !== profile.store_id) {
+    // Managers can only refund their accessible stores' sales
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, sale.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 
