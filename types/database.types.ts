@@ -1574,6 +1574,10 @@ export type Database = {
       soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
       update_expired_proformas: { Args: never; Returns: number }
       user_has_pin: { Args: { user_uuid: string }; Returns: boolean }
+      user_has_store_access: {
+        Args: { target_store_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       cash_session_status: "open" | "closed" | "locked"
