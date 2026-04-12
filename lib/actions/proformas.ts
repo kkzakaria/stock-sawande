@@ -1188,6 +1188,8 @@ export async function duplicateProforma(
       return { success: false, error: 'Profile not found' }
     }
 
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+
     // Fetch proforma with items
     const { data: proforma, error: proformaError } = await supabase
       .from('proformas')
@@ -1214,7 +1216,7 @@ export async function duplicateProforma(
       return { success: false, error: 'Access denied' }
     }
 
-    if (profile.role === 'manager' && profile.store_id && proforma.store_id !== profile.store_id) {
+    if (!hasStoreAccess(profile.role, accessibleStoreIds, proforma.store_id)) {
       return { success: false, error: 'Access denied' }
     }
 

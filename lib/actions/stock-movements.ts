@@ -276,23 +276,25 @@ export async function getProductStats(
       return { success: false, error: 'Product not found' }
     }
 
-    // Get inventory data for current store (needed for quantity)
+    // Get inventory data for accessible stores (needed for quantity)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('store_id')
+      .select('store_id, role')
       .eq('id', user.id)
       .single()
 
     let currentQuantity = 0
-    if (profile?.store_id) {
-      const { data: inventory } = await supabase
-        .from('product_inventory')
-        .select('quantity')
-        .eq('product_id', productId)
-        .eq('store_id', profile.store_id)
-        .single()
+    if (profile) {
+      const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+      if (accessibleStoreIds.length > 0) {
+        const { data: inventoryRows } = await supabase
+          .from('product_inventory')
+          .select('quantity')
+          .eq('product_id', productId)
+          .in('store_id', accessibleStoreIds)
 
-      currentQuantity = inventory?.quantity || 0
+        currentQuantity = (inventoryRows || []).reduce((sum, row) => sum + (row.quantity || 0), 0)
+      }
     }
 
     // Calculate date range

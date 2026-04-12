@@ -152,8 +152,12 @@ export async function getSalesReport(filters: ReportFilters): Promise<ActionResu
 
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
-      effectiveStoreId = accessibleStoreIds[0]
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Calculate date range with defaults
@@ -311,8 +315,12 @@ export async function getInventoryReport(filters: ReportFilters): Promise<Action
 
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
-      effectiveStoreId = accessibleStoreIds[0]
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Get inventory report data
@@ -428,8 +436,12 @@ export async function getPerformanceReport(filters: ReportFilters): Promise<Acti
 
     // Determine effective store ID
     let effectiveStoreId = filters.store
-    if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
-      effectiveStoreId = accessibleStoreIds[0]
+    if (profile.role !== 'admin') {
+      if (filters.store && accessibleStoreIds.includes(filters.store)) {
+        effectiveStoreId = filters.store
+      } else if (accessibleStoreIds.length > 0) {
+        effectiveStoreId = accessibleStoreIds[0]
+      }
     }
 
     // Calculate date range with defaults

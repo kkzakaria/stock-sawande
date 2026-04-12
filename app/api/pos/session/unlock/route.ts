@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
+import { hasStoreAccess } from '@/lib/helpers/store-access'
 
 interface UnlockSessionRequest {
   sessionId: string
@@ -119,7 +119,12 @@ export async function POST(request: Request) {
       }
 
       // Verify validator has access to the session's store (multi-store aware)
-      const validatorStoreIds = await getUserAccessibleStoreIds(supabase, validatorProfile.id, validatorProfile.store_id)
+      // Use service client to bypass RLS for cross-user store lookup
+      const { data: validatorStores } = await serviceClient
+        .from('user_stores')
+        .select('store_id')
+        .eq('user_id', validatorProfile.id)
+      const validatorStoreIds = validatorStores?.map(s => s.store_id).filter(Boolean) as string[] ?? (validatorProfile.store_id ? [validatorProfile.store_id] : [])
       if (!hasStoreAccess(validatorProfile.role, validatorStoreIds, session.store_id)) {
         return NextResponse.json(
           { error: 'Manager must be from the same store' },

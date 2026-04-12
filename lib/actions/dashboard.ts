@@ -74,8 +74,12 @@ async function getActionContext(requestedStoreId?: string) {
 
   // Determine effective store ID based on role
   let effectiveStoreId = requestedStoreId
-  if (profile.role !== 'admin' && accessibleStoreIds.length > 0) {
-    effectiveStoreId = accessibleStoreIds[0] // default store
+  if (profile.role !== 'admin') {
+    if (requestedStoreId && accessibleStoreIds.includes(requestedStoreId)) {
+      effectiveStoreId = requestedStoreId
+    } else if (accessibleStoreIds.length > 0) {
+      effectiveStoreId = accessibleStoreIds[0]
+    }
   }
 
   return { error: null, profile, effectiveStoreId }

@@ -23,12 +23,18 @@ export async function getUserAccessibleStoreIds(
   userId: string,
   profileStoreId?: string | null
 ): Promise<string[]> {
-  const { data: userStores } = await supabase
+  const { data: userStores, error } = await supabase
     .from('user_stores')
     .select('store_id')
     .eq('user_id', userId)
 
-  const storeIds = userStores?.map(us => us.store_id).filter(Boolean) as string[] ?? []
+  if (error) {
+    console.error('Failed to fetch user store assignments:', error, { userId })
+    // Fall back to profile store_id rather than crashing
+    return profileStoreId ? [profileStoreId] : []
+  }
+
+  const storeIds = userStores?.map(us => us.store_id).filter((id): id is string => Boolean(id)) ?? []
 
   // Fallback: if user_stores is empty but profiles.store_id exists
   if (storeIds.length === 0 && profileStoreId) {
