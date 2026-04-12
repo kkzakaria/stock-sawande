@@ -70,6 +70,7 @@ SELECT ok(
   public.user_has_store_access((SELECT store_c FROM _ms_fixtures)),
   'Test 2: admin has access to unassigned Store C'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -80,6 +81,7 @@ SELECT ok(
   public.user_has_store_access((SELECT store_a FROM _ms_fixtures)),
   'Test 3: multi-store manager has access to Store A'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -90,6 +92,7 @@ SELECT ok(
   public.user_has_store_access((SELECT store_b FROM _ms_fixtures)),
   'Test 4: multi-store manager has access to Store B'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -100,6 +103,7 @@ SELECT ok(
   NOT public.user_has_store_access((SELECT store_c FROM _ms_fixtures)),
   'Test 5: multi-store manager blocked from Store C'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -110,6 +114,7 @@ SELECT ok(
   public.user_has_store_access((SELECT store_a FROM _ms_fixtures)),
   'Test 6: single-store manager has access to Store A'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -120,6 +125,7 @@ SELECT ok(
   NOT public.user_has_store_access((SELECT store_b FROM _ms_fixtures)),
   'Test 7: single-store manager blocked from Store B'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -130,6 +136,7 @@ SELECT ok(
   public.user_has_store_access((SELECT store_a FROM _ms_fixtures)),
   'Test 8: cashier has access to assigned Store A'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -140,6 +147,7 @@ SELECT ok(
   NOT public.user_has_store_access((SELECT store_b FROM _ms_fixtures)),
   'Test 9: cashier blocked from Store B'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 -- ============================================================
@@ -188,6 +196,7 @@ SELECT ok(
   NOT public.user_has_store_access(NULL),
   'Test 12: NULL store_id returns false'
 );
+RESET ROLE;
 SELECT tests.clear_authentication();
 
 SELECT * FROM finish();
