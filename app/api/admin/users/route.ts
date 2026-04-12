@@ -2,18 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-
-// UUID regex that accepts any UUID format (not just RFC 4122 compliant)
-const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-const createUserSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  full_name: z.string().optional(),
-  role: z.enum(['admin', 'manager', 'cashier']).default('cashier'),
-  store_ids: z.array(z.string().regex(uuidRegex, 'Invalid UUID')).optional(),
-  default_store_id: z.string().regex(uuidRegex, 'Invalid UUID').optional(),
-})
+import { createUserSchema } from './schema'
 
 export async function POST(request: Request) {
   try {
@@ -78,7 +67,11 @@ export async function POST(request: Request) {
 
     if (profileError) {
       console.error('Profile update error:', profileError)
-      // Don't fail the whole operation, profile exists with defaults
+      await adminClient.auth.admin.deleteUser(newUserId).catch(() => {})
+      return NextResponse.json(
+        { success: false, error: 'Failed to set user profile; rolled back' },
+        { status: 500 }
+      )
     }
 
     // 5. Create store assignments if provided
@@ -93,6 +86,11 @@ export async function POST(request: Request) {
 
       if (storesError) {
         console.error('Store assignment error:', storesError)
+        await adminClient.auth.admin.deleteUser(newUserId).catch(() => {})
+        return NextResponse.json(
+          { success: false, error: 'Failed to assign stores; rolled back' },
+          { status: 500 }
+        )
       }
 
       // Update profile's store_id to default store
