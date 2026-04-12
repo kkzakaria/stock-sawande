@@ -1365,10 +1365,6 @@ export type Database = {
       }
     }
     Functions: {
-      change_user_role: {
-        Args: { new_role: string; user_email: string }
-        Returns: undefined
-      }
       generate_proforma_number: {
         Args: { store_uuid: string }
         Returns: string
