@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 import { resolveTransactionConflicts } from '@/lib/offline/conflict-resolver'
 import type { PendingTransactionItem } from '@/lib/offline/db-schema'
 
@@ -136,12 +137,10 @@ async function processTransaction(
     }
   }
 
-  // Admins can sync transactions for any store
-  // Managers and cashiers can only sync for their assigned store
-  const isAdmin = profile.role === 'admin'
-  const hasStoreAccess = profile.store_id === tx.storeId
+  // Verify store access (multi-store aware)
+  const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, userId, profile.store_id)
 
-  if (!isAdmin && !hasStoreAccess) {
+  if (!hasStoreAccess(profile.role, accessibleStoreIds, tx.storeId)) {
     return {
       localId: tx.localId,
       status: 'failed',

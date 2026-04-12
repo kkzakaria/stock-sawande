@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 interface UnlockSessionRequest {
   sessionId: string
@@ -117,11 +118,9 @@ export async function POST(request: Request) {
         )
       }
 
-      // Verify validator is from same store (unless admin)
-      if (
-        validatorProfile.role === 'manager' &&
-        validatorProfile.store_id !== profile.store_id
-      ) {
+      // Verify validator has access to the session's store (multi-store aware)
+      const validatorStoreIds = await getUserAccessibleStoreIds(supabase, validatorProfile.id, validatorProfile.store_id)
+      if (!hasStoreAccess(validatorProfile.role, validatorStoreIds, session.store_id)) {
         return NextResponse.json(
           { error: 'Manager must be from the same store' },
           { status: 403 }

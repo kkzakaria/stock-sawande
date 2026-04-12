@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ReportsClient } from '@/components/reports/reports-client'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
+import { getUserAccessibleStoreIds } from '@/lib/helpers/store-access'
 
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
@@ -41,10 +42,11 @@ export default async function ReportsPage({ params, searchParams }: ReportsPageP
     .order('name')
 
   if (profile.role !== 'admin') {
-    if (!profile.store_id) {
+    const accessibleStoreIds = await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
+    if (accessibleStoreIds.length === 0) {
       redirect('/dashboard')
     }
-    storesQuery = storesQuery.eq('id', profile.store_id)
+    storesQuery = storesQuery.in('id', accessibleStoreIds)
   }
 
   const { data: stores, error: storesError } = await storesQuery

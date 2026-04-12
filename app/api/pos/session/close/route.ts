@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
+import { getUserAccessibleStoreIds, hasStoreAccess } from '@/lib/helpers/store-access'
 
 interface CloseSessionRequest {
   sessionId: string
@@ -149,11 +150,9 @@ export async function POST(request: Request) {
         )
       }
 
-      // Verify approver is from same store (unless admin)
-      if (
-        approverProfile.role === 'manager' &&
-        approverProfile.store_id !== profile.store_id
-      ) {
+      // Verify approver has access to the session's store (multi-store aware)
+      const approverStoreIds = await getUserAccessibleStoreIds(supabase, approverProfile.id, approverProfile.store_id)
+      if (!hasStoreAccess(approverProfile.role, approverStoreIds, session.store_id)) {
         return NextResponse.json(
           { error: 'Manager must be from the same store' },
           { status: 403 }
