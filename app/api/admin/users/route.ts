@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     if (profileError) {
       console.error('Profile update error:', profileError)
-      await adminClient.auth.admin.deleteUser(newUserId).catch(() => {})
+      await adminClient.auth.admin.deleteUser(newUserId).catch((err) => console.error('CRITICAL: rollback deleteUser failed, orphaned auth user:', newUserId, err))
       return NextResponse.json(
         { success: false, error: 'Failed to set user profile; rolled back' },
         { status: 500 }
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
       if (storesError) {
         console.error('Store assignment error:', storesError)
-        await adminClient.auth.admin.deleteUser(newUserId).catch(() => {})
+        await adminClient.auth.admin.deleteUser(newUserId).catch((err) => console.error('CRITICAL: rollback deleteUser failed, orphaned auth user:', newUserId, err))
         return NextResponse.json(
           { success: false, error: 'Failed to assign stores; rolled back' },
           { status: 500 }
@@ -95,10 +95,14 @@ export async function POST(request: Request) {
 
       // Update profile's store_id to default store
       if (validated.default_store_id) {
-        await adminClient
+        const { error: defaultStoreError } = await adminClient
           .from('profiles')
           .update({ store_id: validated.default_store_id })
           .eq('id', newUserId)
+
+        if (defaultStoreError) {
+          console.error('Failed to set default store (non-fatal):', defaultStoreError)
+        }
       }
     }
 
