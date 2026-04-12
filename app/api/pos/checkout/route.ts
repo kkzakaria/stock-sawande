@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     const { data, error } = await supabase.rpc('process_checkout', {
       p_store_id: body.storeId,
       p_cashier_id: body.cashierId,
-      p_customer_id: body.customerId,
-      p_cash_session_id: body.sessionId ?? null,
+      p_customer_id: body.customerId ?? undefined,
+      p_cash_session_id: body.sessionId ?? undefined,
       p_payment_method: body.paymentMethod,
       p_items: body.items,
       p_subtotal: body.subtotal,
