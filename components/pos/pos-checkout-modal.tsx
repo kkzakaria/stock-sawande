@@ -120,6 +120,7 @@ export function POSCheckoutModal({
         total,
         paymentMethod,
         notes,
+        idempotencyKey: crypto.randomUUID(),
       }),
     })
 
