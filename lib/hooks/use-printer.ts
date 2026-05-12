@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useState } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 import type { ReceiptData } from '@/components/pos/pos-receipt'
 import { printReceipt } from '@/lib/printing/printer-service'
 import {
@@ -13,31 +13,63 @@ import type { PrinterConfig, PrintResult, PrinterError } from '@/lib/printing/ty
 
 type Status = 'idle' | 'printing' | 'error'
 
+// Module-level cache makes getSnapshot return a stable reference until
+// localStorage actually changes. Required by useSyncExternalStore.
+let cachedRaw: string | null | undefined
+let cachedValue: PrinterConfig | null = null
+
+function readSnapshot(): PrinterConfig | null {
+  if (typeof localStorage === 'undefined') return null
+  const raw = localStorage.getItem(PRINTER_CONFIG_KEY)
+  if (raw === cachedRaw) return cachedValue
+  cachedRaw = raw
+  cachedValue = getPrinterConfig()
+  return cachedValue
+}
+
+function getServerSnapshot(): PrinterConfig | null {
+  return null
+}
+
+const localSubscribers = new Set<() => void>()
+
+function notifyLocalChange() {
+  cachedRaw = undefined
+  localSubscribers.forEach((cb) => cb())
+}
+
+function subscribe(callback: () => void): () => void {
+  localSubscribers.add(callback)
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === PRINTER_CONFIG_KEY) {
+      cachedRaw = undefined
+      callback()
+    }
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', onStorage)
+  }
+  return () => {
+    localSubscribers.delete(callback)
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', onStorage)
+    }
+  }
+}
+
 export function usePrinter() {
-  const [config, setConfigState] = useState<PrinterConfig | null>(() =>
-    getPrinterConfig(),
-  )
+  const config = useSyncExternalStore(subscribe, readSnapshot, getServerSnapshot)
   const [status, setStatus] = useState<Status>('idle')
   const [lastError, setLastError] = useState<PrinterError | null>(null)
 
-  useLayoutEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === PRINTER_CONFIG_KEY) {
-        setConfigState(getPrinterConfig())
-      }
-    }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
-  }, [])
-
   const saveConfig = useCallback((next: PrinterConfig) => {
     setPrinterConfig(next)
-    setConfigState(next)
+    notifyLocalChange()
   }, [])
 
   const removeConfig = useCallback(() => {
     clearPrinterConfig()
-    setConfigState(null)
+    notifyLocalChange()
   }, [])
 
   const print = useCallback(async (data: ReceiptData): Promise<PrintResult> => {
