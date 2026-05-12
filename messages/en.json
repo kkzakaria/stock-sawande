@@ -695,6 +695,13 @@
       "warningDescription": "This transaction will be queued and synchronized when connection is restored.",
       "stockWarning": "Stock Warnings"
     },
+    "print": {
+      "starting": "Sending to printer...",
+      "success": "Receipt printed",
+      "failed": "Print failed, opening preview",
+      "testSuccess": "Test receipt sent to printer",
+      "testFailed": "Test print failed"
+    },
     "session": {
       "open": "Open Register",
       "close": "Close Register",
@@ -838,7 +845,8 @@
       "users": "Users",
       "categories": "Categories",
       "business": "Business",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "printer": "Printer"
     },
     "profile": {
       "title": "Profile",
@@ -1111,6 +1119,27 @@
           "accessTokenRequired": "Access token is required"
         }
       }
+    },
+    "printer": {
+      "title": "Thermal printer",
+      "description": "Configure a USB thermal printer for receipts.",
+      "enabled": "Enable thermal printing",
+      "transport": "Connection type",
+      "transportUsb": "USB",
+      "transportBluetooth": "Bluetooth (coming soon)",
+      "transportNetwork": "Network (coming soon)",
+      "width": "Paper width",
+      "width58": "58 mm",
+      "width80": "80 mm",
+      "codepage": "Character set",
+      "autoCut": "Auto-cut paper after printing",
+      "autoPrint": "Print automatically after checkout",
+      "pairUsb": "Pair USB printer",
+      "pairedUsb": "Paired (vendor {vendorId}, product {productId})",
+      "testPrint": "Print test receipt",
+      "save": "Save",
+      "reset": "Reset",
+      "unsupported": "Your browser does not support WebUSB. Use Chrome or Edge."
     }
   },
 

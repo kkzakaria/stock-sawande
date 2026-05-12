@@ -695,6 +695,13 @@
       "warningDescription": "Cette transaction sera mise en file d'attente et synchronisée au retour de la connexion.",
       "stockWarning": "Alertes de stock"
     },
+    "print": {
+      "starting": "Envoi à l'imprimante...",
+      "success": "Ticket imprimé",
+      "failed": "Échec d'impression, ouverture de l'aperçu",
+      "testSuccess": "Ticket test envoyé à l'imprimante",
+      "testFailed": "Échec du test d'impression"
+    },
     "session": {
       "open": "Ouvrir la caisse",
       "close": "Fermer la caisse",
@@ -838,7 +845,8 @@
       "users": "Utilisateurs",
       "categories": "Catégories",
       "business": "Business",
-      "integrations": "Intégrations"
+      "integrations": "Intégrations",
+      "printer": "Imprimante"
     },
     "profile": {
       "title": "Profil",
@@ -1111,6 +1119,27 @@
           "accessTokenRequired": "Le token d'accès est requis"
         }
       }
+    },
+    "printer": {
+      "title": "Imprimante thermique",
+      "description": "Configurer une imprimante thermique USB pour les tickets.",
+      "enabled": "Activer l'impression thermique",
+      "transport": "Type de connexion",
+      "transportUsb": "USB",
+      "transportBluetooth": "Bluetooth (à venir)",
+      "transportNetwork": "Réseau (à venir)",
+      "width": "Largeur du papier",
+      "width58": "58 mm",
+      "width80": "80 mm",
+      "codepage": "Jeu de caractères",
+      "autoCut": "Coupe automatique après impression",
+      "autoPrint": "Imprimer automatiquement après la vente",
+      "pairUsb": "Associer une imprimante USB",
+      "pairedUsb": "Associée (vendeur {vendorId}, produit {productId})",
+      "testPrint": "Imprimer un ticket test",
+      "save": "Enregistrer",
+      "reset": "Réinitialiser",
+      "unsupported": "Votre navigateur ne supporte pas WebUSB. Utilisez Chrome ou Edge."
     }
   },
 
