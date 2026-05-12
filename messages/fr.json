@@ -37,7 +37,6 @@
       "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer."
     }
   },
-
   "Navigation": {
     "dashboard": "Tableau de bord",
     "products": "Produits",
@@ -52,7 +51,6 @@
     "logout": "Déconnexion",
     "menu": "Menu"
   },
-
   "Auth": {
     "login": {
       "title": "Bon retour",
@@ -114,7 +112,6 @@
     "logout": "Se déconnecter",
     "loggingOut": "Déconnexion..."
   },
-
   "Dashboard": {
     "title": "Tableau de bord",
     "welcome": "Bienvenue",
@@ -152,7 +149,6 @@
       "viewAll": "Voir tout"
     }
   },
-
   "Products": {
     "title": "Produits",
     "addProduct": "Ajouter un produit",
@@ -327,7 +323,6 @@
       }
     }
   },
-
   "Sales": {
     "title": "Ventes",
     "searchPlaceholder": "Rechercher des ventes...",
@@ -387,7 +382,6 @@
       "paymentMethod": "Mode de paiement"
     }
   },
-
   "Proformas": {
     "title": "Proformas",
     "createNew": "Nouveau Proforma",
@@ -586,7 +580,6 @@
       "downloadButton": "Télécharger"
     }
   },
-
   "POS": {
     "title": "Point de vente",
     "cart": {
@@ -804,7 +797,8 @@
     },
     "search": {
       "placeholder": "Rechercher un produit...",
-      "noResults": "Aucun produit trouvé"
+      "noResults": "Aucun produit trouvé",
+      "flexiblePrice": "Prix flexible (modifiable au panier)"
     },
     "flexiblePrice": "Prix ajustable",
     "stock": {
@@ -836,7 +830,6 @@
       "cartCleared": "Magasin changé. Le panier a été vidé."
     }
   },
-
   "Settings": {
     "title": "Paramètres",
     "description": "Gérez vos préférences et paramètres de compte",
@@ -1142,7 +1135,6 @@
       "unsupported": "Votre navigateur ne supporte pas WebUSB. Utilisez Chrome ou Edge."
     }
   },
-
   "Reports": {
     "title": "Rapports",
     "description": "Analyses et informations commerciales",
@@ -1243,7 +1235,6 @@
       "noData": "Aucune donnée de performance"
     }
   },
-
   "Stores": {
     "title": "Magasins",
     "description": "Gérer les emplacements et les paramètres des magasins",
@@ -1316,7 +1307,6 @@
       }
     }
   },
-
   "Customers": {
     "title": "Clients",
     "description": "Gérez votre base de données clients",
@@ -1395,7 +1385,6 @@
       "hasProformas": "Impossible de supprimer un client avec des proformas existants"
     }
   },
-
   "DataTable": {
     "loading": "Chargement...",
     "search": "Rechercher...",
@@ -1436,7 +1425,6 @@
     "descending": "Décroissant",
     "apply": "Appliquer"
   },
-
   "Landing": {
     "hero": {
       "title": "Gestion de Stock Moderne et Simple",
@@ -1473,7 +1461,6 @@
       "copyright": "2025 Next Stock. Tous droits réservés."
     }
   },
-
   "ImageUpload": {
     "dragDrop": "Glissez-déposez une image ici",
     "or": "ou",
@@ -1495,7 +1482,6 @@
       "uploadFailed": "Échec du téléchargement de l'image. Veuillez réessayer."
     }
   },
-
   "Errors": {
     "notFound": "Page non trouvée",
     "serverError": "Une erreur est survenue",
@@ -1505,7 +1491,6 @@
     "goBack": "Retour",
     "goHome": "Accueil"
   },
-
   "ProfileDialog": {
     "title": "Mon profil",
     "description": "Gérez vos informations personnelles et paramètres de sécurité",
