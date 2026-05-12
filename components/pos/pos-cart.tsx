@@ -37,6 +37,7 @@ import { buildReceiptFromTransaction } from '@/lib/offline/receipt-utils'
 import { createPOSProforma, type POSProformaResult } from '@/lib/actions/proformas'
 import { AddCustomerDialog } from '@/components/customers/add-customer-dialog'
 import { cn } from '@/lib/utils'
+import { usePrinter } from '@/lib/hooks/use-printer'
 
 interface Customer {
   id: string
@@ -250,6 +251,8 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const t = useTranslations('POS.cart')
   const tQuantity = useTranslations('POS.quantity')
   const tCheckout = useTranslations('POS.checkout')
+  const tPrint = useTranslations('POS.print')
+  const { print: thermalPrint, config: printerConfig } = usePrinter()
 
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
@@ -365,33 +368,30 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
     }
   }
 
-  const handleCheckoutComplete = async (saleId: string, saleNumber: string, isOffline?: boolean) => {
-    // Close checkout modal
+  const handleCheckoutComplete = async (
+    saleId: string,
+    saleNumber: string,
+    isOffline?: boolean,
+  ) => {
     setCheckoutOpen(false)
-
-    // Clear cart
     clearCart()
-
-    // Show success toast
     toast.success(tCheckout('saleCompleted', { number: saleNumber }))
-
-    // Set sale info and open receipt
     setCurrentSaleId(saleId)
     setCurrentSaleNumber(saleNumber)
 
+    let resolvedReceipt: ReceiptData | null = null
+
     if (isOffline) {
-      // Offline: Build receipt from IndexedDB transaction
       try {
         const transaction = await getTransaction(saleId)
         if (transaction) {
-          const offlineReceipt = buildReceiptFromTransaction(transaction)
-          setReceiptData(offlineReceipt)
+          resolvedReceipt = buildReceiptFromTransaction(transaction)
+          setReceiptData(resolvedReceipt)
         }
       } catch (error) {
         console.error('Failed to load offline receipt:', error)
       }
     } else {
-      // Online: Fetch receipt data from Supabase
       const supabase = createClient()
       const { data, error } = await supabase
         .from('sales')
@@ -419,12 +419,29 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
         .single()
 
       if (!error && data) {
-        setReceiptData(data)
+        resolvedReceipt = data as unknown as ReceiptData
+        setReceiptData(resolvedReceipt)
       }
     }
 
-    // Refresh product data to update stock quantities
+    // Refresh parent (stock quantities) regardless of print path
     onCheckoutComplete?.()
+
+    // Auto-print: try thermal first, skip modal on success
+    if (
+      printerConfig?.enabled &&
+      printerConfig.autoPrint &&
+      resolvedReceipt
+    ) {
+      const toastId = toast.loading(tPrint('starting'))
+      const result = await thermalPrint(resolvedReceipt)
+      if (result.ok) {
+        toast.success(tPrint('success'), { id: toastId })
+        return
+      }
+      toast.error(tPrint('failed'), { id: toastId })
+      // fall through to open the modal as fallback
+    }
 
     setReceiptOpen(true)
   }
