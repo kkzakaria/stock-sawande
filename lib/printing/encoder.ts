@@ -16,7 +16,9 @@ function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
-  return `${fixed} CFA`
+  // Replace any non-ASCII whitespace (U+00A0, U+202F, etc.) with a regular ASCII space
+  const ascii = fixed.replace(/\s/g, ' ')
+  return `${ascii} CFA`
 }
 
 function formatDate(iso: string): string {
