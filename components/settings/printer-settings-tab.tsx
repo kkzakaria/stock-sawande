@@ -49,13 +49,19 @@ export function PrinterSettingsTab() {
   const tPrint = useTranslations('POS.print')
   const { config: storedConfig, saveConfig, print } = usePrinter()
 
-  const [draft, setDraft] = useState<PrinterConfig>(() => storedConfig ?? DEFAULT_PRINTER_CONFIG)
+  // Track edits separately from storedConfig. While draftEdits is null, the form
+  // mirrors the stored value (or DEFAULT when nothing is stored). The user's first
+  // change forks draftEdits into an independent state. This avoids SSR hydration
+  // mismatches (no setState in effect needed) while still picking up post-hydration
+  // values from useSyncExternalStore.
+  const [draftEdits, setDraftEdits] = useState<PrinterConfig | null>(null)
+  const draft: PrinterConfig = draftEdits ?? storedConfig ?? DEFAULT_PRINTER_CONFIG
   const [pairing, setPairing] = useState(false)
   const [testing, setTesting] = useState(false)
   const supportsUsb = isWebUsbSupported()
 
   const update = <K extends keyof PrinterConfig>(key: K, value: PrinterConfig[K]) => {
-    setDraft((d) => ({ ...d, [key]: value }))
+    setDraftEdits({ ...draft, [key]: value })
   }
 
   const onPairUsb = async () => {
@@ -71,6 +77,7 @@ export function PrinterSettingsTab() {
 
   const onSave = () => {
     saveConfig(draft)
+    setDraftEdits(null)
     toast.success(t('save'))
   }
 

@@ -77,20 +77,19 @@ export function POSReceipt({
   const { print: thermalPrint, isConfigured } = usePrinter()
 
   const handlePrint = async () => {
+    setAction('print')
     if (isConfigured && receiptData) {
-      setAction('print')
       const toastId = toast.loading(tPrint('starting'))
       const result = await thermalPrint(receiptData)
-      setAction(null)
       if (result.ok) {
+        setAction(null)
         toast.success(tPrint('success'), { id: toastId })
         onOpenChange(false)
         return
       }
       toast.error(tPrint('failed'), { id: toastId })
-      // Fall through to browser print as fallback
+      // Fall through to browser print as fallback — keep action='print'
     }
-    setAction('print')
     setTimeout(() => {
       window.print()
       setAction(null)
@@ -307,10 +306,14 @@ export function POSReceipt({
           <div className="no-print flex gap-2 pt-4 flex-shrink-0 border-t">
             <Button
               onClick={handlePrint}
-              disabled={loading}
+              disabled={loading || action === 'print'}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Printer className="mr-2 h-4 w-4" />
+              {action === 'print' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Printer className="mr-2 h-4 w-4" />
+              )}
               Imprimer
             </Button>
             {/* TODO: Activer après intégration WhatsApp/Telegram API

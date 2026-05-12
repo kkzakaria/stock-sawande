@@ -86,13 +86,20 @@ export async function printUsb(
       }
     }
 
-    await device.claimInterface(endpoint.interfaceNumber)
+    let claimed = false
     try {
+      await device.claimInterface(endpoint.interfaceNumber)
+      claimed = true
       await device.transferOut(endpoint.endpointNumber, bytes as BufferSource)
     } finally {
-      await device.releaseInterface(endpoint.interfaceNumber)
+      if (claimed) {
+        try {
+          await device.releaseInterface(endpoint.interfaceNumber)
+        } catch {
+          // Ignore — release failures shouldn't mask the original error.
+        }
+      }
     }
-    await device.close()
     return { ok: true }
   } catch (err) {
     return {
@@ -101,6 +108,14 @@ export async function printUsb(
         kind: 'transport-error',
         message: err instanceof Error ? err.message : String(err),
       },
+    }
+  } finally {
+    if (device.opened) {
+      try {
+        await device.close()
+      } catch {
+        // Ignore close failures — printer state will normalise on next open.
+      }
     }
   }
 }
