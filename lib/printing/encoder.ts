@@ -41,7 +41,7 @@ export function encodeReceipt(data: ReceiptData, config: PrinterConfig): Uint8Ar
     columns,
   })
 
-  let chain = encoder.initialize().codepage(config.codepage).newline()
+  let chain = encoder.initialize().codepage(config.codepage)
 
   chain = chain.align('center').bold(true).text(data.store.name).newline().bold(false)
   if (data.store.address) chain = chain.text(data.store.address).newline()
@@ -97,7 +97,16 @@ export function encodeReceipt(data: ReceiptData, config: PrinterConfig): Uint8Ar
     chain = chain.align('left').newline().text(`Note: ${data.notes}`).newline()
   }
 
-  chain = chain.newline().newline().newline()
+  // Feed enough paper for printed content to clear the cutter blade
+  // (the blade sits above the print head, so the last printed line needs
+  // ~30-40mm of feed to land below the cut). 6 newlines ≈ 36mm.
+  chain = chain
+    .newline()
+    .newline()
+    .newline()
+    .newline()
+    .newline()
+    .newline()
   if (config.autoCut) {
     chain = chain.cut('partial')
   }

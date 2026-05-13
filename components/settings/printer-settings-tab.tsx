@@ -86,8 +86,16 @@ export function PrinterSettingsTab() {
     saveConfig(draft)
     const result = await print(SAMPLE_TEST_RECEIPT)
     setTesting(false)
-    if (result.ok) toast.success(tPrint('testSuccess'))
-    else toast.error(`${tPrint('testFailed')}: ${result.error.kind}`)
+    if (result.ok) {
+      toast.success(tPrint('testSuccess'))
+      return
+    }
+    const detail =
+      'message' in result.error
+        ? `${result.error.kind}: ${result.error.message}`
+        : result.error.kind
+    console.error('[printer] test print failed:', JSON.stringify(result.error), detail)
+    toast.error(`${tPrint('testFailed')}: ${detail}`)
   }
 
   return (
