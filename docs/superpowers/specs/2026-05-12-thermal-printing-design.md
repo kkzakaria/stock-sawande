@@ -308,6 +308,7 @@ Each phase ships an independent PR. Phase 1 alone delivers value.
 - **Multiple printers per register** (e.g., kitchen printer + customer receipt): not supported in v1.
 - **Star Graphics Mode** printers (different command set): out of scope — the encoder library does support `language: 'star-prnt'` if needed later.
 - **Mobile money QR receipts**: the encoder supports QR; defer until business asks.
+- **Re-pair after USB disconnect (printers without serial number)**: Chrome's WebUSB grants are keyed by VID + PID + serial. Many generic POS printers expose no serial, so a physical unplug+replug invalidates the existing grant — `getDevices()` returns nothing matching, and the cashier must "Associer une imprimante USB" again in Settings. Confirmed during Phase 1 testing on a generic "USB POS Printer" (VID 0x456, PID 0x808). Possible Phase 4 mitigations: (a) on `device-not-found`, surface a toast with a "Re-pair" action that calls `requestDevice` directly, or (b) listen to `navigator.usb` `disconnect`/`connect` events and show a persistent "Imprimante déconnectée" banner. Out of Phase 1 scope.
 
 ## 16. Glossary
 
