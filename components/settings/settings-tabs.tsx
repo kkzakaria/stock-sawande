@@ -7,7 +7,8 @@ import { CategoriesTab } from './categories-tab'
 import { UserManagementTab } from './user-management-tab'
 import { BusinessSettingsTab } from './business-settings-tab'
 import { IntegrationsTab } from './integrations-tab'
-import { UserCog, Tags, Settings2, Plug } from 'lucide-react'
+import { PrinterSettingsTab } from './printer-settings-tab'
+import { UserCog, Tags, Settings2, Plug, Printer } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -126,6 +127,15 @@ export function SettingsTabs({
       })
     }
 
+    // Printer tab - admin and manager
+    if (isManager) {
+      availableTabs.push({
+        value: 'printer',
+        label: t('tabs.printer'),
+        icon: Printer,
+      })
+    }
+
     return availableTabs
   }, [isAdmin, isManager, t])
 
@@ -173,6 +183,12 @@ export function SettingsTabs({
       {isAdmin && (
         <TabsContent value="integrations" className="space-y-6">
           <IntegrationsTab initialSettings={integrationsSettings} />
+        </TabsContent>
+      )}
+
+      {isManager && (
+        <TabsContent value="printer" className="space-y-6">
+          <PrinterSettingsTab />
         </TabsContent>
       )}
     </Tabs>

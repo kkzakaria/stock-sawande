@@ -37,7 +37,6 @@
       "somethingWentWrong": "Something went wrong. Please try again."
     }
   },
-
   "Navigation": {
     "dashboard": "Dashboard",
     "products": "Products",
@@ -52,7 +51,6 @@
     "logout": "Logout",
     "menu": "Menu"
   },
-
   "Auth": {
     "login": {
       "title": "Welcome back",
@@ -114,7 +112,6 @@
     "logout": "Log out",
     "loggingOut": "Logging out..."
   },
-
   "Dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome",
@@ -152,7 +149,6 @@
       "viewAll": "View all"
     }
   },
-
   "Products": {
     "title": "Products",
     "addProduct": "Add Product",
@@ -327,7 +323,6 @@
       }
     }
   },
-
   "Sales": {
     "title": "Sales",
     "searchPlaceholder": "Search sales...",
@@ -387,7 +382,6 @@
       "paymentMethod": "Payment method"
     }
   },
-
   "Proformas": {
     "title": "Proformas",
     "createNew": "New Proforma",
@@ -586,7 +580,6 @@
       "downloadButton": "Download"
     }
   },
-
   "POS": {
     "title": "Point of Sale",
     "cart": {
@@ -695,6 +688,13 @@
       "warningDescription": "This transaction will be queued and synchronized when connection is restored.",
       "stockWarning": "Stock Warnings"
     },
+    "print": {
+      "starting": "Sending to printer...",
+      "success": "Receipt printed",
+      "failed": "Print failed, opening preview",
+      "testSuccess": "Test receipt sent to printer",
+      "testFailed": "Test print failed"
+    },
     "session": {
       "open": "Open Register",
       "close": "Close Register",
@@ -797,7 +797,8 @@
     },
     "search": {
       "placeholder": "Search product...",
-      "noResults": "No products found"
+      "noResults": "No products found",
+      "flexiblePrice": "Flexible price (editable in cart)"
     },
     "flexiblePrice": "Flexible price",
     "stock": {
@@ -829,7 +830,6 @@
       "cartCleared": "Store changed. Cart has been cleared."
     }
   },
-
   "Settings": {
     "title": "Settings",
     "description": "Manage your account preferences and system settings",
@@ -838,7 +838,8 @@
       "users": "Users",
       "categories": "Categories",
       "business": "Business",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "printer": "Printer"
     },
     "profile": {
       "title": "Profile",
@@ -1111,9 +1112,29 @@
           "accessTokenRequired": "Access token is required"
         }
       }
+    },
+    "printer": {
+      "title": "Thermal printer",
+      "description": "Configure a USB thermal printer for receipts.",
+      "enabled": "Enable thermal printing",
+      "transport": "Connection type",
+      "transportUsb": "USB",
+      "transportBluetooth": "Bluetooth (coming soon)",
+      "transportNetwork": "Network (coming soon)",
+      "width": "Paper width",
+      "width58": "58 mm",
+      "width80": "80 mm",
+      "codepage": "Character set",
+      "autoCut": "Auto-cut paper after printing",
+      "autoPrint": "Print automatically after checkout",
+      "pairUsb": "Pair USB printer",
+      "pairedUsb": "Paired (vendor {vendorId}, product {productId})",
+      "testPrint": "Print test receipt",
+      "save": "Save",
+      "reset": "Reset",
+      "unsupported": "Your browser does not support WebUSB. Use Chrome or Edge."
     }
   },
-
   "Reports": {
     "title": "Reports",
     "description": "Analytics and business intelligence",
@@ -1214,7 +1235,6 @@
       "noData": "No performance data"
     }
   },
-
   "Stores": {
     "title": "Stores",
     "description": "Manage locations and store settings",
@@ -1287,7 +1307,6 @@
       }
     }
   },
-
   "Customers": {
     "title": "Customers",
     "description": "Manage your customer database",
@@ -1366,7 +1385,6 @@
       "hasProformas": "Cannot delete customer with existing proformas"
     }
   },
-
   "DataTable": {
     "loading": "Loading...",
     "search": "Search...",
@@ -1407,7 +1425,6 @@
     "descending": "Descending",
     "apply": "Apply"
   },
-
   "Landing": {
     "hero": {
       "title": "Modern Inventory Management Made Simple",
@@ -1444,7 +1461,6 @@
       "copyright": "2025 Next Stock. All rights reserved."
     }
   },
-
   "ImageUpload": {
     "dragDrop": "Drag & drop an image here",
     "or": "or",
@@ -1466,7 +1482,6 @@
       "uploadFailed": "Failed to upload image. Please try again."
     }
   },
-
   "Errors": {
     "notFound": "Page not found",
     "serverError": "An error occurred",
@@ -1476,7 +1491,6 @@
     "goBack": "Go back",
     "goHome": "Go home"
   },
-
   "ProfileDialog": {
     "title": "My Profile",
     "description": "Manage your personal information and security settings",

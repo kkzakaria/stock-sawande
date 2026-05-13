@@ -10,6 +10,8 @@
 
 import { useRef, useState } from 'react'
 import { toPng } from 'html-to-image'
+import { toast } from 'sonner'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Download, Printer, Loader2 } from 'lucide-react'
+import { usePrinter } from '@/lib/hooks/use-printer'
 
 export interface ReceiptItem {
   product: {
@@ -70,9 +73,23 @@ export function POSReceipt({
   const receiptRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
   const [action, setAction] = useState<'print' | 'share' | 'download' | null>(null)
+  const tPrint = useTranslations('POS.print')
+  const { print: thermalPrint, isConfigured } = usePrinter()
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     setAction('print')
+    if (isConfigured && receiptData) {
+      const toastId = toast.loading(tPrint('starting'))
+      const result = await thermalPrint(receiptData)
+      if (result.ok) {
+        setAction(null)
+        toast.success(tPrint('success'), { id: toastId })
+        onOpenChange(false)
+        return
+      }
+      toast.error(tPrint('failed'), { id: toastId })
+      // Fall through to browser print as fallback — keep action='print'
+    }
     setTimeout(() => {
       window.print()
       setAction(null)
@@ -289,10 +306,14 @@ export function POSReceipt({
           <div className="no-print flex gap-2 pt-4 flex-shrink-0 border-t">
             <Button
               onClick={handlePrint}
-              disabled={loading}
+              disabled={loading || action === 'print'}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Printer className="mr-2 h-4 w-4" />
+              {action === 'print' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Printer className="mr-2 h-4 w-4" />
+              )}
               Imprimer
             </Button>
             {/* TODO: Activer après intégration WhatsApp/Telegram API

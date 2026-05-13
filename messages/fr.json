@@ -37,7 +37,6 @@
       "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer."
     }
   },
-
   "Navigation": {
     "dashboard": "Tableau de bord",
     "products": "Produits",
@@ -52,7 +51,6 @@
     "logout": "Déconnexion",
     "menu": "Menu"
   },
-
   "Auth": {
     "login": {
       "title": "Bon retour",
@@ -114,7 +112,6 @@
     "logout": "Se déconnecter",
     "loggingOut": "Déconnexion..."
   },
-
   "Dashboard": {
     "title": "Tableau de bord",
     "welcome": "Bienvenue",
@@ -152,7 +149,6 @@
       "viewAll": "Voir tout"
     }
   },
-
   "Products": {
     "title": "Produits",
     "addProduct": "Ajouter un produit",
@@ -327,7 +323,6 @@
       }
     }
   },
-
   "Sales": {
     "title": "Ventes",
     "searchPlaceholder": "Rechercher des ventes...",
@@ -387,7 +382,6 @@
       "paymentMethod": "Mode de paiement"
     }
   },
-
   "Proformas": {
     "title": "Proformas",
     "createNew": "Nouveau Proforma",
@@ -586,7 +580,6 @@
       "downloadButton": "Télécharger"
     }
   },
-
   "POS": {
     "title": "Point de vente",
     "cart": {
@@ -695,6 +688,13 @@
       "warningDescription": "Cette transaction sera mise en file d'attente et synchronisée au retour de la connexion.",
       "stockWarning": "Alertes de stock"
     },
+    "print": {
+      "starting": "Envoi à l'imprimante...",
+      "success": "Ticket imprimé",
+      "failed": "Échec d'impression, ouverture de l'aperçu",
+      "testSuccess": "Ticket test envoyé à l'imprimante",
+      "testFailed": "Échec du test d'impression"
+    },
     "session": {
       "open": "Ouvrir la caisse",
       "close": "Fermer la caisse",
@@ -797,7 +797,8 @@
     },
     "search": {
       "placeholder": "Rechercher un produit...",
-      "noResults": "Aucun produit trouvé"
+      "noResults": "Aucun produit trouvé",
+      "flexiblePrice": "Prix flexible (modifiable au panier)"
     },
     "flexiblePrice": "Prix ajustable",
     "stock": {
@@ -829,7 +830,6 @@
       "cartCleared": "Magasin changé. Le panier a été vidé."
     }
   },
-
   "Settings": {
     "title": "Paramètres",
     "description": "Gérez vos préférences et paramètres de compte",
@@ -838,7 +838,8 @@
       "users": "Utilisateurs",
       "categories": "Catégories",
       "business": "Business",
-      "integrations": "Intégrations"
+      "integrations": "Intégrations",
+      "printer": "Imprimante"
     },
     "profile": {
       "title": "Profil",
@@ -1111,9 +1112,29 @@
           "accessTokenRequired": "Le token d'accès est requis"
         }
       }
+    },
+    "printer": {
+      "title": "Imprimante thermique",
+      "description": "Configurer une imprimante thermique USB pour les tickets.",
+      "enabled": "Activer l'impression thermique",
+      "transport": "Type de connexion",
+      "transportUsb": "USB",
+      "transportBluetooth": "Bluetooth (à venir)",
+      "transportNetwork": "Réseau (à venir)",
+      "width": "Largeur du papier",
+      "width58": "58 mm",
+      "width80": "80 mm",
+      "codepage": "Jeu de caractères",
+      "autoCut": "Coupe automatique après impression",
+      "autoPrint": "Imprimer automatiquement après la vente",
+      "pairUsb": "Associer une imprimante USB",
+      "pairedUsb": "Associée (vendeur {vendorId}, produit {productId})",
+      "testPrint": "Imprimer un ticket test",
+      "save": "Enregistrer",
+      "reset": "Réinitialiser",
+      "unsupported": "Votre navigateur ne supporte pas WebUSB. Utilisez Chrome ou Edge."
     }
   },
-
   "Reports": {
     "title": "Rapports",
     "description": "Analyses et informations commerciales",
@@ -1214,7 +1235,6 @@
       "noData": "Aucune donnée de performance"
     }
   },
-
   "Stores": {
     "title": "Magasins",
     "description": "Gérer les emplacements et les paramètres des magasins",
@@ -1287,7 +1307,6 @@
       }
     }
   },
-
   "Customers": {
     "title": "Clients",
     "description": "Gérez votre base de données clients",
@@ -1366,7 +1385,6 @@
       "hasProformas": "Impossible de supprimer un client avec des proformas existants"
     }
   },
-
   "DataTable": {
     "loading": "Chargement...",
     "search": "Rechercher...",
@@ -1407,7 +1425,6 @@
     "descending": "Décroissant",
     "apply": "Appliquer"
   },
-
   "Landing": {
     "hero": {
       "title": "Gestion de Stock Moderne et Simple",
@@ -1444,7 +1461,6 @@
       "copyright": "2025 Next Stock. Tous droits réservés."
     }
   },
-
   "ImageUpload": {
     "dragDrop": "Glissez-déposez une image ici",
     "or": "ou",
@@ -1466,7 +1482,6 @@
       "uploadFailed": "Échec du téléchargement de l'image. Veuillez réessayer."
     }
   },
-
   "Errors": {
     "notFound": "Page non trouvée",
     "serverError": "Une erreur est survenue",
@@ -1476,7 +1491,6 @@
     "goBack": "Retour",
     "goHome": "Accueil"
   },
-
   "ProfileDialog": {
     "title": "Mon profil",
     "description": "Gérez vos informations personnelles et paramètres de sécurité",
