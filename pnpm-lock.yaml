@@ -162,9 +162,6 @@ importers:
       '@next/bundle-analyzer':
         specifier: ^16.2.3
         version: 16.2.3
-      '@playwright/test':
-        specifier: ^1.57.0
-        version: 1.57.0
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.17
@@ -7568,6 +7565,7 @@ snapshots:
   '@playwright/test@1.57.0':
     dependencies:
       playwright: 1.57.0
+    optional: true
 
   '@point-of-sale/codepage-encoder@3.0.2': {}
 
@@ -11350,13 +11348,15 @@ snapshots:
     dependencies:
       find-up: 4.1.0
 
-  playwright-core@1.57.0: {}
+  playwright-core@1.57.0:
+    optional: true
 
   playwright@1.57.0:
     dependencies:
       playwright-core: 1.57.0
     optionalDependencies:
       fsevents: 2.3.2
+    optional: true
 
   po-parser@1.0.2: {}
 
