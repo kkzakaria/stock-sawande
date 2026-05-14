@@ -1,115 +1,90 @@
 import { type Table } from "@tanstack/react-table";
-import { utils, writeFile } from "xlsx";
-import Papa from "papaparse";
+
+type ExportableData = Record<string, unknown>;
+
+function collectExportRows<TData>(
+  table: Table<TData>,
+  selectedOnly: boolean
+): { headers: string[]; data: ExportableData[] } {
+  const rows = selectedOnly
+    ? table.getSelectedRowModel().rows
+    : table.getFilteredRowModel().rows;
+
+  if (rows.length === 0) {
+    return { headers: [], data: [] };
+  }
+
+  const visibleColumns = table.getVisibleLeafColumns();
+  const headers = visibleColumns
+    .map((column) => column.columnDef.header as string)
+    .filter((header) => header !== "Actions" && header !== "Select");
+
+  const data = rows.map((row) => {
+    const rowData: ExportableData = {};
+    visibleColumns.forEach((column) => {
+      const header = column.columnDef.header as string;
+      if (header !== "Actions" && header !== "Select") {
+        const cellValue = row.getValue(column.id);
+        rowData[header] = cellValue ?? "";
+      }
+    });
+    return rowData;
+  });
+
+  return { headers, data };
+}
 
 /**
- * Export table data to CSV
+ * Export table data to CSV.
+ * Dynamically imports papaparse so it is not in the initial bundle.
  */
-export function exportToCSV<TData>(
+export async function exportToCSV<TData>(
   table: Table<TData>,
   filename: string = "export.csv",
   selectedOnly: boolean = false
 ) {
-  const rows = selectedOnly
-    ? table.getSelectedRowModel().rows
-    : table.getFilteredRowModel().rows;
-
-  if (rows.length === 0) {
+  const { headers, data } = collectExportRows(table, selectedOnly);
+  if (data.length === 0) {
     console.warn("No data to export");
     return;
   }
 
-  // Get visible columns
-  const visibleColumns = table.getVisibleLeafColumns();
-
-  // Create headers
-  const headers = visibleColumns
-    .map((column) => column.columnDef.header as string)
-    .filter((header) => header !== "Actions" && header !== "Select");
-
-  // Create data rows
-  const data = rows.map((row) => {
-    const rowData: Record<string, unknown> = {};
-    visibleColumns.forEach((column) => {
-      const header = column.columnDef.header as string;
-      if (header !== "Actions" && header !== "Select") {
-        const cellValue = row.getValue(column.id);
-        rowData[header] = cellValue ?? "";
-      }
-    });
-    return rowData;
-  });
-
-  // Convert to CSV
-  const csv = Papa.unparse(data, {
-    columns: headers,
-  });
-
-  // Download
+  const { default: Papa } = await import("papaparse");
+  const csv = Papa.unparse(data, { columns: headers });
   downloadFile(csv, filename, "text/csv");
 }
 
 /**
- * Export table data to Excel
+ * Export table data to Excel.
+ * Dynamically imports xlsx so the ~800KB library is not in the initial bundle.
  */
-export function exportToExcel<TData>(
+export async function exportToExcel<TData>(
   table: Table<TData>,
   filename: string = "export.xlsx",
   selectedOnly: boolean = false
 ) {
-  const rows = selectedOnly
-    ? table.getSelectedRowModel().rows
-    : table.getFilteredRowModel().rows;
-
-  if (rows.length === 0) {
+  const { headers, data } = collectExportRows(table, selectedOnly);
+  if (data.length === 0) {
     console.warn("No data to export");
     return;
   }
 
-  // Get visible columns
-  const visibleColumns = table.getVisibleLeafColumns();
+  const { utils, writeFile } = await import("xlsx");
 
-  // Create headers
-  const headers = visibleColumns
-    .map((column) => column.columnDef.header as string)
-    .filter((header) => header !== "Actions" && header !== "Select");
-
-  // Create data rows
-  const data = rows.map((row) => {
-    const rowData: Record<string, unknown> = {};
-    visibleColumns.forEach((column) => {
-      const header = column.columnDef.header as string;
-      if (header !== "Actions" && header !== "Select") {
-        const cellValue = row.getValue(column.id);
-        rowData[header] = cellValue ?? "";
-      }
-    });
-    return rowData;
-  });
-
-  // Create worksheet
   const worksheet = utils.json_to_sheet(data, { header: headers });
-
-  // Create workbook
   const workbook = utils.book_new();
   utils.book_append_sheet(workbook, worksheet, "Data");
 
-  // Auto-size columns
-  const colWidths = headers.map((header) => ({
+  worksheet["!cols"] = headers.map((header) => ({
     wch: Math.max(
       header.length,
-      ...data.map((row) => String(row[header] || "").length)
+      ...data.map((row) => String(row[header] ?? "").length)
     ),
   }));
-  worksheet["!cols"] = colWidths;
 
-  // Download
   writeFile(workbook, filename);
 }
 
-/**
- * Download a file
- */
 function downloadFile(content: string, filename: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);

@@ -1,13 +1,14 @@
-import Papa from "papaparse";
-import { read, utils } from "xlsx";
 import type { ImportResult, ImportError } from "@/types/data-table";
 
 /**
- * Parse CSV file
+ * Parse CSV file.
+ * Dynamically imports papaparse so it is not in the initial bundle.
  */
 export async function parseCSV<TData>(
   file: File
 ): Promise<ImportResult<TData>> {
+  const { default: Papa } = await import("papaparse");
+
   return new Promise((resolve) => {
     Papa.parse<TData>(file, {
       header: true,
@@ -37,31 +38,30 @@ export async function parseCSV<TData>(
 }
 
 /**
- * Parse Excel file
+ * Parse Excel file.
+ * Dynamically imports xlsx so the ~800KB library is not in the initial bundle.
  */
 export async function parseExcel<TData>(
   file: File
 ): Promise<ImportResult<TData>> {
   try {
+    const { read, utils } = await import("xlsx");
+
     const arrayBuffer = await file.arrayBuffer();
     const workbook = read(arrayBuffer);
 
-    // Get first sheet
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    // Convert to JSON
     const data = utils.sheet_to_json<TData>(worksheet, {
       header: 1,
       defval: "",
       blankrows: false,
     });
 
-    // First row is headers
     const headers = data[0] as unknown as string[];
     const rows = data.slice(1) as unknown as unknown[][];
 
-    // Transform to objects
     const transformedData = rows.map((row) => {
       const obj: Record<string, unknown> = {};
       headers.forEach((header, index) => {
