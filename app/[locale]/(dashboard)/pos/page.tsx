@@ -10,7 +10,7 @@ import { POSClient } from '@/components/pos/pos-client'
 import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
-import { getUserAccessibleStoreIds, getUserDefaultStoreId } from '@/lib/helpers/store-access'
+import { getUserStoresAccess } from '@/lib/helpers/store-access'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -56,8 +56,8 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
   const isAdmin = cachedProfile.role === 'admin'
   const isManagerOrAdmin = cachedProfile.role === 'admin' || cachedProfile.role === 'manager'
 
-  // Run extended profile + store count queries in parallel
-  const [profileResult, storeCountResult] = await Promise.all([
+  // Run extended profile, store count, and user store access in parallel
+  const [profileResult, storeCountResult, storesAccess] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
@@ -71,6 +71,9 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
         : Promise.resolve({ count: 0 } as { count: number }),
+    isAdmin
+      ? Promise.resolve({ accessibleStoreIds: [], defaultStoreId: null })
+      : getUserStoresAccess(supabase, user.id, cachedProfile.store_id),
   ])
 
   const profile = profileResult.data
@@ -95,8 +98,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
 
   // For admins: use store from URL param (session-based, not persisted)
   // For managers/cashiers: use their assigned store(s)
-  const accessibleStoreIds = isAdmin ? [] : await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
-  const defaultStoreId = isAdmin ? null : await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)
+  const { accessibleStoreIds, defaultStoreId } = storesAccess
   const activeStoreId = isAdmin ? storeFromUrl : (storeFromUrl && accessibleStoreIds.includes(storeFromUrl) ? storeFromUrl : defaultStoreId)
 
   // Show store selector if:
