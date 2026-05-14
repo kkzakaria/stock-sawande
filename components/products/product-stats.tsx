@@ -1,29 +1,27 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format } from 'date-fns'
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { getProductStats, type ProductStats } from '@/lib/actions/stock-movements'
 import { TrendingUp, TrendingDown, DollarSign, Package, Calendar } from 'lucide-react'
+
+// Lazy-load the chart so recharts (~400KB) is not pulled into the
+// initial bundle of the product detail page.
+const ProductStatsTrendChart = dynamic(
+  () => import('./product-stats-trend-chart'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[200px] w-full animate-pulse rounded-md bg-muted" />
+    ),
+  }
+)
 
 interface ProductStatsProps {
   productId: string
 }
-
-const chartConfig = {
-  quantity: {
-    label: 'Stock Quantity',
-    color: 'hsl(var(--chart-1))',
-  },
-} satisfies ChartConfig
 
 export function ProductStatsComponent({ productId }: ProductStatsProps) {
   const [stats, setStats] = useState<ProductStats | null>(null)
@@ -170,61 +168,7 @@ export function ProductStatsComponent({ productId }: ProductStatsProps) {
         {/* Stock Trend Chart */}
         <div>
           <h4 className="mb-4 text-sm font-medium">Stock Level Trend</h4>
-          <ChartContainer config={chartConfig} className="h-[200px] w-full">
-            <AreaChart
-              data={stats.stockTrend}
-              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="fillQuantity" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-quantity)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-quantity)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return format(date, 'MMM dd')
-                }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => `${value}`}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(value) => {
-                      return format(new Date(value), 'MMM dd, yyyy')
-                    }}
-                    formatter={(value) => [`${value} units`, 'Stock']}
-                  />
-                }
-              />
-              <Area
-                type="monotone"
-                dataKey="quantity"
-                stroke="var(--color-quantity)"
-                fill="url(#fillQuantity)"
-                fillOpacity={0.4}
-              />
-            </AreaChart>
-          </ChartContainer>
+          <ProductStatsTrendChart data={stats.stockTrend} />
         </div>
 
         {/* Additional Insights */}
