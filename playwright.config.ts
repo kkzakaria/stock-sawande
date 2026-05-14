@@ -13,6 +13,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  // Playwright owns *.spec.ts under tests/; Vitest owns *.test.ts under tests/unit/.
+  // Without this, Playwright picks up Vitest files and crashes on `require('vitest')`.
+  testMatch: '**/*.spec.ts',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
