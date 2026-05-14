@@ -6,6 +6,13 @@ import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 // Disable caching for role checks
 export const dynamic = 'force-dynamic'
 
+// Cap initial payload. Client still paginates locally, but loading 1000
+// rows on every page hit (the previous default) shipped ~500KB JSON to
+// every dashboard user even when most of it was never displayed.
+// Beyond PRODUCTS_INITIAL_LIMIT we log a server warning to signal the
+// need for proper server pagination — tracked as a follow-up.
+const PRODUCTS_INITIAL_LIMIT = 250
+
 export default async function ProductsPage() {
   // Use cached profile (deduplicated with layout)
   const { user, profile } = await getAuthenticatedProfile()
@@ -19,10 +26,18 @@ export default async function ProductsPage() {
     redirect('/dashboard')
   }
 
-  // Fetch all products (client-side pagination with nuqs)
   const productsResult = await getProducts({
-    limit: 1000, // Load all products for client-side pagination
+    limit: PRODUCTS_INITIAL_LIMIT,
   })
+
+  if (
+    productsResult.success &&
+    productsResult.totalCount > PRODUCTS_INITIAL_LIMIT
+  ) {
+    console.warn(
+      `[products] Inventory of ${productsResult.totalCount} products exceeds the initial fetch cap of ${PRODUCTS_INITIAL_LIMIT}. Older rows are not visible until server pagination ships.`
+    )
+  }
 
   return (
     <div className="flex flex-col h-full">
