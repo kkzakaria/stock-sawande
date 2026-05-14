@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/button'
 import { getProduct } from '@/lib/actions/products'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
-export const dynamic = 'force-dynamic'
-
 interface EditProductPageProps {
   params: Promise<{
     id: string
@@ -32,26 +30,24 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     redirect('/dashboard')
   }
 
-  // Fetch product (uses parallel queries internally)
-  const productResult = await getProduct(id)
+  // Fetch product, categories, and stores in parallel.
+  // (getCachedCategories/getCachedStores in cached-queries.ts can't be wired
+  // up here yet — their unstable_cache wrapper calls createClient() which
+  // reads cookies, which Next 16 forbids inside cached scopes.)
+  const supabase = await createClient()
+  const [productResult, categoriesResult, storesResult] = await Promise.all([
+    getProduct(id),
+    supabase.from('categories').select('id, name').order('name'),
+    supabase.from('stores').select('id, name').order('name'),
+  ])
+
   if (!productResult.success || !productResult.data) {
     notFound()
   }
 
   const product = productResult.data
-  const supabase = await createClient()
-
-  // Fetch categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name')
-    .order('name')
-
-  // Fetch stores
-  const { data: stores } = await supabase
-    .from('stores')
-    .select('id, name')
-    .order('name')
+  const categories = categoriesResult.data
+  const stores = storesResult.data
 
   return (
     <div className="space-y-6">
