@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl'
 import { useCartStore, formatCurrency } from '@/lib/store/cart-store'
 import { useOfflineCheckout } from '@/lib/hooks/use-offline-checkout'
 import { useOfflineStore } from '@/lib/store/offline-store'
+import { devLog } from '@/lib/utils/dev-log'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -190,7 +191,7 @@ export function POSCheckoutModal({
               onlineError.message.includes('network') ||
               onlineError.message.includes('Failed to fetch'))
           ) {
-            console.log('Online checkout failed, falling back to offline mode')
+            devLog('[POS] Online checkout failed, falling back to offline mode')
             result = await handleOfflineCheckout()
           } else {
             throw onlineError
