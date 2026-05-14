@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { devLog } from '@/lib/utils/dev-log'
 import { useCartStore } from '@/lib/store/cart-store'
 import { useHydrated } from '@/lib/hooks/use-hydrated'
 import { useNetworkStatus } from '@/lib/hooks/use-network-status'
@@ -260,7 +261,7 @@ export function POSClient({
   useEffect(() => {
     const supabase = createClient()
 
-    console.log('[Realtime] Setting up subscription for store:', storeId)
+    devLog('[Realtime] Setting up subscription for store:', storeId)
 
     // Debounced refresh to avoid excessive updates
     const debouncedRefresh = () => {
@@ -269,7 +270,7 @@ export function POSClient({
       }
 
       debounceTimerRef.current = setTimeout(() => {
-        console.log('[Realtime] Refreshing product data')
+        devLog('[Realtime] Refreshing product data')
         router.refresh()
       }, 500) // 500ms delay to batch multiple changes
     }
@@ -283,7 +284,7 @@ export function POSClient({
         'broadcast',
         { event: 'inventory_updated' },
         (payload) => {
-          console.log('[Realtime] Broadcast inventory update received:', payload)
+          devLog('[Realtime] Broadcast inventory update received:', payload)
 
           // Notify user of stock changes from other cashiers
           toast.info('Stock updated by another cashier', {
@@ -305,7 +306,7 @@ export function POSClient({
           filter: `store_id=eq.${storeId}`,
         },
         (payload) => {
-          console.log('[Realtime] Postgres change detected (local store):', payload)
+          devLog('[Realtime] Postgres change detected (local store):', payload)
 
           // Notify user of stock changes from other cashiers
           toast.info('Stock updated by another cashier', {
@@ -318,7 +319,7 @@ export function POSClient({
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Local store subscription status:', status)
+        devLog('[Realtime] Local store subscription status:', status)
       })
 
     // Channel 2: Subscribe to inventory changes in ALL OTHER stores
@@ -336,7 +337,7 @@ export function POSClient({
           // Only process changes from OTHER stores
           const changedStoreId = payload.new?.store_id || payload.old?.store_id
           if (changedStoreId && changedStoreId !== storeId) {
-            console.log('[Realtime] Postgres change detected (other store):', payload)
+            devLog('[Realtime] Postgres change detected (other store):', payload)
 
             // Silent refresh - no toast for other stores, just update the indicator
             debouncedRefresh()
@@ -344,12 +345,12 @@ export function POSClient({
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Global inventory subscription status:', status)
+        devLog('[Realtime] Global inventory subscription status:', status)
       })
 
     // Cleanup subscriptions on unmount
     return () => {
-      console.log('[Realtime] Cleaning up subscriptions')
+      devLog('[Realtime] Cleaning up subscriptions')
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
       }
