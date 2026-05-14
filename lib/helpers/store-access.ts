@@ -39,6 +39,51 @@ export function hasStoreAccess(
 }
 
 /**
+ * Fetch both the user's accessible store IDs and their default store ID
+ * in a single query. Preferable to calling getUserAccessibleStoreIds +
+ * getUserDefaultStoreId sequentially when both pieces are needed.
+ */
+export async function getUserStoresAccess(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  profileStoreId?: string | null
+): Promise<{ accessibleStoreIds: string[]; defaultStoreId: string | null }> {
+  const { data: userStores, error } = await supabase
+    .from('user_stores')
+    .select('store_id, is_default')
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('Failed to fetch user store assignments:', error, { userId })
+    return {
+      accessibleStoreIds: profileStoreId ? [profileStoreId] : [],
+      defaultStoreId: profileStoreId ?? null,
+    }
+  }
+
+  const rows = userStores ?? []
+  const accessibleStoreIds = rows
+    .map((row) => row.store_id)
+    .filter((id): id is string => Boolean(id))
+
+  const defaultFromUserStores =
+    rows.find((row) => row.is_default && row.store_id)?.store_id ?? null
+
+  if (accessibleStoreIds.length === 0 && profileStoreId) {
+    return {
+      accessibleStoreIds: [profileStoreId],
+      defaultStoreId: profileStoreId,
+    }
+  }
+
+  return {
+    accessibleStoreIds,
+    defaultStoreId:
+      defaultFromUserStores ?? accessibleStoreIds[0] ?? profileStoreId ?? null,
+  }
+}
+
+/**
  * Fetch all store IDs the current user can access via user_stores.
  * Falls back to profiles.store_id if user_stores is empty.
  */

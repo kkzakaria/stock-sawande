@@ -1408,7 +1408,8 @@
       "csv": "CSV",
       "excel": "Excel",
       "success": "{count} lignes exportées",
-      "selectedSuccess": "{count} lignes sélectionnées exportées"
+      "selectedSuccess": "{count} lignes sélectionnées exportées",
+      "failed": "Échec de l'export"
     },
     "import": {
       "button": "Importer",

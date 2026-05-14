@@ -54,22 +54,26 @@ export function DataTableToolbar<TData>({
     }
   };
 
-  const handleExport = (format: "csv" | "excel") => {
+  const handleExport = async (format: "csv" | "excel") => {
     const hasSelection = table.getFilteredSelectedRowModel().rows.length > 0;
     const selectedCount = table.getFilteredSelectedRowModel().rows.length;
     const totalCount = table.getFilteredRowModel().rows.length;
 
-    if (format === "csv") {
-      exportToCSV(table, "export.csv", hasSelection);
-    } else {
-      exportToExcel(table, "export.xlsx", hasSelection);
-    }
+    try {
+      if (format === "csv") {
+        await exportToCSV(table, "export.csv", hasSelection);
+      } else {
+        await exportToExcel(table, "export.xlsx", hasSelection);
+      }
 
-    toast.success(
-      hasSelection
-        ? t("export.selectedSuccess", { count: selectedCount })
-        : t("export.success", { count: totalCount })
-    );
+      toast.success(
+        hasSelection
+          ? t("export.selectedSuccess", { count: selectedCount })
+          : t("export.success", { count: totalCount })
+      );
+    } catch {
+      toast.error(t("export.failed"));
+    }
   };
 
   return (

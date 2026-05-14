@@ -10,7 +10,7 @@ import { POSClient } from '@/components/pos/pos-client'
 import { StoreSelectorRequired } from '@/components/pos/store-selector-required'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
-import { getUserAccessibleStoreIds, getUserDefaultStoreId } from '@/lib/helpers/store-access'
+import { getUserStoresAccess } from '@/lib/helpers/store-access'
 
 // Force dynamic rendering to always get fresh inventory data
 export const dynamic = 'force-dynamic'
@@ -56,13 +56,11 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
   const isAdmin = cachedProfile.role === 'admin'
   const isManagerOrAdmin = cachedProfile.role === 'admin' || cachedProfile.role === 'manager'
 
-  // Run extended profile + store count queries in parallel
-  const [profileResult, storeCountResult] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, store_id, role, full_name, store:stores(id, name, address, phone)')
-      .eq('id', user.id)
-      .single(),
+  // cachedProfile already has id/role/store_id/full_name + stores(id,name,address,phone)
+  // (PR #49), so no second profiles fetch is needed. Run the remaining queries
+  // in parallel: store count and user store access.
+  const profile = cachedProfile
+  const [storeCountResult, storesAccess] = await Promise.all([
     isAdmin
       ? supabase.from('stores').select('*', { count: 'exact', head: true })
       : cachedProfile.role === 'manager'
@@ -71,21 +69,10 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
         : Promise.resolve({ count: 0 } as { count: number }),
+    isAdmin
+      ? Promise.resolve({ accessibleStoreIds: [], defaultStoreId: null })
+      : getUserStoresAccess(supabase, user.id, cachedProfile.store_id),
   ])
-
-  const profile = profileResult.data
-  if (!profile) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">{t('errors.profileError')}</h2>
-          <p className="mt-2 text-gray-600">
-            {t('errors.contactAdmin')}
-          </p>
-        </div>
-      </div>
-    )
-  }
 
   if ('error' in storeCountResult && storeCountResult.error) {
     console.error('[POS] Failed to fetch store count:', storeCountResult.error)
@@ -95,8 +82,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
 
   // For admins: use store from URL param (session-based, not persisted)
   // For managers/cashiers: use their assigned store(s)
-  const accessibleStoreIds = isAdmin ? [] : await getUserAccessibleStoreIds(supabase, user.id, profile.store_id)
-  const defaultStoreId = isAdmin ? null : await getUserDefaultStoreId(supabase, user.id, accessibleStoreIds, profile.store_id)
+  const { accessibleStoreIds, defaultStoreId } = storesAccess
   const activeStoreId = isAdmin ? storeFromUrl : (storeFromUrl && accessibleStoreIds.includes(storeFromUrl) ? storeFromUrl : defaultStoreId)
 
   // Show store selector if:
@@ -167,7 +153,7 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
 
   // Fetch store info when the active store differs from the user's default store
   // (covers both admins selecting a store via URL and managers switching stores)
-  let storeInfo = profile.store
+  let storeInfo = profile.stores
   if (activeStoreId && activeStoreId !== profile?.store_id) {
     const { data } = await supabase
       .from('stores')
