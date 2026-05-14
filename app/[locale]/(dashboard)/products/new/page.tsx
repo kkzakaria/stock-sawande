@@ -1,13 +1,14 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { ProductForm } from '@/components/products/product-form'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
-
-export const dynamic = 'force-dynamic'
+import {
+  getAuthenticatedProfile,
+  getCachedCategories,
+  getCachedStores,
+} from '@/lib/server/cached-queries'
 
 interface NewProductPageProps {
   params: Promise<{ locale: string }>
@@ -30,19 +31,11 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
     redirect('/dashboard')
   }
 
-  const supabase = await createClient()
-
-  // Fetch categories
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('id, name')
-    .order('name')
-
-  // Fetch stores
-  const { data: stores } = await supabase
-    .from('stores')
-    .select('id, name')
-    .order('name')
+  // Categories and stores are served from Next.js Data Cache (5min TTL).
+  const [categories, stores] = await Promise.all([
+    getCachedCategories(),
+    getCachedStores(),
+  ])
 
   return (
     <div className="space-y-6">
