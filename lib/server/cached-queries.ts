@@ -12,7 +12,7 @@ export interface CachedProfile {
   full_name: string | null
   avatar_url: string | null
   preferred_language: string | null
-  stores: { id: string; name: string } | null
+  stores: { id: string; name: string; address: string | null; phone: string | null } | null
 }
 
 // === CACHE TAGS ===
@@ -29,7 +29,7 @@ export const getCachedProfile = cache(async (userId: string): Promise<CachedProf
   const supabase = await createClient()
   const { data } = await supabase
     .from('profiles')
-    .select('id, email, role, store_id, full_name, avatar_url, preferred_language, stores(id, name)')
+    .select('id, email, role, store_id, full_name, avatar_url, preferred_language, stores(id, name, address, phone)')
     .eq('id', userId)
     .single()
   return data as CachedProfile | null
