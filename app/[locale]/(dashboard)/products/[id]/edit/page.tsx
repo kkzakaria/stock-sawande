@@ -1,15 +1,12 @@
 import { redirect } from 'next/navigation'
 import { notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { ProductForm } from '@/components/products/product-form'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getProduct } from '@/lib/actions/products'
-import {
-  getAuthenticatedProfile,
-  getCachedCategories,
-  getCachedStores,
-} from '@/lib/server/cached-queries'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 interface EditProductPageProps {
   params: Promise<{
@@ -34,11 +31,14 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   }
 
   // Fetch product, categories, and stores in parallel.
-  // Categories and stores are served from Next.js Data Cache (5min TTL).
-  const [productResult, categories, stores] = await Promise.all([
+  // (getCachedCategories/getCachedStores in cached-queries.ts can't be wired
+  // up here yet — their unstable_cache wrapper calls createClient() which
+  // reads cookies, which Next 16 forbids inside cached scopes.)
+  const supabase = await createClient()
+  const [productResult, categoriesResult, storesResult] = await Promise.all([
     getProduct(id),
-    getCachedCategories(),
-    getCachedStores(),
+    supabase.from('categories').select('id, name').order('name'),
+    supabase.from('stores').select('id, name').order('name'),
   ])
 
   if (!productResult.success || !productResult.data) {
@@ -46,6 +46,8 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   }
 
   const product = productResult.data
+  const categories = categoriesResult.data
+  const stores = storesResult.data
 
   return (
     <div className="space-y-6">

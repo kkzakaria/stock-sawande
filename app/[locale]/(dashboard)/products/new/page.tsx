@@ -1,14 +1,11 @@
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { ProductForm } from '@/components/products/product-form'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import {
-  getAuthenticatedProfile,
-  getCachedCategories,
-  getCachedStores,
-} from '@/lib/server/cached-queries'
+import { getAuthenticatedProfile } from '@/lib/server/cached-queries'
 
 interface NewProductPageProps {
   params: Promise<{ locale: string }>
@@ -31,11 +28,19 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
     redirect('/dashboard')
   }
 
-  // Categories and stores are served from Next.js Data Cache (5min TTL).
-  const [categories, stores] = await Promise.all([
-    getCachedCategories(),
-    getCachedStores(),
+  // Fetch categories and stores in parallel (uncached but at least overlapped).
+  // The getCachedCategories/getCachedStores helpers in cached-queries.ts can't
+  // be used here yet — their unstable_cache wrapper calls createClient() which
+  // reads cookies, which Next 16 forbids inside cached scopes. Wiring them up
+  // properly needs a cookies-free Supabase client for read-only reference data
+  // (separate ticket).
+  const supabase = await createClient()
+  const [categoriesResult, storesResult] = await Promise.all([
+    supabase.from('categories').select('id, name').order('name'),
+    supabase.from('stores').select('id, name').order('name'),
   ])
+  const categories = categoriesResult.data
+  const stores = storesResult.data
 
   return (
     <div className="space-y-6">
