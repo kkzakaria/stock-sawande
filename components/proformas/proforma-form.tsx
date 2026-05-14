@@ -394,7 +394,7 @@ export function ProformaForm({
                             )
                           }
                           disabled={(date: Date) => date < new Date()}
-                          initialFocus
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>
