@@ -1127,6 +1127,8 @@
       "codepage": "Jeu de caractères",
       "autoCut": "Coupe automatique après impression",
       "autoPrint": "Imprimer automatiquement après la vente",
+      "copies": "Nombre de copies par vente",
+      "copiesHint": "Chaque copie est imprimée avec ses propres coupes si la coupe automatique est activée.",
       "pairUsb": "Associer une imprimante USB",
       "pairedUsb": "Associée (vendeur {vendorId}, produit {productId})",
       "testPrint": "Imprimer un ticket test",

@@ -1127,6 +1127,8 @@
       "codepage": "Character set",
       "autoCut": "Auto-cut paper after printing",
       "autoPrint": "Print automatically after checkout",
+      "copies": "Receipt copies per sale",
+      "copiesHint": "Each copy is printed with its own cut when auto-cut is enabled.",
       "pairUsb": "Pair USB printer",
       "pairedUsb": "Paired (vendor {vendorId}, product {productId})",
       "testPrint": "Print test receipt",

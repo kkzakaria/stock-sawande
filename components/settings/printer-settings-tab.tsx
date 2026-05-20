@@ -17,8 +17,9 @@ import {
 import { Printer, Loader2 } from 'lucide-react'
 import { usePrinter } from '@/lib/hooks/use-printer'
 import { isWebUsbSupported, requestUsbDevice } from '@/lib/printing/transports/usb'
-import { DEFAULT_PRINTER_CONFIG } from '@/lib/printing/types'
+import { DEFAULT_PRINTER_CONFIG, MAX_COPIES, MIN_COPIES } from '@/lib/printing/types'
 import type { PrinterConfig, PrinterWidth } from '@/lib/printing/types'
+import { clampCopies } from '@/lib/printing/config'
 import type { ReceiptData } from '@/components/pos/pos-receipt'
 
 const SAMPLE_TEST_RECEIPT: ReceiptData = {
@@ -212,6 +213,26 @@ export function PrinterSettingsTab() {
           checked={draft.autoPrint}
           onCheckedChange={(v) => update('autoPrint', v)}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="printer-copies">{t('copies')}</Label>
+        <Select
+          value={String(clampCopies(draft.copies))}
+          onValueChange={(v) => update('copies', clampCopies(Number(v)))}
+        >
+          <SelectTrigger id="printer-copies">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: MAX_COPIES - MIN_COPIES + 1 }, (_, i) => MIN_COPIES + i).map((n) => (
+              <SelectItem key={n} value={String(n)}>
+                {n}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">{t('copiesHint')}</p>
       </div>
 
       <div className="flex gap-2 pt-2">
