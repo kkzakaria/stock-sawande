@@ -477,21 +477,13 @@ export async function getProducts(filters: ProductFilters = {}) {
     // accessible stores. PostgREST chaining handles search/sort/pagination
     // server-side so the page no longer needs to ship the full catalog.
     if (!isAdmin && accessibleStoreIds.length > 0) {
-      // products_for_user_stores is not yet in the generated Database types —
-      // regenerate with `supabase gen types` after the migration is pushed.
-      // The cast erases types until then; the runtime call is a normal
-      // supabase-js RPC chainable with PostgREST filters/order/range.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let query: any = (supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>,
-        options: { count: 'exact' | 'planned' | 'estimated' },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ) => any)(
-        'products_for_user_stores',
-        { p_store_ids: accessibleStoreIds },
-        { count: 'exact' },
-      ).select('*')
+      let query = supabase
+        .rpc(
+          'products_for_user_stores',
+          { p_store_ids: accessibleStoreIds },
+          { count: 'exact' },
+        )
+        .select('*')
 
       if (filters.search) {
         query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`)

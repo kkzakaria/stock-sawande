@@ -1575,6 +1575,30 @@ export type Database = {
         }
         Returns: Json
       }
+      products_for_user_stores: {
+        Args: { p_store_ids: string[] }
+        Returns: {
+          barcode: string
+          category_id: string
+          category_name: string
+          cost: number
+          created_at: string
+          description: string
+          image_url: string
+          is_active: boolean
+          max_price: number
+          min_price: number
+          min_stock_level: number
+          my_quantity: number
+          name: string
+          price: number
+          sku: string
+          store_count: number
+          template_id: string
+          total_quantity: number
+          updated_at: string
+        }[]
+      }
       restore_deleted_user: { Args: { target_user_id: string }; Returns: Json }
       soft_delete_user: { Args: { target_user_id: string }; Returns: Json }
       update_expired_proformas: { Args: never; Returns: number }
