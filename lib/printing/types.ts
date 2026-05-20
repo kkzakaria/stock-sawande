@@ -9,6 +9,8 @@ export type PrinterConfig = {
   codepage: string
   autoCut: boolean
   autoPrint: boolean
+  /** Number of receipt copies to print per sale (1-9, default 1). */
+  copies: number
   usb?: {
     vendorId: number
     productId: number
@@ -37,6 +39,9 @@ export type PrintResult =
   | { ok: true }
   | { ok: false; error: PrinterError }
 
+export const MIN_COPIES = 1
+export const MAX_COPIES = 9
+
 export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   enabled: false,
   transport: 'usb',
@@ -44,4 +49,5 @@ export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   codepage: 'cp858',
   autoCut: true,
   autoPrint: false,
+  copies: 1,
 }

@@ -1,11 +1,25 @@
-import type { PrinterConfig, PrinterTransport, PrinterWidth } from './types'
+import {
+  MAX_COPIES,
+  MIN_COPIES,
+  type PrinterConfig,
+  type PrinterTransport,
+  type PrinterWidth,
+} from './types'
 
 export const PRINTER_CONFIG_KEY = 'pos.printer.config.v1'
 
 const VALID_TRANSPORTS: PrinterTransport[] = ['usb', 'bluetooth', 'network']
 const VALID_WIDTHS: PrinterWidth[] = [58, 80]
 
-function isPrinterConfig(value: unknown): value is PrinterConfig {
+export function clampCopies(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 1
+  const rounded = Math.round(value)
+  if (rounded < MIN_COPIES) return MIN_COPIES
+  if (rounded > MAX_COPIES) return MAX_COPIES
+  return rounded
+}
+
+function isPrinterConfigShape(value: unknown): value is Omit<PrinterConfig, 'copies'> & { copies?: unknown } {
   if (!value || typeof value !== 'object') return false
   const v = value as Record<string, unknown>
   return (
@@ -26,8 +40,13 @@ export function getPrinterConfig(): PrinterConfig | null {
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw)
-    if (!isPrinterConfig(parsed)) return null
-    return parsed
+    if (!isPrinterConfigShape(parsed)) return null
+    // copies was added after the initial config schema; default to 1 if absent
+    // or out of range so older stored configs keep working without a migration.
+    return {
+      ...(parsed as Omit<PrinterConfig, 'copies'>),
+      copies: clampCopies((parsed as { copies?: unknown }).copies),
+    }
   } catch {
     return null
   }
