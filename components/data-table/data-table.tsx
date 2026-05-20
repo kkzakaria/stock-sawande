@@ -38,6 +38,8 @@ export function DataTable<TData, TValue>({
   getRowId,
   onRowSelectionChange,
   manualPagination = false,
+  manualSorting = false,
+  manualFiltering = false,
   pageCount,
   // Initial state from URL
   initialColumnFilters = [],
@@ -156,15 +158,19 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: handleColumnVisibilityChange,
     onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: enablePagination
-      ? getPaginationRowModel()
-      : undefined,
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    // In manual mode the caller has already filtered/sorted/paginated the
+    // rows server-side, so TanStack should not re-apply its in-memory models.
+    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
+    getPaginationRowModel:
+      enablePagination && !manualPagination ? getPaginationRowModel() : undefined,
+    getSortedRowModel:
+      enableSorting && !manualSorting ? getSortedRowModel() : undefined,
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getRowId,
     manualPagination,
+    manualSorting,
+    manualFiltering,
   });
 
   // Track previous pagination to detect actual changes

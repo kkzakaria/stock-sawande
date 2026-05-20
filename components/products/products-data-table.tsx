@@ -75,6 +75,8 @@ interface ProductsDataTableProps {
   products: Product[];
   onAddProduct?: () => void;
   pageCount?: number;
+  totalCount?: number;
+  allCategories?: Array<{ id: string; name: string }>;
   currentPage?: number;
   pageSize?: number;
   onPaginationChange?: (pageIndex: number, pageSize: number) => void;
@@ -90,6 +92,7 @@ export function ProductsDataTable({
   products,
   onAddProduct,
   pageCount,
+  allCategories,
   pageSize,
   onPaginationChange,
   userRole,
@@ -107,14 +110,19 @@ export function ProductsDataTable({
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
 
-  // nuqs state for URL synchronization (write-only, we use initialValues for reading)
+  // nuqs state for URL synchronization (write-only, we use initialValues for reading).
+  // shallow:false re-runs the page server component so getProducts re-fetches
+  // the current page with the new filter/sort/pagination. throttleMs batches
+  // bursts of writes — most importantly keystrokes in the search input — into
+  // at most one navigation per window.
   const [, setUrlState] = useQueryStates({
     filters: columnFiltersParser,
     sorting: sortingStateParser,
     pageIndex: pageIndexParser,
     pageSize: pageSizeParser,
   }, {
-    shallow: true,
+    shallow: false,
+    throttleMs: 300,
   });
 
   // Track if this is the first render to avoid syncing initial state to URL
@@ -525,13 +533,15 @@ export function ProductsDataTable({
     },
   ];
 
-  // Collect unique categories for filters
-  const categories = Array.from(
-    new Set(products.map((p) => p.category_name).filter(Boolean))
-  ).map((name) => ({
-    label: name!,
-    value: name!,
-  }));
+  // Categories for the faceted filter. Prefer the full list passed from the
+  // server (the table only sees the current page of products and can't build
+  // a complete option list itself); fall back to deriving from the current
+  // page so the table still works if the prop isn't provided.
+  const categories = (allCategories && allCategories.length > 0
+    ? allCategories.map((c) => ({ label: c.name, value: c.name }))
+    : Array.from(
+        new Set(products.map((p) => p.category_name).filter(Boolean)),
+      ).map((name) => ({ label: name!, value: name! })));
 
   const handleImport = async (importedProducts: Product[]) => {
     // TODO: Implement import logic
@@ -574,10 +584,15 @@ export function ProductsDataTable({
           enableExport: true,
           onImport: handleImport,
         }}
-        pageSize={pageSize || 10}
+        pageSize={pageSize || initialPagination.pageSize}
         pageSizeOptions={[10, 20, 50, 100]}
         emptyMessage={t("empty")}
-        manualPagination={!!pageCount}
+        // Server owns pagination, sorting, and filtering — the rows in `data`
+        // are already the current page. TanStack's in-memory models would
+        // double-filter and produce empty pages here.
+        manualPagination
+        manualSorting
+        manualFiltering
         pageCount={pageCount}
         // Initial state from URL + URL sync callbacks
         initialColumnFilters={initialColumnFilters}

@@ -49,8 +49,12 @@ export interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[];
   enablePagination?: boolean;
 
-  // Server-side pagination
+  // Server-side pagination / sorting / filtering. When manualSorting or
+  // manualFiltering is true, TanStack stops applying its in-memory models;
+  // the caller is expected to provide already-sorted/filtered rows via `data`.
   manualPagination?: boolean;
+  manualSorting?: boolean;
+  manualFiltering?: boolean;
   pageCount?: number;
 
   // Selection

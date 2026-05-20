@@ -13,9 +13,10 @@ export type SortOrder = 'asc' | 'desc';
 export interface ProductFilters {
   search?: string | null;
   category?: string | null;
+  categoryIds?: string[] | null;
   status?: 'active' | 'inactive' | null;
   store?: string | null;
-  sortBy?: 'name' | 'sku' | 'price' | 'quantity' | 'created_at' | null;
+  sortBy?: 'name' | 'sku' | 'price' | 'quantity' | 'created_at' | 'category' | null;
   sortOrder?: SortOrder;
   page?: number;
   limit?: number;

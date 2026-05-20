@@ -41,19 +41,26 @@ interface Product {
 interface ProductsClientProps {
   products: Product[];
   userRole?: string | null;
+  totalCount: number;
+  pageCount: number;
+  allCategories: Array<{ id: string; name: string }>;
 }
 
-export function ProductsClient({ products, userRole }: ProductsClientProps) {
+export function ProductsClient({
+  products,
+  userRole,
+  totalCount,
+  pageCount,
+  allCategories,
+}: ProductsClientProps) {
   const router = useRouter();
 
-  // Read URL state for initial values only
+  // Read URL state for initial values only — the data table writes back.
   const [urlState] = useQueryStates({
     filters: columnFiltersParser,
     sorting: sortingStateParser,
     pageIndex: pageIndexParser,
     pageSize: pageSizeParser.withDefault(10),
-  }, {
-    shallow: true,
   });
 
   const handleAddProduct = () => {
@@ -65,6 +72,9 @@ export function ProductsClient({ products, userRole }: ProductsClientProps) {
       products={products}
       onAddProduct={handleAddProduct}
       userRole={userRole}
+      totalCount={totalCount}
+      pageCount={pageCount}
+      allCategories={allCategories}
       // Pass URL state as initial values (uncontrolled mode)
       initialColumnFilters={urlState.filters as ColumnFiltersState ?? []}
       initialSorting={urlState.sorting as SortingState ?? []}
