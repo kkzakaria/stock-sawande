@@ -433,9 +433,10 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
 interface ProductFilters {
   search?: string | null
   category?: string | null
+  categoryIds?: string[] | null
   status?: 'active' | 'inactive' | null
   store?: string | null
-  sortBy?: 'name' | 'sku' | 'price' | 'quantity' | 'created_at' | null
+  sortBy?: 'name' | 'sku' | 'price' | 'quantity' | 'created_at' | 'category' | null
   sortOrder?: 'asc' | 'desc'
   page?: number
   limit?: number
@@ -471,106 +472,79 @@ export async function getProducts(filters: ProductFilters = {}) {
       return { success: false, error: 'No store assigned. Contact your administrator.', data: [], totalCount: 0, userRole }
     }
 
-    // For non-admin users with accessible stores, fetch products with their stores' quantity and totals
-    // RLS now allows reading all inventory, so we can see true totals
+    // Non-admin path: call the SQL function products_for_user_stores which
+    // returns aggregated products with my_quantity scoped to the caller's
+    // accessible stores. PostgREST chaining handles search/sort/pagination
+    // server-side so the page no longer needs to ship the full catalog.
     if (!isAdmin && accessibleStoreIds.length > 0) {
-      // Get aggregated totals and store inventory concurrently
-      const [aggResult, invResult] = await Promise.all([
-        (supabase.from as (table: string) => ReturnType<typeof supabase.from>)('products_aggregated').select('*'),
-        supabase.from('product_inventory').select('product_id, quantity').in('store_id', accessibleStoreIds),
-      ])
+      // products_for_user_stores is not yet in the generated Database types —
+      // regenerate with `supabase gen types` after the migration is pushed.
+      // The cast erases types until then; the runtime call is a normal
+      // supabase-js RPC chainable with PostgREST filters/order/range.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let query: any = (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+        options: { count: 'exact' | 'planned' | 'estimated' },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) => any)(
+        'products_for_user_stores',
+        { p_store_ids: accessibleStoreIds },
+        { count: 'exact' },
+      ).select('*')
 
-      if (aggResult.error) {
-        console.error('Error fetching aggregated products:', aggResult.error)
-        return { success: false, error: aggResult.error.message, data: [], totalCount: 0, userRole }
-      }
-      if (invResult.error) {
-        console.error('Error fetching store inventory:', invResult.error)
-        return { success: false, error: invResult.error.message, data: [], totalCount: 0, userRole }
-      }
-
-      const aggregatedProducts = aggResult.data
-      const storeInventory = invResult.data
-
-      // Create a map of product_id -> my_quantity (sum across all accessible stores)
-      const myInventoryMap = new Map<string, number>()
-      for (const inv of storeInventory || []) {
-        myInventoryMap.set(inv.product_id, (myInventoryMap.get(inv.product_id) ?? 0) + inv.quantity)
-      }
-
-      // Merge the data: add my_quantity to each aggregated product
-      const rpcProducts = (aggregatedProducts || []).map((p: Record<string, unknown>) => ({
-        ...p,
-        my_quantity: myInventoryMap.get(p.template_id as string) ?? 0,
-      })).filter((p: Record<string, unknown>) =>
-        // Only show products that exist in this store OR have inventory somewhere
-        myInventoryMap.has(p.template_id as string) || (p.total_quantity as number) > 0
-      )
-
-      // Apply client-side filtering and pagination for RPC results
-      let filteredProducts = rpcProducts || []
-
-      // Apply search filter
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase()
-        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) =>
-          (p.name as string)?.toLowerCase().includes(searchLower) ||
-          (p.sku as string)?.toLowerCase().includes(searchLower)
-        )
+        query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`)
       }
 
-      // Apply category filter
-      if (filters.category) {
-        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) =>
-          p.category_id === filters.category
-        )
+      if (filters.categoryIds && filters.categoryIds.length > 0) {
+        query = query.in('category_id', filters.categoryIds)
+      } else if (filters.category) {
+        query = query.eq('category_id', filters.category)
       }
 
-      // Apply status filter
       if (filters.status === 'active') {
-        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) => p.is_active === true)
+        query = query.eq('is_active', true)
       } else if (filters.status === 'inactive') {
-        filteredProducts = filteredProducts.filter((p: Record<string, unknown>) => p.is_active === false)
+        query = query.eq('is_active', false)
       }
 
-      // Get total count before pagination
-      const totalCount = filteredProducts.length
-
-      // Apply sorting
       const sortBy = filters.sortBy || 'name'
+      // For managers/cashiers the quantity column shows my_quantity, so sort
+      // on that — sorting by total would be confusing when the displayed
+      // value is the caller's stock. 'category' header sorts on category_name.
+      const actualSortBy =
+        sortBy === 'quantity' ? 'my_quantity'
+        : sortBy === 'category' ? 'category_name'
+        : sortBy
       const sortOrder = filters.sortOrder || 'asc'
-      filteredProducts.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-        const aVal = a[sortBy]
-        const bVal = b[sortBy]
-        if (aVal === null || aVal === undefined) return 1
-        if (bVal === null || bVal === undefined) return -1
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
-        }
-        return 0
-      })
+      query = query.order(actualSortBy, { ascending: sortOrder === 'asc' })
 
-      // Apply pagination
       const page = filters.page || 1
       const limit = filters.limit || 10
       const from = (page - 1) * limit
-      const to = from + limit
-      const paginatedProducts = filteredProducts.slice(from, to)
+      const to = from + limit - 1
+      query = query.range(from, to)
+
+      const { data, error, count } = await query
+
+      if (error) {
+        console.error('Error fetching products:', error)
+        return { success: false, error: error.message, data: [], totalCount: 0, userRole }
+      }
 
       // Normalize: map my_quantity to quantity for backward compatibility
-      const normalizedProducts = paginatedProducts.map((p: Record<string, unknown>) => ({
-        ...p,
-        quantity: p.my_quantity,
+      const rows = (data ?? []) as Record<string, unknown>[]
+      const normalizedProducts = rows.map((product) => ({
+        ...product,
+        quantity: product.my_quantity,
       }))
 
       return {
         success: true,
-        data: normalizedProducts,
-        totalCount,
-        userRole
+        data: normalizedProducts as Record<string, unknown>[],
+        totalCount: count || 0,
+        userRole,
       }
     }
 
@@ -582,8 +556,10 @@ export async function getProducts(filters: ProductFilters = {}) {
       query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`)
     }
 
-    // Apply category filter
-    if (filters.category) {
+    // Apply category filter (multi-value preferred, single legacy)
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      query = query.in('category_id', filters.categoryIds)
+    } else if (filters.category) {
       query = query.eq('category_id', filters.category)
     }
 
@@ -594,10 +570,13 @@ export async function getProducts(filters: ProductFilters = {}) {
       query = query.eq('is_active', false)
     }
 
-    // Apply sorting
+    // Apply sorting. The aggregated view exposes total_quantity (not quantity)
+    // and category_name (the column id used by the data table is 'category').
     const sortBy = filters.sortBy || 'name'
-    // Map quantity to the correct column name for aggregated view
-    const actualSortBy = sortBy === 'quantity' ? 'total_quantity' : sortBy
+    const actualSortBy =
+      sortBy === 'quantity' ? 'total_quantity'
+      : sortBy === 'category' ? 'category_name'
+      : sortBy
     const sortOrder = filters.sortOrder || 'asc'
     query = query.order(actualSortBy, { ascending: sortOrder === 'asc' })
 
