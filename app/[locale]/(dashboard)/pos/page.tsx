@@ -115,9 +115,6 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
 
   // Customers are loaded on-demand in the client component to reduce initial payload
 
-  // Limit products to optimize initial page load
-  const PRODUCT_LIMIT = 200
-
   // Type for the product query result
   type ProductQueryResult = {
     id: string
@@ -146,7 +143,6 @@ export default async function POSPage({ params, searchParams }: POSPageProps) {
     .eq('is_active', true)
     .eq('product_inventory.store_id', activeStoreId)
     .order('name')
-    .limit(PRODUCT_LIMIT)
     .returns<ProductQueryResult[]>()
 
   const { data: products, error: productsError } = productsQueryResult
