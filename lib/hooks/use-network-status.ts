@@ -39,9 +39,9 @@ interface NetworkInformation extends EventTarget {
 // ============================================
 
 const PING_URL = '/api/health'
-const PING_TIMEOUT = 1500 // 1.5s timeout (was 3s)
-const CHECK_INTERVAL = 5000 // Check every 5s when online (was 15s)
-const OFFLINE_CHECK_INTERVAL = 2000 // Check every 2s when offline (was 3s)
+const PING_TIMEOUT = 5000 // 5s — must exceed server-side Supabase timeout (3.5s)
+const CHECK_INTERVAL = 15000 // Check every 15s when online (SSE provides faster detection)
+const OFFLINE_CHECK_INTERVAL = 3000 // Check every 3s when offline for fast recovery
 const CONSECUTIVE_FAILURES_THRESHOLD = 2 // Number of failures before marking offline
 
 // ============================================

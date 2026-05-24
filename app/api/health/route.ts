@@ -30,7 +30,7 @@ async function checkInternetConnectivity(): Promise<boolean> {
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 1500)
+    const timeoutId = setTimeout(() => controller.abort(), 3500)
 
     // Ping Supabase REST endpoint (returns 401 without auth, but that's fine)
     // We just need to verify network connectivity

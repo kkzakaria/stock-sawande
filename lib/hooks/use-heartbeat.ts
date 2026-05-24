@@ -19,6 +19,8 @@ const HEARTBEAT_URL = '/api/heartbeat'
 const RECONNECT_DELAY = 2000 // Wait 2s before reconnecting
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_BACKOFF_MULTIPLIER = 1.5
+// Require 2 consecutive SSE errors before marking offline — filters transient errors
+const CONSECUTIVE_ERRORS_BEFORE_OFFLINE = 2
 
 // ============================================
 // Hook
@@ -40,6 +42,7 @@ export function useHeartbeat(options: UseHeartbeatOptions = {}) {
   const eventSourceRef = useRef<EventSource | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const reconnectAttemptsRef = useRef(0)
+  const consecutiveErrorsRef = useRef(0)
   const isVisibleRef = useRef(true)
 
   // Use refs to break circular dependencies and access latest values
@@ -108,11 +111,13 @@ export function useHeartbeat(options: UseHeartbeatOptions = {}) {
 
       eventSource.addEventListener('connected', () => {
         reconnectAttemptsRef.current = 0
+        consecutiveErrorsRef.current = 0
         setOnlineStatus(true)
         onStatusChangeRef.current?.(true)
       })
 
       eventSource.addEventListener('heartbeat', () => {
+        consecutiveErrorsRef.current = 0
         if (!isOnlineRef.current) {
           setOnlineStatus(true)
           onStatusChangeRef.current?.(true)
@@ -121,6 +126,8 @@ export function useHeartbeat(options: UseHeartbeatOptions = {}) {
       })
 
       eventSource.addEventListener('offline', () => {
+        // Explicit server-side signal: Supabase is unreachable
+        consecutiveErrorsRef.current = 0
         eventSource.close()
         eventSourceRef.current = null
         setOnlineStatus(false)
@@ -129,10 +136,17 @@ export function useHeartbeat(options: UseHeartbeatOptions = {}) {
       })
 
       eventSource.onerror = () => {
+        // SSE connection dropped — could be transient (server restart, proxy timeout, etc.)
+        // Only mark offline after N consecutive failures to avoid false positives
+        consecutiveErrorsRef.current++
         eventSource.close()
         eventSourceRef.current = null
-        setOnlineStatus(false)
-        onStatusChangeRef.current?.(false)
+
+        if (consecutiveErrorsRef.current >= CONSECUTIVE_ERRORS_BEFORE_OFFLINE) {
+          setOnlineStatus(false)
+          onStatusChangeRef.current?.(false)
+        }
+
         scheduleReconnect()
       }
     } catch {
