@@ -9,7 +9,7 @@
 
 import { NextRequest } from 'next/server'
 
-const HEARTBEAT_INTERVAL = 3000 // Send heartbeat every 3 seconds
+const HEARTBEAT_INTERVAL = 8000 // Send heartbeat every 8 seconds
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -23,7 +23,7 @@ async function checkConnectivity(): Promise<boolean> {
 
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 1500)
+    const timeoutId = setTimeout(() => controller.abort(), 3000)
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
       method: 'HEAD',
