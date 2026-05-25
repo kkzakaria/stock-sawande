@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -153,8 +154,8 @@ export function PrinterSettingsTab() {
             <RadioGroupItem value="bluetooth" id="t-bt" disabled />
             <Label htmlFor="t-bt">{t('transportBluetooth')}</Label>
           </div>
-          <div className="flex items-center gap-2 opacity-50">
-            <RadioGroupItem value="network" id="t-net" disabled />
+          <div className="flex items-center gap-2">
+            <RadioGroupItem value="network" id="t-net" />
             <Label htmlFor="t-net">{t('transportNetwork')}</Label>
           </div>
         </RadioGroup>
@@ -178,6 +179,44 @@ export function PrinterSettingsTab() {
               })}
             </p>
           )}
+        </div>
+      )}
+
+      {draft.transport === 'network' && (
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label htmlFor="printer-host">{t('networkHost')}</Label>
+            <Input
+              id="printer-host"
+              placeholder="192.168.1.100"
+              value={draft.network?.host ?? ''}
+              onChange={(e) =>
+                update('network', {
+                  host: e.target.value,
+                  port: draft.network?.port ?? 9100,
+                  timeoutMs: draft.network?.timeoutMs ?? 5000,
+                })
+              }
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="printer-port">{t('networkPort')}</Label>
+            <Input
+              id="printer-port"
+              type="number"
+              min={1}
+              max={65535}
+              placeholder="9100"
+              value={draft.network?.port ?? 9100}
+              onChange={(e) =>
+                update('network', {
+                  host: draft.network?.host ?? '',
+                  port: Number(e.target.value),
+                  timeoutMs: draft.network?.timeoutMs ?? 5000,
+                })
+              }
+            />
+          </div>
         </div>
       )}
 
