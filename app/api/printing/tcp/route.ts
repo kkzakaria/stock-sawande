@@ -94,12 +94,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     )
   }
 
-  let bytes: Buffer
-  try {
-    bytes = Buffer.from(payload, 'base64')
-  } catch {
-    return NextResponse.json({ error: 'Invalid payload encoding' }, { status: 422 })
-  }
+  const bytes = Buffer.from(payload, 'base64')
 
   try {
     await sendBytes(host, port, timeoutMs, bytes)

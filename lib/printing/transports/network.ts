@@ -4,7 +4,9 @@ export async function printNetwork(
   bytes: Uint8Array,
   config: { host: string; port: number; timeoutMs: number },
 ): Promise<{ ok: true } | { ok: false; error: PrinterError }> {
-  const payload = btoa(String.fromCharCode(...bytes))
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  const payload = btoa(binary)
 
   let response: Response
   try {
