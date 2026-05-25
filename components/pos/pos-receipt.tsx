@@ -227,7 +227,10 @@ export function POSReceipt({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+        <DialogContent
+            className="max-w-md max-h-[85vh] flex flex-col"
+            onInteractOutside={(e) => e.preventDefault()}
+          >
           <DialogHeader className="no-print flex-shrink-0">
             <DialogTitle>Ticket de vente</DialogTitle>
             <DialogDescription>
