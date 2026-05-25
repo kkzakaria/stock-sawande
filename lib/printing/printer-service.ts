@@ -2,6 +2,7 @@ import type { ReceiptData } from '@/components/pos/pos-receipt'
 import { clampCopies, getPrinterConfig } from './config'
 import { encodeReceipt } from './encoder'
 import { printUsb } from './transports/usb'
+import { printNetwork } from './transports/network'
 import type { PrintResult } from './types'
 
 /**
@@ -50,9 +51,16 @@ export async function printReceipt(data: ReceiptData): Promise<PrintResult> {
       }
       return printUsb(payload, config.usb)
     }
+    case 'network': {
+      if (!config.network) {
+        return {
+          ok: false,
+          error: { kind: 'transport-error', message: 'Network config missing' },
+        }
+      }
+      return printNetwork(payload, config.network)
+    }
     case 'bluetooth':
-    case 'network':
-      // Implemented in later phases. Treat as not-configured for now.
       return { ok: false, error: { kind: 'not-configured' } }
   }
 }
