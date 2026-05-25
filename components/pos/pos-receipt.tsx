@@ -216,31 +216,6 @@ export function POSReceipt({
 
   return (
     <>
-      <style>{`
-        @media print {
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          body * {
-            visibility: hidden;
-          }
-          .receipt-container,
-          .receipt-container * {
-            visibility: visible;
-          }
-          .receipt-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 80mm !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-          }
-        }
-      `}</style>
-
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
           <DialogHeader className="no-print flex-shrink-0">
