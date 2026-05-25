@@ -67,8 +67,8 @@ export function MobileMenuSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
-        <SheetHeader className="pb-4 border-b">
+      <SheetContent side="bottom" className="!h-[85vh] rounded-t-2xl flex flex-col">
+        <SheetHeader className="pb-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
               <AvatarFallback className="bg-primary text-primary-foreground text-lg">
@@ -89,7 +89,7 @@ export function MobileMenuSheet({
           </div>
         </SheetHeader>
 
-        <nav className="flex flex-col gap-1 py-4 overflow-y-auto">
+        <nav className="flex flex-col gap-1 py-4 overflow-y-auto flex-1 min-h-0">
           {allowedItems.map((item) => {
             const Icon = item.icon
             const isActive = isActivePath(item.href)
@@ -113,7 +113,7 @@ export function MobileMenuSheet({
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-background pb-[env(safe-area-inset-bottom)]">
+        <div className="flex-shrink-0 p-4 border-t bg-background pb-[env(safe-area-inset-bottom)]">
           <Button
             variant="outline"
             className="w-full justify-start gap-3 h-12"
