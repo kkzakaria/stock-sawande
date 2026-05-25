@@ -690,6 +690,7 @@
     },
     "print": {
       "starting": "Sending to printer...",
+      "repairing": "Reconnecting USB printer...",
       "success": "Receipt printed",
       "failed": "Print failed, opening preview",
       "testSuccess": "Test receipt sent to printer",

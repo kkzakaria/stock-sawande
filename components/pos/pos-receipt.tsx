@@ -82,8 +82,9 @@ export function POSReceipt({
       const toastId = toast.loading(tPrint('starting'))
       let result = await thermalPrint(receiptData)
 
-      // USB device lost after reboot: re-pair silently then retry once
+      // USB device lost after reboot: re-pair then retry once
       if (!result.ok && result.error.kind === 'device-not-found') {
+        toast.loading(tPrint('repairing'), { id: toastId })
         const repaired = await repairDevice()
         if (repaired) {
           result = await thermalPrint(receiptData)

@@ -438,6 +438,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
 
       // USB device lost after reboot: try re-pair and retry once
       if (!result.ok && result.error.kind === 'device-not-found') {
+        toast.loading(tPrint('repairing'), { id: toastId })
         const repaired = await repairDevice()
         if (repaired) {
           result = await thermalPrint(resolvedReceipt)
