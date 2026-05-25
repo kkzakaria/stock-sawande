@@ -149,12 +149,18 @@
   }
 
   .receipt-container {
-    position: fixed;
-    top: 0;
-    left: 0;
+    /* Override Radix Dialog centering (translate(-50%,-50%)) that pushes
+       the receipt down when position:fixed falls back to absolute in print */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: auto !important;
+    right: auto !important;
+    transform: none !important;
     width: 80mm !important;
-    padding: 0 !important;
+    padding: 0 3mm !important;
     margin: 0 !important;
     box-shadow: none !important;
+    border: none !important;
   }
 }
