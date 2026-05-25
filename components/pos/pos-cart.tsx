@@ -252,7 +252,7 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
   const tQuantity = useTranslations('POS.quantity')
   const tCheckout = useTranslations('POS.checkout')
   const tPrint = useTranslations('POS.print')
-  const { print: thermalPrint, config: printerConfig } = usePrinter()
+  const { print: thermalPrint, config: printerConfig, repairDevice } = usePrinter()
 
   const items = useCartStore((state) => state.items)
   const removeItem = useCartStore((state) => state.removeItem)
@@ -434,7 +434,16 @@ export function POSCart({ storeId, cashierId, cashierName, storeInfo, sessionId,
       resolvedReceipt
     ) {
       const toastId = toast.loading(tPrint('starting'))
-      const result = await thermalPrint(resolvedReceipt)
+      let result = await thermalPrint(resolvedReceipt)
+
+      // USB device lost after reboot: try re-pair and retry once
+      if (!result.ok && result.error.kind === 'device-not-found') {
+        const repaired = await repairDevice()
+        if (repaired) {
+          result = await thermalPrint(resolvedReceipt)
+        }
+      }
+
       if (result.ok) {
         toast.success(tPrint('success'), { id: toastId })
         return

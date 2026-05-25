@@ -10,6 +10,8 @@ import {
   PRINTER_CONFIG_KEY,
 } from '@/lib/printing/config'
 import type { PrinterConfig, PrintResult, PrinterError } from '@/lib/printing/types'
+import { requestUsbDevice } from '@/lib/printing/transports/usb'
+import { savePrinterConfigToDB } from '@/lib/actions/business-settings'
 
 type Status = 'idle' | 'printing' | 'error'
 
@@ -85,12 +87,31 @@ export function usePrinter() {
     return result
   }, [])
 
+  // Re-pairs the USB device (requires a user gesture in scope) and updates
+  // both localStorage and DB so the new IDs survive the next restart.
+  // Returns true if a new device was successfully selected.
+  const repairDevice = useCallback(async (): Promise<boolean> => {
+    const current = getPrinterConfig()
+    if (!current || current.transport !== 'usb') return false
+    const result = await requestUsbDevice()
+    if (!result.ok) return false
+    const updated: PrinterConfig = {
+      ...current,
+      usb: { vendorId: result.vendorId, productId: result.productId },
+    }
+    setPrinterConfig(updated)
+    notifyLocalChange()
+    savePrinterConfigToDB(updated)
+    return true
+  }, [])
+
   return {
     config,
     isConfigured: Boolean(config?.enabled),
     saveConfig,
     removeConfig,
     print,
+    repairDevice,
     status,
     lastError,
   }
