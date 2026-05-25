@@ -74,13 +74,22 @@ export function POSReceipt({
   const [loading, setLoading] = useState(false)
   const [action, setAction] = useState<'print' | 'share' | 'download' | null>(null)
   const tPrint = useTranslations('POS.print')
-  const { print: thermalPrint, isConfigured } = usePrinter()
+  const { print: thermalPrint, isConfigured, repairDevice } = usePrinter()
 
   const handlePrint = async () => {
     setAction('print')
     if (isConfigured && receiptData) {
       const toastId = toast.loading(tPrint('starting'))
-      const result = await thermalPrint(receiptData)
+      let result = await thermalPrint(receiptData)
+
+      // USB device lost after reboot: re-pair silently then retry once
+      if (!result.ok && result.error.kind === 'device-not-found') {
+        const repaired = await repairDevice()
+        if (repaired) {
+          result = await thermalPrint(receiptData)
+        }
+      }
+
       if (result.ok) {
         setAction(null)
         toast.success(tPrint('success'), { id: toastId })
