@@ -222,18 +222,20 @@ export function POSReceipt({
             size: 80mm auto;
             margin: 0;
           }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
+          body * {
+            visibility: hidden;
           }
-          .no-print {
-            display: none !important;
+          .receipt-container,
+          .receipt-container * {
+            visibility: visible;
           }
           .receipt-container {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 80mm !important;
-            margin: 0 !important;
             padding: 0 !important;
+            margin: 0 !important;
             box-shadow: none !important;
           }
         }
