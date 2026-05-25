@@ -8,7 +8,12 @@ vi.mock('@/lib/printing/transports/usb', () => ({
   requestUsbDevice: vi.fn(),
 }))
 
+vi.mock('@/lib/printing/transports/network', () => ({
+  printNetwork: vi.fn(),
+}))
+
 import { printUsb } from '@/lib/printing/transports/usb'
+import { printNetwork } from '@/lib/printing/transports/network'
 import { printReceipt } from '@/lib/printing/printer-service'
 
 describe('printerService.printReceipt', () => {
@@ -25,6 +30,7 @@ describe('printerService.printReceipt', () => {
     })
     clearPrinterConfig()
     vi.mocked(printUsb).mockReset()
+    vi.mocked(printNetwork).mockReset()
   })
 
   it('returns not-configured when no config is stored', async () => {
@@ -71,16 +77,6 @@ describe('printerService.printReceipt', () => {
     expect(result).toEqual({ ok: false, error: { kind: 'not-configured' } })
   })
 
-  it('returns not-configured when transport is network (Phase 1 unsupported)', async () => {
-    setPrinterConfig({
-      ...config80mm,
-      transport: 'network',
-      network: { host: '192.168.1.50', port: 9100, timeoutMs: 5000 },
-    })
-    const result = await printReceipt(sampleReceiptData)
-    expect(result).toEqual({ ok: false, error: { kind: 'not-configured' } })
-  })
-
   it('returns transport-error when USB ids are missing from config', async () => {
     const broken = { ...config80mm }
     delete broken.usb
@@ -89,5 +85,44 @@ describe('printerService.printReceipt', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error.kind).toBe('transport-error')
     expect(printUsb).not.toHaveBeenCalled()
+  })
+
+  it('routes to the network transport when transport is network', async () => {
+    setPrinterConfig({
+      ...config80mm,
+      transport: 'network',
+      network: { host: '192.168.1.50', port: 9100, timeoutMs: 5000 },
+    })
+    vi.mocked(printNetwork).mockResolvedValue({ ok: true })
+    const result = await printReceipt(sampleReceiptData)
+    expect(printNetwork).toHaveBeenCalledOnce()
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('propagates network transport error', async () => {
+    setPrinterConfig({
+      ...config80mm,
+      transport: 'network',
+      network: { host: '192.168.1.50', port: 9100, timeoutMs: 5000 },
+    })
+    vi.mocked(printNetwork).mockResolvedValue({
+      ok: false,
+      error: { kind: 'transport-error', message: 'Connection refused' },
+    })
+    const result = await printReceipt(sampleReceiptData)
+    expect(result).toEqual({
+      ok: false,
+      error: { kind: 'transport-error', message: 'Connection refused' },
+    })
+  })
+
+  it('returns transport-error when network transport is selected but network config is missing', async () => {
+    const brokenConfig = { ...config80mm, transport: 'network' as const }
+    delete (brokenConfig as Partial<typeof brokenConfig>).network
+    setPrinterConfig(brokenConfig)
+    const result = await printReceipt(sampleReceiptData)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.error.kind).toBe('transport-error')
+    expect(printNetwork).not.toHaveBeenCalled()
   })
 })
