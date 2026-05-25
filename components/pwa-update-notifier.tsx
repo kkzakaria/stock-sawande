@@ -30,12 +30,18 @@ export function PwaUpdateNotifier() {
 
     checkForUpdate()
 
+    // Check every 60s — covers the case where the user never switches tabs
+    const interval = setInterval(checkForUpdate, 60_000)
+
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') checkForUpdate()
     }
 
     document.addEventListener('visibilitychange', onVisibilityChange)
-    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [])
 
   return null
