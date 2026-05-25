@@ -28,7 +28,12 @@ export interface CachedProduct {
 // Pending Transaction (offline sale)
 // ============================================
 export type TransactionStatus = 'pending' | 'syncing' | 'synced' | 'conflict' | 'failed'
-export type PaymentMethod = 'cash' | 'card' | 'mobile' | 'other'
+export type PaymentMethod = 'cash' | 'card' | 'mobile' | 'other' | 'hybrid'
+
+export interface PaymentSplit {
+  method: 'cash' | 'card' | 'mobile' | 'other'
+  amount: number
+}
 
 export interface PendingTransactionItem {
   productId: string
@@ -68,6 +73,7 @@ export interface PendingTransaction {
   discount: number
   total: number
   paymentMethod: PaymentMethod
+  paymentSplits?: PaymentSplit[]  // present when paymentMethod === 'hybrid'
   notes: string
   createdAt: Date
   status: TransactionStatus
