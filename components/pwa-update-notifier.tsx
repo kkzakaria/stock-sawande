@@ -1,18 +1,25 @@
 'use client'
 
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 export function PwaUpdateNotifier() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    // Auto-reload when a new SW takes control. The module-level flag resets
-    // on each page load, preventing infinite reload loops.
-    let reloading = false
+    let toastShown = false
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return
-      reloading = true
-      window.location.reload()
+      if (toastShown) return
+      toastShown = true
+      toast.info('Nouvelle version disponible', {
+        description: "Rechargez pour mettre à jour l'application.",
+        action: {
+          label: 'Recharger',
+          onClick: () => window.location.reload(),
+        },
+        duration: Infinity,
+      })
     })
 
     const checkForUpdate = () => {
