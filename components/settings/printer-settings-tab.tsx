@@ -101,9 +101,9 @@ export function PrinterSettingsTab() {
 
   const onTest = async () => {
     setTesting(true)
-    saveConfig(draft)
-    savePrinterConfigToDB(draft)
+    saveConfig({ ...draft, enabled: true })
     const result = await print(SAMPLE_TEST_RECEIPT)
+    saveConfig(draft)
     setTesting(false)
     if (result.ok) {
       toast.success(tPrint('testSuccess'))
@@ -296,7 +296,7 @@ export function PrinterSettingsTab() {
         <Button
           onClick={onTest}
           variant="outline"
-          disabled={testing || !draft.enabled}
+          disabled={testing}
         >
           {testing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {t('testPrint')}
