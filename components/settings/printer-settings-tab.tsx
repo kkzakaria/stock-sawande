@@ -103,12 +103,15 @@ export function PrinterSettingsTab() {
     setTesting(true)
     saveConfig({ ...draft, enabled: true })
     const result = await print(SAMPLE_TEST_RECEIPT)
-    saveConfig(draft)
     setTesting(false)
     if (result.ok) {
+      // After a successful test, keep enabled=true so the POS uses thermal printing.
+      setDraftEdits({ ...draft, enabled: true })
       toast.success(tPrint('testSuccess'))
       return
     }
+    // Restore original config on failure so the user can fix and retry.
+    saveConfig(draft)
     const detail =
       'message' in result.error
         ? `${result.error.kind}: ${result.error.message}`
