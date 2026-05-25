@@ -6,7 +6,8 @@ CREATE TEMP TABLE _hybrid_ids (
   cashier_id   uuid,
   product_id   uuid,
   inventory_id uuid,
-  session_id   uuid
+  session_id   uuid,
+  sale_id      uuid
 ) ON COMMIT DROP;
 
 DO $$
@@ -40,53 +41,57 @@ BEGIN
   VALUES (v_store_id, v_cashier_id, 0, 'open')
   RETURNING id INTO v_session_id;
 
-  INSERT INTO _hybrid_ids VALUES (v_store_id, v_cashier_id, v_product_id, v_inventory_id, v_session_id);
+  INSERT INTO _hybrid_ids (store_id, cashier_id, product_id, inventory_id, session_id)
+  VALUES (v_store_id, v_cashier_id, v_product_id, v_inventory_id, v_session_id);
 END;
 $$;
 
--- Test 1: hybrid checkout succeeds
 SELECT tests.authenticate_as('hybrid_cashier');
 
+-- Test 1: hybrid checkout succeeds
+DO $$
+DECLARE
+  v_result jsonb;
+BEGIN
+  SELECT public.process_checkout(
+    p_store_id        := (SELECT store_id FROM _hybrid_ids),
+    p_cashier_id      := (SELECT cashier_id FROM _hybrid_ids),
+    p_cash_session_id := (SELECT session_id FROM _hybrid_ids),
+    p_payment_method  := 'cash',
+    p_payment_splits  := '[{"method":"cash","amount":60},{"method":"mobile","amount":40}]'::jsonb,
+    p_items           := jsonb_build_array(jsonb_build_object(
+      'productId',   (SELECT product_id FROM _hybrid_ids),
+      'inventoryId', (SELECT inventory_id FROM _hybrid_ids),
+      'quantity',    1,
+      'price',       100.00,
+      'discount',    0
+    )),
+    p_subtotal        := 100.00,
+    p_tax             := 0,
+    p_discount        := 0,
+    p_total           := 100.00,
+    p_idempotency_key := 'hybrid-test-1'
+  ) INTO v_result;
+  -- Store the sale_id for use in later tests
+  UPDATE _hybrid_ids SET sale_id = (v_result->>'sale_id')::uuid;
+END;
+$$;
+
 SELECT ok(
-  (
-    SELECT (result->>'success')::boolean
-    FROM public.process_checkout(
-      p_store_id       := (SELECT store_id FROM _hybrid_ids),
-      p_cashier_id     := (SELECT cashier_id FROM _hybrid_ids),
-      p_cash_session_id := (SELECT session_id FROM _hybrid_ids),
-      p_payment_method := 'cash',
-      p_payment_splits := '[{"method":"cash","amount":60},{"method":"mobile","amount":40}]'::jsonb,
-      p_items          := jsonb_build_array(jsonb_build_object(
-        'productId',   (SELECT product_id FROM _hybrid_ids),
-        'inventoryId', (SELECT inventory_id FROM _hybrid_ids),
-        'quantity',    1,
-        'price',       100.00,
-        'discount',    0
-      )),
-      p_subtotal       := 100.00,
-      p_tax            := 0,
-      p_discount       := 0,
-      p_total          := 100.00,
-      p_idempotency_key := 'hybrid-test-1'
-    ) result
-  ),
+  (SELECT sale_id IS NOT NULL FROM _hybrid_ids),
   'hybrid checkout succeeds'
 );
 
 -- Test 2: sale has payment_method = 'hybrid'
 SELECT is(
-  (SELECT payment_method FROM public.sales
-   WHERE cashier_id = (SELECT cashier_id FROM _hybrid_ids)
-   ORDER BY created_at DESC LIMIT 1),
+  (SELECT payment_method FROM public.sales WHERE id = (SELECT sale_id FROM _hybrid_ids)),
   'hybrid',
   'sale.payment_method is hybrid'
 );
 
 -- Test 3: sale_payments has 2 rows
 SELECT is(
-  (SELECT COUNT(*)::int FROM public.sale_payments sp
-   JOIN public.sales s ON s.id = sp.sale_id
-   WHERE s.cashier_id = (SELECT cashier_id FROM _hybrid_ids)),
+  (SELECT COUNT(*)::int FROM public.sale_payments WHERE sale_id = (SELECT sale_id FROM _hybrid_ids)),
   2,
   'sale_payments has 2 rows for hybrid sale'
 );

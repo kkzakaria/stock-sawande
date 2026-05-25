@@ -146,6 +146,9 @@ BEGIN
 
     v_effective_method := 'hybrid';
   ELSE
+    IF p_payment_method = 'hybrid' THEN
+      RAISE EXCEPTION 'p_payment_splits required when payment_method is hybrid' USING ERRCODE = '23514';
+    END IF;
     v_effective_method := p_payment_method;
   END IF;
 
@@ -265,6 +268,12 @@ BEGIN
       WHERE id = p_cash_session_id
         AND store_id = p_store_id
         AND status = 'open';
+
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'Cash session % not found, not open, or not in store %',
+          p_cash_session_id, p_store_id
+          USING ERRCODE = '23503';
+      END IF;
     ELSE
       UPDATE public.cash_sessions
       SET
