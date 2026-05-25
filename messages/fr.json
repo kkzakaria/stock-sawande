@@ -690,6 +690,7 @@
     },
     "print": {
       "starting": "Envoi à l'imprimante...",
+      "repairing": "Reconnexion de l'imprimante USB...",
       "success": "Ticket imprimé",
       "failed": "Échec d'impression, ouverture de l'aperçu",
       "testSuccess": "Ticket test envoyé à l'imprimante",
