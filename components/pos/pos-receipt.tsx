@@ -317,7 +317,7 @@ export function POSReceipt({
               ) : (
                 <Printer className="mr-2 h-4 w-4" />
               )}
-              Imprimer
+              Imprimer ✓
             </Button>
             {/* TODO: Activer après intégration WhatsApp/Telegram API
             <Button
