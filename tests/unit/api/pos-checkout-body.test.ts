@@ -51,4 +51,61 @@ describe('checkoutBodySchema', () => {
     const result = checkoutBodySchema.safeParse({ ...validBody, paymentMethod: 'bitcoin' })
     expect(result.success).toBe(false)
   })
+
+  const validSplit = [
+    { method: 'cash' as const, amount: 12 },
+    { method: 'mobile' as const, amount: 8 },
+  ]
+  const hybridBody = { ...validBody, total: 20, paymentMethod: 'hybrid' as const, paymentSplits: validSplit }
+
+  it('accepts a valid hybrid payment', () => {
+    const result = checkoutBodySchema.safeParse(hybridBody)
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects hybrid without paymentSplits', () => {
+    const result = checkoutBodySchema.safeParse({ ...hybridBody, paymentSplits: undefined })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects hybrid with duplicate methods', () => {
+    const result = checkoutBodySchema.safeParse({
+      ...hybridBody,
+      paymentSplits: [
+        { method: 'cash', amount: 12 },
+        { method: 'cash', amount: 8 },
+      ],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects hybrid when split amounts do not sum to total', () => {
+    const result = checkoutBodySchema.safeParse({
+      ...hybridBody,
+      paymentSplits: [
+        { method: 'cash', amount: 5 },
+        { method: 'mobile', amount: 8 },
+      ],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects split with non-positive amount', () => {
+    const result = checkoutBodySchema.safeParse({
+      ...hybridBody,
+      paymentSplits: [
+        { method: 'cash', amount: 0 },
+        { method: 'mobile', amount: 20 },
+      ],
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects paymentMethod=hybrid without exactly 2 splits', () => {
+    const result = checkoutBodySchema.safeParse({
+      ...hybridBody,
+      paymentSplits: [{ method: 'cash', amount: 20 }],
+    })
+    expect(result.success).toBe(false)
+  })
 })
