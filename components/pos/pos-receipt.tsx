@@ -252,12 +252,12 @@ export function POSReceipt({
           <div className="flex-1 overflow-y-auto min-h-0">
             <div
               ref={receiptRef}
-              className="receipt-container bg-white p-6 mx-auto"
+              className="receipt-container bg-white px-2 py-4 mx-auto"
               style={{ width: '80mm', fontFamily: 'monospace' }}
             >
             {/* Header */}
-            <div className="text-center text-xs">
-              <p className="text-sm font-bold">{receiptData.store.name}</p>
+            <div className="text-xs text-center">
+              <p className="text-sm font-bold text-center break-words">{receiptData.store.name}</p>
               {receiptData.store.address && <p>{receiptData.store.address}</p>}
               {receiptData.store.phone && <p>Tel: {receiptData.store.phone}</p>}
             </div>
