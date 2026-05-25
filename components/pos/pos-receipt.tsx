@@ -237,10 +237,6 @@ export function POSReceipt({
             padding: 0 !important;
             margin: 0 !important;
             box-shadow: none !important;
-            border-left: 1px solid #e5e7eb !important;
-            border-right: 1px solid #e5e7eb !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
           }
         }
       `}</style>
@@ -258,7 +254,7 @@ export function POSReceipt({
           <div className="flex-1 overflow-y-auto min-h-0">
             <div
               ref={receiptRef}
-              className="receipt-container bg-white px-2 py-4 mx-auto border-x border-gray-200"
+              className="receipt-container bg-white px-2 py-4 mx-4"
               style={{ width: '80mm', fontFamily: 'monospace' }}
             >
             {/* Header */}
