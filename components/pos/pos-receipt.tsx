@@ -175,14 +175,9 @@ export function POSReceipt({
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    const d = new Date(dateString)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
   }
 
   const formatCurrency = (amount: number) => {
@@ -190,12 +185,12 @@ export function POSReceipt({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount)
-    return `${formatted} CFA`
+    return `${formatted.replace(/\s/g, ' ')} CFA`
   }
 
   const formatPaymentMethod = (method: string) => {
     const methods: Record<string, string> = {
-      cash: 'Espèces',
+      cash: 'Especes',
       card: 'Carte bancaire',
       mobile: 'Paiement mobile',
       other: 'Autre',
@@ -261,41 +256,72 @@ export function POSReceipt({
               style={{ width: '80mm', fontFamily: 'monospace' }}
             >
             {/* Header */}
-            <div className="text-center mb-2 border-b border-dashed border-gray-300 pb-2">
-              <h1 className="text-base font-bold">{receiptData.store.name}</h1>
-              <p className="text-xs text-gray-600">#{receiptData.sale_number} • {formatDate(receiptData.created_at)}</p>
+            <div className="text-center text-xs">
+              <p className="text-sm font-bold">{receiptData.store.name}</p>
+              {receiptData.store.address && <p>{receiptData.store.address}</p>}
+              {receiptData.store.phone && <p>Tel: {receiptData.store.phone}</p>}
             </div>
 
-            {/* Items - Compact format */}
-            <div className="text-xs mb-2">
+            <p className="text-xs my-1">{'- '.repeat(20).trim()}</p>
+
+            {/* Sale info */}
+            <div className="text-xs">
+              <p>Ticket #{receiptData.sale_number}</p>
+              <p>{formatDate(receiptData.created_at)}</p>
+              {receiptData.cashier.full_name && <p>Caissier: {receiptData.cashier.full_name}</p>}
+            </div>
+
+            <p className="text-xs my-1">{'- '.repeat(20).trim()}</p>
+
+            {/* Items */}
+            <div className="text-xs">
               {receiptData.sale_items.map((item, idx) => (
-                <div key={idx} className="flex justify-between py-0.5">
-                  <span className="truncate flex-1 mr-2">
-                    {item.product.name} × {item.quantity}
-                  </span>
-                  <span className="font-medium whitespace-nowrap">
-                    {formatCurrency(item.subtotal)}
-                  </span>
+                <div key={idx}>
+                  <div className="flex justify-between">
+                    <span className="truncate flex-1 mr-1">{item.product.name} x{item.quantity}</span>
+                    <span className="whitespace-nowrap">{formatCurrency(item.subtotal)}</span>
+                  </div>
+                  {item.discount && item.discount > 0 && (
+                    <p className="pl-2">remise: -{formatCurrency(item.discount)}</p>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Total */}
-            <div className="border-t border-dashed border-gray-300 pt-2">
-              <div className="flex justify-between text-sm font-bold">
+            <p className="text-xs my-1">{'- '.repeat(20).trim()}</p>
+
+            {/* Totals */}
+            <div className="text-xs">
+              <div className="flex justify-between">
+                <span>Sous-total</span>
+                <span>{formatCurrency(receiptData.subtotal)}</span>
+              </div>
+              {receiptData.tax > 0 && (
+                <div className="flex justify-between">
+                  <span>TVA</span>
+                  <span>{formatCurrency(receiptData.tax)}</span>
+                </div>
+              )}
+              {receiptData.discount && receiptData.discount > 0 && (
+                <div className="flex justify-between">
+                  <span>Remise</span>
+                  <span>-{formatCurrency(receiptData.discount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-sm mt-0.5">
                 <span>TOTAL</span>
                 <span>{formatCurrency(receiptData.total)}</span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">{formatPaymentMethod(receiptData.payment_method)}</p>
+              <p>{formatPaymentMethod(receiptData.payment_method)}</p>
             </div>
+
+            <p className="text-xs my-1">{'- '.repeat(20).trim()}</p>
 
             {/* Footer */}
-            <div className="text-center text-xs text-gray-400 mt-2 pt-2 border-t border-dashed border-gray-300">
-              Merci!
-            </div>
+            <p className="text-xs text-center">Merci !</p>
 
             {receiptData.notes && (
-              <div className="mt-4 text-xs text-gray-600 italic">
+              <div className="text-xs mt-2">
                 Note: {receiptData.notes}
               </div>
             )}
