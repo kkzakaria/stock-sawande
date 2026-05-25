@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import { DEFAULT_PRINTER_CONFIG, MAX_COPIES, MIN_COPIES } from '@/lib/printing/t
 import type { PrinterConfig, PrinterWidth } from '@/lib/printing/types'
 import { clampCopies } from '@/lib/printing/config'
 import type { ReceiptData } from '@/components/pos/pos-receipt'
+import { getPrinterConfigFromDB, savePrinterConfigToDB } from '@/lib/actions/business-settings'
 
 const SAMPLE_TEST_RECEIPT: ReceiptData = {
   id: 'test',
@@ -60,6 +61,20 @@ export function PrinterSettingsTab() {
   const [pairing, setPairing] = useState(false)
   const [testing, setTesting] = useState(false)
   const supportsUsb = isWebUsbSupported()
+  const seededFromDB = useRef(false)
+
+  // Seed localStorage from DB if it was cleared by the browser (e.g. PWA close/reopen)
+  useEffect(() => {
+    if (seededFromDB.current || storedConfig !== null) return
+    seededFromDB.current = true
+    getPrinterConfigFromDB().then((result) => {
+      if (result.success && result.data) {
+        saveConfig(result.data)
+      }
+    })
+  // storedConfig and saveConfig are stable across renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const update = <K extends keyof PrinterConfig>(key: K, value: PrinterConfig[K]) => {
     setDraftEdits({ ...draft, [key]: value })
@@ -78,6 +93,7 @@ export function PrinterSettingsTab() {
 
   const onSave = () => {
     saveConfig(draft)
+    savePrinterConfigToDB(draft)
     setDraftEdits(null)
     toast.success(t('save'))
   }
@@ -85,6 +101,7 @@ export function PrinterSettingsTab() {
   const onTest = async () => {
     setTesting(true)
     saveConfig(draft)
+    savePrinterConfigToDB(draft)
     const result = await print(SAMPLE_TEST_RECEIPT)
     setTesting(false)
     if (result.ok) {

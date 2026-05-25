@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { MIN_COPIES, MAX_COPIES } from '@/lib/printing/types'
+import type { PrinterConfig } from '@/lib/printing/types'
 
 // Validation schemas
 const taxSettingsSchema = z.object({
@@ -374,6 +376,81 @@ export async function getCompanyInfoSettings(): Promise<ActionResult<CompanyInfo
     }
   } catch (error) {
     console.error('Error fetching company info:', error)
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+const printerConfigSchema = z.object({
+  enabled: z.boolean(),
+  transport: z.enum(['usb', 'bluetooth', 'network']),
+  width: z.union([z.literal(58), z.literal(80)]),
+  codepage: z.string(),
+  autoCut: z.boolean(),
+  autoPrint: z.boolean(),
+  copies: z.number().int().min(MIN_COPIES).max(MAX_COPIES),
+  usb: z.object({ vendorId: z.number(), productId: z.number() }).optional(),
+  bluetooth: z.object({
+    deviceId: z.string(),
+    serviceUuid: z.string(),
+    characteristicUuid: z.string(),
+  }).optional(),
+  network: z.object({
+    host: z.string(),
+    port: z.number(),
+    timeoutMs: z.number(),
+  }).optional(),
+})
+
+export async function getPrinterConfigFromDB(): Promise<ActionResult<PrinterConfig | null>> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+
+    const { data, error } = await supabase
+      .from('business_settings')
+      .select('value')
+      .eq('key', 'printer_config')
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      return { success: false, error: 'Failed to fetch printer config' }
+    }
+    if (!data) return { success: true, data: null }
+
+    const parsed = printerConfigSchema.safeParse(data.value)
+    return { success: true, data: parsed.success ? (parsed.data as PrinterConfig) : null }
+  } catch {
+    return { success: false, error: 'An unexpected error occurred' }
+  }
+}
+
+export async function savePrinterConfigToDB(config: unknown): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+
+    const validated = printerConfigSchema.parse(config)
+
+    const { error } = await supabase
+      .from('business_settings')
+      .upsert(
+        {
+          key: 'printer_config',
+          value: validated,
+          description: 'Thermal printer configuration',
+          updated_by: user.id,
+        },
+        { onConflict: 'key' },
+      )
+
+    if (error) return { success: false, error: 'Failed to save printer config' }
+    return { success: true }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0].message }
+    }
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
