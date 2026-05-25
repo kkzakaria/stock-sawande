@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Analytics } from '@vercel/analytics/next';
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner"
+import { PwaUpdateNotifier } from '@/components/pwa-update-notifier';
 import { routing } from '@/src/i18n/routing';
 import "../globals.css";
 
@@ -50,6 +51,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             {children}
           </NuqsAdapter>
         </NextIntlClientProvider>
+        <PwaUpdateNotifier />
         <Toaster />
         <Analytics />
       </body>
