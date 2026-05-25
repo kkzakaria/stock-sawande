@@ -67,15 +67,18 @@ const withPWA = withPWAInit({
         },
       },
     },
-    // POS Page - Stale While Revalidate
+    // POS Page - NetworkFirst so new deployments are reflected immediately.
+    // StaleWhileRevalidate would serve the old HTML (with old JS chunk hashes)
+    // on the current visit, causing the user to see stale UI after a deploy.
     {
       urlPattern: /\/pos$/,
-      handler: "StaleWhileRevalidate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "pos-page",
+        networkTimeoutSeconds: 3,
         expiration: {
           maxEntries: 1,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
+          maxAgeSeconds: 24 * 60 * 60, // 1 day (offline fallback only)
         },
       },
     },
