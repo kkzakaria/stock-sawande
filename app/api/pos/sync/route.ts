@@ -32,7 +32,7 @@ interface SyncTransactionRequest {
   discount: number
   total: number
   paymentMethod: string
-  paymentSplits?: Array<{ method: string; amount: number }>
+  paymentSplits?: Array<{ method: 'cash' | 'card' | 'mobile' | 'other'; amount: number }>
   notes: string
   createdAt: string
 }
@@ -370,17 +370,21 @@ async function processTransaction(
         transaction_count: (currentSession.transaction_count || 0) + 1,
       }
 
-      if (tx.paymentMethod === 'hybrid' && tx.paymentSplits) {
-        for (const split of tx.paymentSplits) {
-          if (split.method === 'cash') {
-            updates.total_cash_sales = (currentSession.total_cash_sales || 0) + split.amount
-          } else if (split.method === 'card') {
-            updates.total_card_sales = (currentSession.total_card_sales || 0) + split.amount
-          } else if (split.method === 'mobile') {
-            updates.total_mobile_sales = (currentSession.total_mobile_sales || 0) + split.amount
-          } else {
-            updates.total_other_sales = (currentSession.total_other_sales || 0) + split.amount
+      if (tx.paymentMethod === 'hybrid') {
+        if (tx.paymentSplits && tx.paymentSplits.length > 0) {
+          for (const split of tx.paymentSplits) {
+            if (split.method === 'cash') {
+              updates.total_cash_sales = (currentSession.total_cash_sales || 0) + split.amount
+            } else if (split.method === 'card') {
+              updates.total_card_sales = (currentSession.total_card_sales || 0) + split.amount
+            } else if (split.method === 'mobile') {
+              updates.total_mobile_sales = (currentSession.total_mobile_sales || 0) + split.amount
+            } else {
+              updates.total_other_sales = (currentSession.total_other_sales || 0) + split.amount
+            }
           }
+        } else {
+          console.error(`[Sync] Hybrid transaction ${tx.localId} missing paymentSplits — session totals not updated`)
         }
       } else {
         if (tx.paymentMethod === 'cash') {
