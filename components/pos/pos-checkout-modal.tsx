@@ -90,7 +90,8 @@ export function POSCheckoutModal({
 
   const splitAmount1Num = parseFloat(splitAmount1) || 0
   const splitAmount2Num = total - splitAmount1Num
-  const isHybridValid = paymentTab === 'hybrid'
+  const isHybrid = paymentTab === 'hybrid'
+  const isHybridValid = isHybrid
     ? splitAmount1Num > 0 && splitAmount1Num < total && splitMethod1 !== splitMethod2
     : true
 
@@ -114,7 +115,6 @@ export function POSCheckoutModal({
   }, [isOnline, open, items, validateOfflineCheckout])
 
   const handleOnlineCheckout = async () => {
-    const isHybrid = paymentTab === 'hybrid'
     const response = await fetch('/api/pos/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -156,7 +156,6 @@ export function POSCheckoutModal({
   }
 
   const handleOfflineCheckout = async () => {
-    const isHybrid = paymentTab === 'hybrid'
     const offlineItems = items.map((item) => ({
       productId: item.productId,
       inventoryId: item.inventoryId,
@@ -185,6 +184,7 @@ export function POSCheckoutModal({
           ]
         : undefined,
       notes,
+      // Receipt metadata for offline ticket generation
       storeInfo,
       cashierName,
     })
@@ -355,7 +355,7 @@ export function POSCheckoutModal({
                     value={splitMethod1}
                     onValueChange={(v) => setSplitMethod1(v as SinglePaymentMethod)}
                   >
-                    <SelectTrigger className="w-36">
+                    <SelectTrigger className="w-36" aria-label={t('hybridMethod1')}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -373,6 +373,7 @@ export function POSCheckoutModal({
                     onChange={(e) => setSplitAmount1(e.target.value)}
                     placeholder="0"
                     className="flex-1"
+                    aria-label={t('hybridAmount1')}
                   />
                 </div>
 
@@ -383,7 +384,7 @@ export function POSCheckoutModal({
                     value={splitMethod2}
                     onValueChange={(v) => setSplitMethod2(v as SinglePaymentMethod)}
                   >
-                    <SelectTrigger className="w-36">
+                    <SelectTrigger className="w-36" aria-label={t('hybridMethod2')}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
