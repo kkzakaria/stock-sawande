@@ -131,6 +131,9 @@ export async function proxy(request: NextRequest) {
           getAll: () => request.cookies.getAll(),
           setAll: (cookies) => {
             cookies.forEach(({ name, value, options }) => {
+              // Update request cookies so the current route handler sees the
+              // refreshed access token (not just future requests).
+              request.cookies.set(name, value)
               response.cookies.set(name, value, options)
             })
           },
