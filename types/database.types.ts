@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       business_settings: {
@@ -1590,23 +1565,42 @@ export type Database = {
         }[]
       }
       is_user_active: { Args: { check_user_id: string }; Returns: boolean }
-      process_checkout: {
-        Args: {
-          p_cash_session_id?: string
-          p_cashier_id: string
-          p_customer_id?: string
-          p_discount?: number
-          p_idempotency_key?: string
-          p_items?: Json
-          p_notes?: string
-          p_payment_method?: string
-          p_store_id: string
-          p_subtotal?: number
-          p_tax?: number
-          p_total?: number
-        }
-        Returns: Json
-      }
+      process_checkout:
+        | {
+            Args: {
+              p_cash_session_id?: string
+              p_cashier_id: string
+              p_customer_id?: string
+              p_discount?: number
+              p_idempotency_key?: string
+              p_items?: Json
+              p_notes?: string
+              p_payment_method?: string
+              p_store_id: string
+              p_subtotal?: number
+              p_tax?: number
+              p_total?: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_cash_session_id?: string
+              p_cashier_id: string
+              p_customer_id?: string
+              p_discount?: number
+              p_idempotency_key?: string
+              p_items?: Json
+              p_notes?: string
+              p_payment_method?: string
+              p_payment_splits?: Json
+              p_store_id: string
+              p_subtotal?: number
+              p_tax?: number
+              p_total?: number
+            }
+            Returns: Json
+          }
       products_for_user_stores: {
         Args: { p_store_ids: string[] }
         Returns: {
@@ -1783,9 +1777,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       cash_session_status: ["open", "closed", "locked"],
