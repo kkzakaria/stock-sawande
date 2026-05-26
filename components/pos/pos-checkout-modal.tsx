@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreditCard, Banknote, Smartphone, Loader2, WifiOff, AlertTriangle } from 'lucide-react'
 
@@ -41,7 +44,8 @@ interface POSCheckoutModalProps {
   onCheckoutComplete: (saleId: string, saleNumber: string, isOffline?: boolean) => void
 }
 
-type PaymentMethod = 'cash' | 'card' | 'mobile'
+type SinglePaymentMethod = 'cash' | 'card' | 'mobile'
+type PaymentTab = 'single' | 'hybrid'
 
 export function POSCheckoutModal({
   open,
@@ -70,7 +74,11 @@ export function POSCheckoutModal({
   const isOnline = useOfflineStore((state) => state.isOnline)
   const { processOfflineCheckout, validateOfflineCheckout } = useOfflineCheckout()
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
+  const [paymentTab, setPaymentTab] = useState<PaymentTab>('single')
+  const [paymentMethod, setPaymentMethod] = useState<SinglePaymentMethod>('cash')
+  const [splitMethod1, setSplitMethod1] = useState<SinglePaymentMethod>('cash')
+  const [splitMethod2, setSplitMethod2] = useState<SinglePaymentMethod>('mobile')
+  const [splitAmount1, setSplitAmount1] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [offlineWarnings, setOfflineWarnings] = useState<string[]>([])
@@ -79,6 +87,12 @@ export function POSCheckoutModal({
   const subtotalTTC = getSubtotalTTC()
   const tax = getTax()
   const total = getTotal()
+
+  const splitAmount1Num = parseFloat(splitAmount1) || 0
+  const splitAmount2Num = total - splitAmount1Num
+  const isHybridValid = paymentTab === 'hybrid'
+    ? splitAmount1Num > 0 && splitAmount1Num < total && splitMethod1 !== splitMethod2
+    : true
 
   // Validate offline checkout when offline
   useEffect(() => {
@@ -100,6 +114,7 @@ export function POSCheckoutModal({
   }, [isOnline, open, items, validateOfflineCheckout])
 
   const handleOnlineCheckout = async () => {
+    const isHybrid = paymentTab === 'hybrid'
     const response = await fetch('/api/pos/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -119,7 +134,13 @@ export function POSCheckoutModal({
         tax,
         discount,
         total,
-        paymentMethod,
+        paymentMethod: isHybrid ? 'hybrid' : paymentMethod,
+        paymentSplits: isHybrid
+          ? [
+              { method: splitMethod1, amount: splitAmount1Num },
+              { method: splitMethod2, amount: splitAmount2Num },
+            ]
+          : undefined,
         notes,
         idempotencyKey: crypto.randomUUID(),
       }),
@@ -135,6 +156,7 @@ export function POSCheckoutModal({
   }
 
   const handleOfflineCheckout = async () => {
+    const isHybrid = paymentTab === 'hybrid'
     const offlineItems = items.map((item) => ({
       productId: item.productId,
       inventoryId: item.inventoryId,
@@ -155,9 +177,14 @@ export function POSCheckoutModal({
       tax,
       discount,
       total,
-      paymentMethod,
+      paymentMethod: isHybrid ? 'hybrid' : paymentMethod,
+      paymentSplits: isHybrid
+        ? [
+            { method: splitMethod1, amount: splitAmount1Num },
+            { method: splitMethod2, amount: splitAmount2Num },
+          ]
+        : undefined,
       notes,
-      // Receipt metadata for offline ticket generation
       storeInfo,
       cashierName,
     })
@@ -285,32 +312,103 @@ export function POSCheckoutModal({
           {/* Payment Method */}
           <div className="space-y-3">
             <Label>{t('paymentMethod')}</Label>
-            <RadioGroup
-              value={paymentMethod}
-              onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
-            >
-              <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-                <RadioGroupItem value="cash" id="cash" />
-                <Label htmlFor="cash" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Banknote className="h-5 w-5 text-green-600" />
-                  <span>{t('cash')}</span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-                <RadioGroupItem value="card" id="card" />
-                <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <CreditCard className="h-5 w-5 text-blue-600" />
-                  <span>{t('card')}</span>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-                <RadioGroupItem value="mobile" id="mobile" />
-                <Label htmlFor="mobile" className="flex items-center gap-2 cursor-pointer flex-1">
-                  <Smartphone className="h-5 w-5 text-purple-600" />
-                  <span>{t('mobile')}</span>
-                </Label>
-              </div>
-            </RadioGroup>
+            <Tabs value={paymentTab} onValueChange={(v) => setPaymentTab(v as PaymentTab)}>
+              <TabsList className="w-full">
+                <TabsTrigger value="single" className="flex-1">{t('singlePayment')}</TabsTrigger>
+                <TabsTrigger value="hybrid" className="flex-1">{t('hybridPayment')}</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="single" className="mt-3">
+                <RadioGroup
+                  value={paymentMethod}
+                  onValueChange={(value) => setPaymentMethod(value as SinglePaymentMethod)}
+                >
+                  <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="cash" id="cash" />
+                    <Label htmlFor="cash" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <Banknote className="h-5 w-5 text-green-600" />
+                      <span>{t('cash')}</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="card" id="card" />
+                    <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <CreditCard className="h-5 w-5 text-blue-600" />
+                      <span>{t('card')}</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="mobile" id="mobile" />
+                    <Label htmlFor="mobile" className="flex items-center gap-2 cursor-pointer flex-1">
+                      <Smartphone className="h-5 w-5 text-purple-600" />
+                      <span>{t('mobile')}</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </TabsContent>
+
+              <TabsContent value="hybrid" className="mt-3 space-y-3">
+                {/* Split 1 */}
+                <div className="flex items-center gap-3 border rounded-lg p-3">
+                  <span className="text-sm text-gray-500 w-16 shrink-0">{t('hybridMethod1')}</span>
+                  <Select
+                    value={splitMethod1}
+                    onValueChange={(v) => setSplitMethod1(v as SinglePaymentMethod)}
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {splitMethod2 !== 'cash' && <SelectItem value="cash">{t('cash')}</SelectItem>}
+                      {splitMethod2 !== 'card' && <SelectItem value="card">{t('card')}</SelectItem>}
+                      {splitMethod2 !== 'mobile' && <SelectItem value="mobile">{t('mobile')}</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={total - 1}
+                    step={1}
+                    value={splitAmount1}
+                    onChange={(e) => setSplitAmount1(e.target.value)}
+                    placeholder="0"
+                    className="flex-1"
+                  />
+                </div>
+
+                {/* Split 2 (remainder) */}
+                <div className="flex items-center gap-3 border rounded-lg p-3 bg-gray-50">
+                  <span className="text-sm text-gray-500 w-16 shrink-0">{t('hybridMethod2')}</span>
+                  <Select
+                    value={splitMethod2}
+                    onValueChange={(v) => setSplitMethod2(v as SinglePaymentMethod)}
+                  >
+                    <SelectTrigger className="w-36">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {splitMethod1 !== 'cash' && <SelectItem value="cash">{t('cash')}</SelectItem>}
+                      {splitMethod1 !== 'card' && <SelectItem value="card">{t('card')}</SelectItem>}
+                      {splitMethod1 !== 'mobile' && <SelectItem value="mobile">{t('mobile')}</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex-1 px-3 py-2 text-sm font-medium text-gray-700">
+                    {splitAmount2Num > 0 ? formatCurrency(splitAmount2Num) : '—'}
+                    <span className="ml-2 text-xs text-gray-400">{t('hybridAmount2')}</span>
+                  </div>
+                </div>
+
+                {/* Validation feedback */}
+                {splitAmount1 !== '' && !isHybridValid && (
+                  <p className="text-sm text-red-600">{t('hybridAmountError')}</p>
+                )}
+                {isHybridValid && splitAmount1 !== '' && (
+                  <p className="text-sm text-green-600">
+                    {formatCurrency(splitAmount1Num)} + {formatCurrency(splitAmount2Num)} = {formatCurrency(total)}
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Error Display */}
@@ -331,7 +429,7 @@ export function POSCheckoutModal({
           </Button>
           <Button
             onClick={handleCheckout}
-            disabled={isProcessing}
+            disabled={isProcessing || !isHybridValid}
             className={!isOnline ? 'bg-orange-600 hover:bg-orange-700' : ''}
           >
             {isProcessing ? (
