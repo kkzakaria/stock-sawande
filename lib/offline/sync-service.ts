@@ -42,6 +42,7 @@ interface SyncTransactionRequest {
   discount: number
   total: number
   paymentMethod: string
+  paymentSplits?: Array<{ method: string; amount: number }>
   notes: string
   createdAt: string
 }
@@ -163,6 +164,7 @@ class SyncService {
         discount: tx.discount,
         total: tx.total,
         paymentMethod: tx.paymentMethod,
+        paymentSplits: tx.paymentSplits,
         notes: tx.notes,
         // Handle Date serialization (IndexedDB may store as string after persistence)
         createdAt: tx.createdAt instanceof Date

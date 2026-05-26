@@ -32,6 +32,7 @@ interface SyncTransactionRequest {
   discount: number
   total: number
   paymentMethod: string
+  paymentSplits?: Array<{ method: 'cash' | 'card' | 'mobile' | 'other'; amount: number }>
   notes: string
   createdAt: string
 }
@@ -278,6 +279,24 @@ async function processTransaction(
     }
   }
 
+  // Insert sale_payments for hybrid transactions
+  if (tx.paymentMethod === 'hybrid' && tx.paymentSplits && tx.paymentSplits.length > 0) {
+    const splitRows = tx.paymentSplits.map((split) => ({
+      sale_id: sale.id,
+      payment_method: split.method,
+      amount: split.amount,
+    }))
+    const { error: splitsError } = await supabase.from('sale_payments').insert(splitRows)
+    if (splitsError) {
+      await supabase.from('sales').delete().eq('id', sale.id)
+      return {
+        localId: tx.localId,
+        status: 'failed',
+        error: `Failed to create sale_payments: ${splitsError.message}`,
+      }
+    }
+  }
+
   // Create sale items
   const saleItems = adjustedItems.map((item) => ({
     sale_id: sale.id,
@@ -342,7 +361,7 @@ async function processTransaction(
   if (tx.sessionId) {
     const { data: currentSession } = await supabase
       .from('cash_sessions')
-      .select('total_cash_sales, total_card_sales, total_mobile_sales, transaction_count')
+      .select('total_cash_sales, total_card_sales, total_mobile_sales, total_other_sales, transaction_count')
       .eq('id', tx.sessionId)
       .single()
 
@@ -351,12 +370,32 @@ async function processTransaction(
         transaction_count: (currentSession.transaction_count || 0) + 1,
       }
 
-      if (tx.paymentMethod === 'cash') {
-        updates.total_cash_sales = (currentSession.total_cash_sales || 0) + adjustedTotal
-      } else if (tx.paymentMethod === 'card') {
-        updates.total_card_sales = (currentSession.total_card_sales || 0) + adjustedTotal
-      } else if (tx.paymentMethod === 'mobile') {
-        updates.total_mobile_sales = (currentSession.total_mobile_sales || 0) + adjustedTotal
+      if (tx.paymentMethod === 'hybrid') {
+        if (tx.paymentSplits && tx.paymentSplits.length > 0) {
+          for (const split of tx.paymentSplits) {
+            if (split.method === 'cash') {
+              updates.total_cash_sales = (currentSession.total_cash_sales || 0) + split.amount
+            } else if (split.method === 'card') {
+              updates.total_card_sales = (currentSession.total_card_sales || 0) + split.amount
+            } else if (split.method === 'mobile') {
+              updates.total_mobile_sales = (currentSession.total_mobile_sales || 0) + split.amount
+            } else {
+              updates.total_other_sales = (currentSession.total_other_sales || 0) + split.amount
+            }
+          }
+        } else {
+          console.error(`[Sync] Hybrid transaction ${tx.localId} missing paymentSplits — session totals not updated`)
+        }
+      } else {
+        if (tx.paymentMethod === 'cash') {
+          updates.total_cash_sales = (currentSession.total_cash_sales || 0) + adjustedTotal
+        } else if (tx.paymentMethod === 'card') {
+          updates.total_card_sales = (currentSession.total_card_sales || 0) + adjustedTotal
+        } else if (tx.paymentMethod === 'mobile') {
+          updates.total_mobile_sales = (currentSession.total_mobile_sales || 0) + adjustedTotal
+        } else {
+          updates.total_other_sales = (currentSession.total_other_sales || 0) + adjustedTotal
+        }
       }
 
       await supabase

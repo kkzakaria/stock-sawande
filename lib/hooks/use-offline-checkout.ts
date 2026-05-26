@@ -19,6 +19,7 @@ import type {
   PendingTransaction,
   PendingTransactionItem,
   PaymentMethod,
+  PaymentSplit,
 } from '@/lib/offline/db-schema'
 
 // ============================================
@@ -46,6 +47,7 @@ export interface OfflineCheckoutData {
   discount: number
   total: number
   paymentMethod: PaymentMethod
+  paymentSplits?: PaymentSplit[]
   notes: string
   // Receipt metadata for offline ticket generation
   storeInfo: {
@@ -122,6 +124,7 @@ export function useOfflineCheckout() {
           discount: data.discount,
           total: data.total,
           paymentMethod: data.paymentMethod,
+          paymentSplits: data.paymentSplits,
           notes: data.notes,
           createdAt: new Date(),
           status: 'pending',
